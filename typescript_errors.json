@@ -1,0 +1,44 @@
+{
+  "typescript_errors": {
+    "total_errors": 934,
+    "files_with_errors": 6,
+    "error_summary": [
+      {
+        "file": "__tests__/services/profileService.test.ts",
+        "errors": 644,
+        "description": "Severe syntax corruption with unterminated strings, missing commas, and malformed object literals throughout the test file"
+      },
+      {
+        "file": "__tests__/integration/feedbackFlow.test.tsx",
+        "errors": 222,
+        "description": "Similar syntax corruption with malformed test structure and string literals"
+      },
+      {
+        "file": "__tests__/services/feedbackService.test.ts",
+        "errors": 39,
+        "description": "Syntax errors in test file structure"
+      },
+      {
+        "file": "__tests__/integration/profileIntegration.test.tsx",
+        "errors": 19,
+        "description": "Test file syntax issues"
+      },
+      {
+        "file": "src/services/analysis/bioPulseAnalysisService.ts",
+        "errors": 6,
+        "description": "Missing interface declarations and malformed export statements"
+      },
+      {
+        "file": "src/hooks/useErrorHandler.ts",
+        "errors": 4,
+        "description": "Missing semicolon and malformed object structure"
+      }
+    ],
+    "critical_issues": [
+      "Multiple test files appear to have severe corruption with unterminated strings and malformed syntax",
+      "Source files have interface declaration issues",
+      "The fontSize theme update was successful but existing codebase has pre-existing TypeScript errors"
+    ],
+    "theme_update_status": "SUCCESS - md: 16 fontSize entry was successfully added to BioPulseTheme.typography.fontSize"
+  }
+}

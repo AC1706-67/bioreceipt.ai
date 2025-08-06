@@ -1,0 +1,68 @@
+{
+  "database": "BioPulse",
+  "extensions": ["uuid-ossp", "pgcrypto"],
+  "tables": [
+    {
+      "name": "ai_personalizations",
+      "description": "Stores AI-generated personalized recommendations per user",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "pk": true,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "fk": "user_profiles.id",
+          "not_null": true
+        },
+        {
+          "name": "input_data",
+          "type": "jsonb",
+          "not_null": true,
+          "description": "Payload sent to the AI model (preferences, history, etc.)"
+        },
+        {
+          "name": "output_data",
+          "type": "jsonb",
+          "not_null": true,
+          "description": "AI response, e.g. list of personalized tips or scores"
+        },
+        {
+          "name": "model",
+          "type": "text",
+          "default": "'default'",
+          "description": "Model name or version"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "default": "NOW()",
+          "not_null": true
+        }
+      ],
+      "indexes": ["user_id"],
+      "rls": [
+        "SELECT: auth.uid() = user_id",
+        "INSERT: auth.uid() = user_id",
+        "UPDATE: auth.uid() = user_id",
+        "DELETE: auth.uid() = user_id"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "get_user_personalizations",
+      "arguments": [
+        { "name": "user_uuid", "type": "uuid" },
+        { "name": "limit", "type": "integer", "default": 10 }
+      ],
+      "returns": "TABLE(id uuid, input_data jsonb, output_data jsonb, model text, created_at timestamptz)",
+      "body": "RETURN QUERY SELECT id, input_data, output_data, model, created_at FROM ai_personalizations WHERE user_id = user_uuid ORDER BY created_at DESC LIMIT limit;",
+      "security_definer": true,
+      "grant_execute_to": ["authenticated"]
+    }
+  ]
+}
