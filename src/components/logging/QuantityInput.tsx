@@ -13,7 +13,7 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 interface Props {
   quantity: string;
@@ -21,6 +21,8 @@ interface Props {
   defaultUnit: string;
   onQuantityChange: (quantity: string) => void;
   onUnitChange: (unit: string) => void;
+  autoFocus?: boolean;
+  onFocus?: () => void;
 }
 
 // Common units for different substance categories
@@ -43,6 +45,8 @@ const QuantityInput: React.FC<Props> = ({
   defaultUnit,
   onQuantityChange,
   onUnitChange,
+  autoFocus = false,
+  onFocus,
 }) => {
   const [isUnitModalVisible, setIsUnitModalVisible] = useState(false);
   const [quantityError, setQuantityError] = useState('');
@@ -123,8 +127,10 @@ const QuantityInput: React.FC<Props> = ({
             value={quantity}
             onChangeText={handleQuantityChange}
             placeholder="0"
-            placeholderTextColor={BioPulseTheme.colors.textTertiary}
+            placeholderTextColor={BioReceiptTheme.colors.textTertiary}
             keyboardType="decimal-pad"
+            autoFocus={autoFocus}
+            onFocus={onFocus}
             accessible={true}
             accessibilityLabel="Quantity input"
             accessibilityHint="Enter the amount consumed"
@@ -204,145 +210,145 @@ const QuantityInput: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   label: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   inputRow: {
     flexDirection: 'row',
-    gap: BioPulseTheme.spacing.md,
+    gap: BioReceiptTheme.spacing.md,
   },
   quantityContainer: {
     flex: 2,
   },
   quantityInput: {
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    color: BioPulseTheme.colors.text,
-    backgroundColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.border,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    color: BioReceiptTheme.colors.text,
+    backgroundColor: BioReceiptTheme.colors.surface,
     textAlign: 'center',
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
     minHeight: 48, // Accessibility: minimum touch target
   },
   inputError: {
-    borderColor: BioPulseTheme.colors.error,
+    borderColor: BioReceiptTheme.colors.error,
   },
   errorText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.error,
-    marginTop: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.error,
+    marginTop: BioReceiptTheme.spacing.xs,
     textAlign: 'center',
   },
   unitSelector: {
     flex: 1,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    backgroundColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.border,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    backgroundColor: BioReceiptTheme.colors.surface,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 48, // Accessibility: minimum touch target
   },
   unitSelectorText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
   },
   chevron: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    color: BioPulseTheme.colors.textTertiary,
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    color: BioReceiptTheme.colors.textTertiary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
-    backgroundColor: BioPulseTheme.colors.surface,
+    borderBottomColor: BioReceiptTheme.colors.border,
+    backgroundColor: BioReceiptTheme.colors.surface,
   },
   cancelButton: {
-    paddingVertical: BioPulseTheme.spacing.sm,
-    paddingHorizontal: BioPulseTheme.spacing.sm,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.sm,
     minHeight: 44, // Accessibility: minimum touch target
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
   },
   modalTitle: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.text,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.text,
   },
   resetButton: {
-    paddingVertical: BioPulseTheme.spacing.sm,
-    paddingHorizontal: BioPulseTheme.spacing.sm,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.sm,
     minHeight: 44, // Accessibility: minimum touch target
     justifyContent: 'center',
   },
   resetButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.primary,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.primary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
   },
   unitsList: {
     flex: 1,
   },
   unitsListContent: {
-    paddingVertical: BioPulseTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
   },
   unitItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
-    backgroundColor: BioPulseTheme.colors.surface,
+    borderBottomColor: BioReceiptTheme.colors.border,
+    backgroundColor: BioReceiptTheme.colors.surface,
     minHeight: 48, // Accessibility: minimum touch target
   },
   unitItemSelected: {
-    backgroundColor: BioPulseTheme.colors.primaryLight,
-    borderBottomColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primaryLight,
+    borderBottomColor: BioReceiptTheme.colors.primary,
   },
   unitText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.text,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.text,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
   },
   unitTextSelected: {
-    color: BioPulseTheme.colors.primary,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.primary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
   },
   defaultLabel: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.success,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    backgroundColor: BioPulseTheme.colors.successLight,
-    paddingHorizontal: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.success,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    backgroundColor: BioReceiptTheme.colors.successLight,
+    paddingHorizontal: BioReceiptTheme.spacing.sm,
     paddingVertical: 2,
-    borderRadius: BioPulseTheme.borderRadius.sm,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
   },
 });
 

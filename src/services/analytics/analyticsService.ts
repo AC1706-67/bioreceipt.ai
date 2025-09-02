@@ -1,148 +1,145 @@
 /**
  * Analytics Service
- * Privacy-compliant analytics and usage tracking
+ * Privacy-compliant analytics and usage tracking system
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SecureStorageService } from '../security/secureStorage';
+import { AuditLogService } from '../compliance/auditLogService';
 
-import { AnalyticsEvent } from '../../types/analytics';
-import { storeData, getData } from '../../utils/storage';
-import { SyncService } from '../sync/syncService';
-
-export type EventType = 
-  | 'app_launch'
-  | 'app_background'
-  | 'screen_view'
+// Analytics Event Types
+export type AnalyticsEventType = 
   | 'tip_view'
   | 'tip_like'
   | 'tip_bookmark'
   | 'tip_complete'
   | 'tip_share'
-  | 'search_performed'
-  | 'category_filter'
-  | 'notification_received'
-  | 'notification_opened'
-  | 'feedback_submitted'
-  | 'profile_updated'
-  | 'settings_changed'
+  | 'streak_milestone'
+  | 'app_open'
+  | 'app_close'
+  | 'screen_view'
+  | 'user_action'
   | 'error_occurred'
-  | 'performance_metric'
-  | 'ai_personalization_served'
-  | 'ai_personalization_learning'
-  | 'ai_personalization_preferences_updated'
-  | 'health_tip_created'
-  | 'health_tip_updated'
-  | 'health_tip_deleted'
-  | 'tip_interaction';
+  | 'performance_metric';
 
-export interface EventData {
-  // Common properties
-  screen?: string;
-  action?: string;
-  category?: string;
-  value?: number;
-  
-  // Tip-specific properties
-  tipId?: string;
-  tipCategory?: string;
-  tipTitle?: string;
-  
-  // User interaction properties
-  interactionType?: string;
-  duration?: number;
-  
-  // Search properties
-  searchQuery?: string;
-  searchResults?: number;
-  
-  // Error properties
-  errorType?: string;
-  errorMessage?: string;
-  
-  // Performance properties
-  loadTime?: number;
-  memoryUsage?: number;
-  
-  // Custom properties
-  [key: string]: any;
+// Analytics Event Interface
+export interface AnalyticsEvent {
+  id: string;
+  type: AnalyticsEventType;
+  timestamp: Date;
+  userId?: string; // Optional for privacy
+  sessionId: string;
+  properties: Record<string, any>;
+  metadata?: {
+    appVersion: string;
+    platform: 'ios' | 'android';
+    deviceId?: string; // Hashed for privacy
+    networkType?: string;
+    batteryLevel?: number;
+  };
 }
 
-export interface AnalyticsConfig {
-  enabled: boolean;
-  consentGiven: boolean;
-  trackingLevel: 'minimal' | 'standard' | 'detailed';
-  retentionDays: number;
-  batchSize: number;
-  flushInterval: number; // in milliseconds
-}
-
-export interface UserEngagementMetrics {
-  userId: string;
-  sessionCount: number;
-  totalSessionDuration: number;
+// Engagement Metrics Interface
+export interface EngagementMetrics {
+  tipViews: number;
+  tipLikes: number;
+  tipBookmarks: number;
+  tipCompletions: number;
+  tipShares: number;
   averageSessionDuration: number;
-  tipsViewed: number;
-  tipsLiked: number;
-  tipsBookmarked: number;
-  tipsCompleted: number;
-  searchesPerformed: number;
-  feedbackSubmitted: number;
-  lastActiveDate: Date;
-  streakDays: number;
-  favoriteCategories: string[];
+  dailyActiveUsers: number;
+  weeklyActiveUsers: number;
+  monthlyActiveUsers: number;
+  streakMilestones: Record<number, number>; // milestone -> count
 }
 
-export interface AppUsageMetrics {
-  totalUsers: number;
-  activeUsers: {
-    daily: number;
-    weekly: number;
-    monthly: number;
+// Content Performance Interface
+export interface ContentPerformance {
+  tipId: string;
+  title: string;
+  category: string;
+  views: number;
+  likes: number;
+  bookmarks: number;
+  completions: number;
+  shares: number;
+  engagementRate: number;
+  averageReadTime: number;
+  retentionRate: number;
+}
+
+// User Behavior Analytics Interface
+export interface UserBehaviorAnalytics {
+  averageSessionsPerDay: number;
+  averageSessionDuration: number;
+  mostActiveTimeOfDay: string;
+  preferredCategories: string[];
+  engagementTrends: {
+    daily: number[];
+    weekly: number[];
+    monthly: number[];
   };
-  sessionMetrics: {
-    averageDuration: number;
-    totalSessions: number;
-    bounceRate: number;
-  };
-  contentMetrics: {
-    mostViewedTips: Array<{ tipId: string; views: number; title: string }>;
-    mostLikedTips: Array<{ tipId: string; likes: number; title: string }>;
-    categoryPopularity: Record<string, number>;
-  };
-  userBehavior: {
-    averageTipsPerSession: number;
-    completionRate: number;
-    retentionRate: {
-      day1: number;
-      day7: number;
-      day30: number;
-    };
+  retentionRates: {
+    day1: number;
+    day7: number;
+    day30: number;
   };
 }
 
-/**
- * Analytics Service Class
- */
+// Privacy Settings Interface
+export interface AnalyticsPrivacySettings {
+  enableAnalytics: boolean;
+  enablePersonalizedAnalytics: boolean;
+  enablePerformanceTracking: boolean;
+  enableErrorReporting: boolean;
+  dataRetentionDays: number;
+}
+
+// Analytics Configuration
+export interface AnalyticsConfig {
+  batchSize: number;
+  flushInterval: number; // milliseconds
+  maxRetries: number;
+  retryDelay: number; // milliseconds
+  enableOfflineQueue: boolean;
+  enableRealTimeTracking: boolean;
+}
+
 export class AnalyticsService {
   private static instance: AnalyticsService;
-  private syncService: SyncService;
-  private config: AnalyticsConfig;
+  private secureStorage: SecureStorageService;
+  private auditLogService: AuditLogService;
+  private eventQueue: AnalyticsEvent[] = [];
   private sessionId: string;
   private sessionStartTime: Date;
-  private eventQueue: AnalyticsEvent[] = [];
   private flushTimer?: NodeJS.Timeout;
+  private isInitialized = false;
+  private privacySettings: AnalyticsPrivacySettings;
+  private config: AnalyticsConfig;
 
   private constructor() {
-    this.syncService = SyncService.getInstance();
-    this.config = {
-      enabled: true,
-      consentGiven: false,
-      trackingLevel: 'standard',
-      retentionDays: 90,
-      batchSize: 50,
-      flushInterval: 30000, // 30 seconds
-    };
+    this.secureStorage = SecureStorageService.getInstance();
+    this.auditLogService = AuditLogService.getInstance();
     this.sessionId = this.generateSessionId();
     this.sessionStartTime = new Date();
-    this.initializeFlushTimer();
+    
+    // Default privacy settings (privacy-first approach)
+    this.privacySettings = {
+      enableAnalytics: false, // Opt-in by default
+      enablePersonalizedAnalytics: false,
+      enablePerformanceTracking: true,
+      enableErrorReporting: true,
+      dataRetentionDays: 90
+    };
+
+    // Default configuration
+    this.config = {
+      batchSize: 50,
+      flushInterval: 30000, // 30 seconds
+      maxRetries: 3,
+      retryDelay: 5000, // 5 seconds
+      enableOfflineQueue: true,
+      enableRealTimeTracking: false
+    };
   }
 
   public static getInstance(): AnalyticsService {
@@ -153,271 +150,379 @@ export class AnalyticsService {
   }
 
   /**
-   * Initialize analytics with user consent
+   * Initialize analytics service with user consent
    */
-  public async initialize(consentGiven: boolean, trackingLevel: 'minimal' | 'standard' | 'detailed' = 'standard'): Promise<void> {
+  public async initialize(privacySettings?: Partial<AnalyticsPrivacySettings>): Promise<void> {
     try {
-      this.config.consentGiven = consentGiven;
-      this.config.trackingLevel = trackingLevel;
-      
-      // Load saved config
-      const savedConfig = await getData<Partial<AnalyticsConfig>>('ANALYTICS_CONFIG');
-      if (savedConfig) {
-        this.config = { ...this.config, ...savedConfig };
-      }
-      
-      // Save updated config
-      await storeData('ANALYTICS_CONFIG', this.config);
-      
-      if (consentGiven) {
-        // Track app launch
-        await this.trackEvent('app_launch', {
-          trackingLevel,
-          timestamp: new Date().toISOString(),
+      // Load existing privacy settings
+      const storedSettings = await this.loadPrivacySettings();
+      this.privacySettings = { ...this.privacySettings, ...storedSettings, ...privacySettings };
+
+      // Save updated settings
+      await this.savePrivacySettings(this.privacySettings);
+
+      // Start session tracking if analytics enabled
+      if (this.privacySettings.enableAnalytics) {
+        await this.trackEvent('app_open', {
+          sessionStart: true,
+          timestamp: this.sessionStartTime.toISOString()
         });
+
+        // Start periodic flush
+        this.startPeriodicFlush();
       }
-      
-      console.log('Analytics initialized with consent:', consentGiven);
+
+      // Load queued events from storage
+      await this.loadQueuedEvents();
+
+      this.isInitialized = true;
+      console.log('Analytics service initialized with privacy settings:', this.privacySettings);
     } catch (error) {
-      console.error('Error initializing analytics:', error);
+      console.error('Failed to initialize analytics service:', error);
+      // Continue operation even if analytics fails
+      this.isInitialized = true;
     }
   }
 
   /**
    * Track an analytics event
    */
-  public async trackEvent(eventType: EventType, eventData: EventData = {}): Promise<void> {
-    if (!this.config.enabled || !this.config.consentGiven) {
-      return;
-    }
-
+  public async trackEvent(
+    type: AnalyticsEventType,
+    properties: Record<string, any> = {},
+    userId?: string
+  ): Promise<void> {
     try {
+      // Check if analytics is enabled
+      if (!this.privacySettings.enableAnalytics) {
+        return;
+      }
+
+      // Check if personalized analytics is enabled for user-specific events
+      if (userId && !this.privacySettings.enablePersonalizedAnalytics) {
+        userId = undefined; // Remove user ID for privacy
+      }
+
       const event: AnalyticsEvent = {
-        id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: eventData.userId,
-        eventType,
-        eventData: this.sanitizeEventData(eventData),
+        id: this.generateEventId(),
+        type,
         timestamp: new Date(),
+        userId,
         sessionId: this.sessionId,
-        deviceInfo: await this.getDeviceInfo(),
+        properties: this.sanitizeProperties(properties),
+        metadata: await this.getEventMetadata()
       };
 
       // Add to queue
       this.eventQueue.push(event);
 
-      // Store locally
-      await this.storeEvent(event);
+      // Immediate flush for critical events
+      if (this.isCriticalEvent(type) || this.config.enableRealTimeTracking) {
+        await this.flushEvents();
+      }
 
-      // Flush if queue is full
+      // Auto-flush if queue is full
       if (this.eventQueue.length >= this.config.batchSize) {
         await this.flushEvents();
       }
 
-      console.log(`Analytics event tracked: ${eventType}`, eventData);
+      // Log for audit purposes
+      await this.auditLogService.logDataAccess({
+        userId: userId || 'anonymous',
+        action: 'ANALYTICS_EVENT_TRACKED',
+        resourceType: 'ANALYTICS_EVENT',
+        resourceId: event.id,
+        ipAddress: 'mobile_app',
+        userAgent: 'BioReceipt',
+        success: true,
+        details: {
+          eventType: type,
+          hasPersonalData: !!userId
+        }
+      });
+
     } catch (error) {
-      console.error('Error tracking event:', error);
+      console.error('Failed to track analytics event:', error);
+      // Don't throw error to avoid disrupting app functionality
     }
+  }
+
+  /**
+   * Track tip engagement
+   */
+  public async trackTipEngagement(
+    tipId: string,
+    action: 'view' | 'like' | 'bookmark' | 'complete' | 'share',
+    userId?: string,
+    additionalProperties: Record<string, any> = {}
+  ): Promise<void> {
+    const eventType = `tip_${action}` as AnalyticsEventType;
+    
+    await this.trackEvent(eventType, {
+      tipId,
+      action,
+      category: additionalProperties.category,
+      difficulty: additionalProperties.difficulty,
+      readTime: additionalProperties.readTime,
+      ...additionalProperties
+    }, userId);
   }
 
   /**
    * Track screen view
    */
-  public async trackScreenView(screenName: string, userId?: string, additionalData: EventData = {}): Promise<void> {
-    await this.trackEvent('screen_view', {
-      screen: screenName,
-      userId,
-      ...additionalData,
-    });
-  }
-
-  /**
-   * Track tip interaction
-   */
-  public async trackTipInteraction(
-    interactionType: 'view' | 'like' | 'bookmark' | 'complete' | 'share',
-    tipId: string,
-    tipData: { title?: string; category?: string },
-    userId?: string
+  public async trackScreenView(
+    screenName: string,
+    userId?: string,
+    additionalProperties: Record<string, any> = {}
   ): Promise<void> {
-    const eventType = `tip_${interactionType}` as EventType;
-    
-    await this.trackEvent(eventType, {
-      tipId,
-      tipTitle: tipData.title,
-      tipCategory: tipData.category,
-      userId,
-      interactionType,
-    });
+    await this.trackEvent('screen_view', {
+      screenName,
+      ...additionalProperties
+    }, userId);
   }
 
   /**
-   * Track user engagement session
+   * Track user action
    */
-  public async trackSessionEnd(userId?: string): Promise<void> {
-    const sessionDuration = Date.now() - this.sessionStartTime.getTime();
-    
-    await this.trackEvent('app_background', {
-      userId,
-      sessionDuration,
-      sessionId: this.sessionId,
-    });
-
-    // Start new session for next app launch
-    this.sessionId = this.generateSessionId();
-    this.sessionStartTime = new Date();
+  public async trackUserAction(
+    action: string,
+    userId?: string,
+    additionalProperties: Record<string, any> = {}
+  ): Promise<void> {
+    await this.trackEvent('user_action', {
+      action,
+      ...additionalProperties
+    }, userId);
   }
 
   /**
-   * Track search activity
+   * Track performance metric
    */
-  public async trackSearch(query: string, resultsCount: number, userId?: string): Promise<void> {
-    await this.trackEvent('search_performed', {
-      searchQuery: this.config.trackingLevel === 'minimal' ? '[REDACTED]' : query,
-      searchResults: resultsCount,
-      userId,
-    });
-  }
+  public async trackPerformanceMetric(
+    metricName: string,
+    value: number,
+    unit: string = 'ms',
+    additionalProperties: Record<string, any> = {}
+  ): Promise<void> {
+    if (!this.privacySettings.enablePerformanceTracking) {
+      return;
+    }
 
-  /**
-   * Track performance metrics
-   */
-  public async trackPerformance(metric: string, value: number, additionalData: EventData = {}): Promise<void> {
     await this.trackEvent('performance_metric', {
-      action: metric,
+      metricName,
       value,
-      ...additionalData,
+      unit,
+      ...additionalProperties
     });
   }
 
   /**
-   * Get user engagement metrics
+   * Track error occurrence
    */
-  public async getUserEngagementMetrics(userId: string): Promise<UserEngagementMetrics | null> {
-    try {
-      const events = await this.getUserEvents(userId);
-      
-      if (events.length === 0) {
-        return null;
-      }
+  public async trackError(
+    error: Error,
+    context: string,
+    userId?: string,
+    additionalProperties: Record<string, any> = {}
+  ): Promise<void> {
+    if (!this.privacySettings.enableErrorReporting) {
+      return;
+    }
 
-      const sessions = this.groupEventsBySessions(events);
-      const tipInteractions = events.filter(e => e.eventType.startsWith('tip_'));
+    await this.trackEvent('error_occurred', {
+      errorName: error.name,
+      errorMessage: error.message,
+      errorStack: error.stack?.substring(0, 1000), // Limit stack trace length
+      context,
+      ...additionalProperties
+    }, userId);
+  }
+
+  /**
+   * Get engagement metrics
+   */
+  public async getEngagementMetrics(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<EngagementMetrics> {
+    try {
+      const events = await this.getStoredEvents(startDate, endDate);
       
-      const metrics: UserEngagementMetrics = {
-        userId,
-        sessionCount: sessions.length,
-        totalSessionDuration: this.calculateTotalSessionDuration(sessions),
-        averageSessionDuration: this.calculateAverageSessionDuration(sessions),
-        tipsViewed: tipInteractions.filter(e => e.eventType === 'tip_view').length,
-        tipsLiked: tipInteractions.filter(e => e.eventType === 'tip_like').length,
-        tipsBookmarked: tipInteractions.filter(e => e.eventType === 'tip_bookmark').length,
-        tipsCompleted: tipInteractions.filter(e => e.eventType === 'tip_complete').length,
-        searchesPerformed: events.filter(e => e.eventType === 'search_performed').length,
-        feedbackSubmitted: events.filter(e => e.eventType === 'feedback_submitted').length,
-        lastActiveDate: new Date(Math.max(...events.map(e => e.timestamp.getTime()))),
-        streakDays: this.calculateStreakDays(events),
-        favoriteCategories: this.calculateFavoriteCategories(tipInteractions),
+      const metrics: EngagementMetrics = {
+        tipViews: this.countEventsByType(events, 'tip_view'),
+        tipLikes: this.countEventsByType(events, 'tip_like'),
+        tipBookmarks: this.countEventsByType(events, 'tip_bookmark'),
+        tipCompletions: this.countEventsByType(events, 'tip_complete'),
+        tipShares: this.countEventsByType(events, 'tip_share'),
+        averageSessionDuration: this.calculateAverageSessionDuration(events),
+        dailyActiveUsers: this.calculateActiveUsers(events, 'day'),
+        weeklyActiveUsers: this.calculateActiveUsers(events, 'week'),
+        monthlyActiveUsers: this.calculateActiveUsers(events, 'month'),
+        streakMilestones: this.calculateStreakMilestones(events)
       };
 
       return metrics;
     } catch (error) {
-      console.error('Error getting user engagement metrics:', error);
-      return null;
+      console.error('Failed to get engagement metrics:', error);
+      return this.getEmptyEngagementMetrics();
     }
   }
 
   /**
-   * Get app usage metrics
+   * Get content performance analytics
    */
-  public async getAppUsageMetrics(): Promise<AppUsageMetrics | null> {
+  public async getContentPerformance(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<ContentPerformance[]> {
     try {
-      const allEvents = await this.getAllEvents();
-      const users = Array.from(new Set(allEvents.filter(e => e.userId).map(e => e.userId)));
+      const events = await this.getStoredEvents(startDate, endDate);
+      const tipEvents = events.filter(event => 
+        event.type.startsWith('tip_') && event.properties.tipId
+      );
+
+      const performanceMap = new Map<string, ContentPerformance>();
+
+      tipEvents.forEach(event => {
+        const tipId = event.properties.tipId;
+        if (!performanceMap.has(tipId)) {
+          performanceMap.set(tipId, {
+            tipId,
+            title: event.properties.title || 'Unknown',
+            category: event.properties.category || 'Unknown',
+            views: 0,
+            likes: 0,
+            bookmarks: 0,
+            completions: 0,
+            shares: 0,
+            engagementRate: 0,
+            averageReadTime: 0,
+            retentionRate: 0
+          });
+        }
+
+        const performance = performanceMap.get(tipId)!;
+        
+        switch (event.type) {
+          case 'tip_view':
+            performance.views++;
+            break;
+          case 'tip_like':
+            performance.likes++;
+            break;
+          case 'tip_bookmark':
+            performance.bookmarks++;
+            break;
+          case 'tip_complete':
+            performance.completions++;
+            break;
+          case 'tip_share':
+            performance.shares++;
+            break;
+        }
+      });
+
+      // Calculate derived metrics
+      performanceMap.forEach(performance => {
+        const totalEngagements = performance.likes + performance.bookmarks + 
+                                performance.completions + performance.shares;
+        performance.engagementRate = performance.views > 0 ? 
+          (totalEngagements / performance.views) * 100 : 0;
+      });
+
+      return Array.from(performanceMap.values());
+    } catch (error) {
+      console.error('Failed to get content performance:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get user behavior analytics
+   */
+  public async getUserBehaviorAnalytics(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<UserBehaviorAnalytics> {
+    try {
+      const events = await this.getStoredEvents(startDate, endDate);
       
-      const now = new Date();
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      const dailyActiveUsers = new Set(
-        allEvents
-          .filter(e => e.timestamp >= oneDayAgo && e.userId)
-          .map(e => e.userId)
-      ).size;
-
-      const weeklyActiveUsers = new Set(
-        allEvents
-          .filter(e => e.timestamp >= oneWeekAgo && e.userId)
-          .map(e => e.userId)
-      ).size;
-
-      const monthlyActiveUsers = new Set(
-        allEvents
-          .filter(e => e.timestamp >= oneMonthAgo && e.userId)
-          .map(e => e.userId)
-      ).size;
-
-      const sessions = this.groupEventsBySessions(allEvents);
-      const tipEvents = allEvents.filter(e => e.eventType.startsWith('tip_'));
-
-      const metrics: AppUsageMetrics = {
-        totalUsers: users.length,
-        activeUsers: {
-          daily: dailyActiveUsers,
-          weekly: weeklyActiveUsers,
-          monthly: monthlyActiveUsers,
-        },
-        sessionMetrics: {
-          averageDuration: this.calculateAverageSessionDuration(sessions),
-          totalSessions: sessions.length,
-          bounceRate: this.calculateBounceRate(sessions),
-        },
-        contentMetrics: {
-          mostViewedTips: this.getMostViewedTips(tipEvents),
-          mostLikedTips: this.getMostLikedTips(tipEvents),
-          categoryPopularity: this.getCategoryPopularity(tipEvents),
-        },
-        userBehavior: {
-          averageTipsPerSession: this.calculateAverageTipsPerSession(sessions, tipEvents),
-          completionRate: this.calculateCompletionRate(tipEvents),
-          retentionRate: {
-            day1: this.calculateRetentionRate(allEvents, 1),
-            day7: this.calculateRetentionRate(allEvents, 7),
-            day30: this.calculateRetentionRate(allEvents, 30),
-          },
-        },
+      return {
+        averageSessionsPerDay: this.calculateAverageSessionsPerDay(events),
+        averageSessionDuration: this.calculateAverageSessionDuration(events),
+        mostActiveTimeOfDay: this.calculateMostActiveTimeOfDay(events),
+        preferredCategories: this.calculatePreferredCategories(events),
+        engagementTrends: this.calculateEngagementTrends(events),
+        retentionRates: this.calculateRetentionRates(events)
       };
-
-      return metrics;
     } catch (error) {
-      console.error('Error getting app usage metrics:', error);
-      return null;
+      console.error('Failed to get user behavior analytics:', error);
+      return this.getEmptyUserBehaviorAnalytics();
     }
   }
 
   /**
-   * Update analytics configuration
+   * Update privacy settings
    */
-  public async updateConfig(updates: Partial<AnalyticsConfig>): Promise<void> {
+  public async updatePrivacySettings(
+    settings: Partial<AnalyticsPrivacySettings>
+  ): Promise<void> {
     try {
-      this.config = { ...this.config, ...updates };
-      await storeData('ANALYTICS_CONFIG', this.config);
-      
-      if (updates.flushInterval) {
-        this.initializeFlushTimer();
+      this.privacySettings = { ...this.privacySettings, ...settings };
+      await this.savePrivacySettings(this.privacySettings);
+
+      // If analytics was disabled, clear queued events
+      if (!this.privacySettings.enableAnalytics) {
+        this.eventQueue = [];
+        await this.clearStoredEvents();
       }
-      
-      console.log('Analytics config updated:', updates);
+
+      // Restart or stop periodic flush based on settings
+      if (this.privacySettings.enableAnalytics) {
+        this.startPeriodicFlush();
+      } else {
+        this.stopPeriodicFlush();
+      }
+
+      console.log('Analytics privacy settings updated:', this.privacySettings);
     } catch (error) {
-      console.error('Error updating analytics config:', error);
+      console.error('Failed to update privacy settings:', error);
+      throw error;
     }
   }
 
   /**
-   * Get current configuration
+   * Get current privacy settings
    */
-  public getConfig(): AnalyticsConfig {
-    return { ...this.config };
+  public getPrivacySettings(): AnalyticsPrivacySettings {
+    return { ...this.privacySettings };
+  }
+
+  /**
+   * Flush events to storage
+   */
+  public async flushEvents(): Promise<void> {
+    if (this.eventQueue.length === 0) {
+      return;
+    }
+
+    try {
+      const eventsToFlush = [...this.eventQueue];
+      this.eventQueue = [];
+
+      // Store events locally
+      await this.storeEvents(eventsToFlush);
+
+      // Clean up old events based on retention policy
+      await this.cleanupOldEvents();
+
+      console.log(`Flushed ${eventsToFlush.length} analytics events`);
+    } catch (error) {
+      console.error('Failed to flush analytics events:', error);
+      // Re-add events to queue for retry
+      this.eventQueue.unshift(...this.eventQueue);
+    }
   }
 
   /**
@@ -425,291 +530,401 @@ export class AnalyticsService {
    */
   public async clearAllData(): Promise<void> {
     try {
-      await storeData('ANALYTICS_EVENTS', []);
       this.eventQueue = [];
-      console.log('Analytics data cleared');
+      await this.clearStoredEvents();
+      await this.auditLogService.logDataAccess({
+        userId: 'system',
+        action: 'ANALYTICS_DATA_CLEARED',
+        resourceType: 'ANALYTICS_DATA',
+        resourceId: 'all',
+        ipAddress: 'mobile_app',
+        userAgent: 'BioReceipt',
+        success: true
+      });
+      console.log('All analytics data cleared');
     } catch (error) {
-      console.error('Error clearing analytics data:', error);
-    }
-  }
-
-  /**
-   * Export user data (GDPR compliance)
-   */
-  public async exportUserData(userId: string): Promise<AnalyticsEvent[]> {
-    try {
-      return await this.getUserEvents(userId);
-    } catch (error) {
-      console.error('Error exporting user data:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Delete user data (GDPR compliance)
-   */
-  public async deleteUserData(userId: string): Promise<void> {
-    try {
-      const allEvents = await this.getAllEvents();
-      const filteredEvents = allEvents.filter(event => event.userId !== userId);
-      await storeData('ANALYTICS_EVENTS', filteredEvents);
-      
-      // Remove from queue
-      this.eventQueue = this.eventQueue.filter(event => event.userId !== userId);
-      
-      console.log(`Analytics data deleted for user: ${userId}`);
-    } catch (error) {
-      console.error('Error deleting user data:', error);
+      console.error('Failed to clear analytics data:', error);
+      throw error;
     }
   }
 
   // Private helper methods
 
   private generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   }
 
-  private async getDeviceInfo() {
-    // In a real app, you'd use react-native-device-info
+  private generateEventId(): string {
+    return `event_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+  }
+
+  private async getEventMetadata(): Promise<AnalyticsEvent['metadata']> {
+    // This would typically get real device info
     return {
-      platform: 'unknown',
-      version: '1.0.0',
-      model: 'unknown',
+      appVersion: '1.0.0',
+      platform: 'ios', // or 'android'
+      deviceId: await this.getHashedDeviceId(),
+      networkType: 'wifi', // Would get from network info
+      batteryLevel: 0.8 // Would get from device info
     };
   }
 
-  private sanitizeEventData(eventData: EventData): EventData {
-    const sanitized = { ...eventData };
+  private async getHashedDeviceId(): Promise<string> {
+    // Generate a privacy-safe hashed device identifier
+    const deviceId = await this.secureStorage.getItem('device_id') || 
+                    `device_${Date.now()}_${Math.random().toString(36)}`;
+    await this.secureStorage.setItem('device_id', deviceId);
+    return deviceId;
+  }
+
+  private sanitizeProperties(properties: Record<string, any>): Record<string, any> {
+    const sanitized: Record<string, any> = {};
     
-    // Remove sensitive data based on tracking level
-    if (this.config.trackingLevel === 'minimal') {
-      delete sanitized.searchQuery;
-      delete sanitized.errorMessage;
-    }
+    Object.keys(properties).forEach(key => {
+      const value = properties[key];
+      
+      // Remove sensitive data patterns
+      if (this.isSensitiveKey(key)) {
+        return;
+      }
+      
+      // Sanitize values
+      if (typeof value === 'string') {
+        sanitized[key] = value.substring(0, 1000); // Limit string length
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        sanitized[key] = value;
+      } else if (value instanceof Date) {
+        sanitized[key] = value.toISOString();
+      } else if (Array.isArray(value)) {
+        sanitized[key] = value.slice(0, 100); // Limit array length
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = JSON.stringify(value).substring(0, 1000);
+      }
+    });
     
     return sanitized;
   }
 
-  private async storeEvent(event: AnalyticsEvent): Promise<void> {
-    const allEvents = await this.getAllEvents();
-    allEvents.push(event);
+  private isSensitiveKey(key: string): boolean {
+    const sensitivePatterns = [
+      'password', 'token', 'secret', 'key', 'auth',
+      'email', 'phone', 'address', 'ssn', 'credit'
+    ];
     
-    // Clean up old events based on retention policy
-    const cutoffDate = new Date(Date.now() - this.config.retentionDays * 24 * 60 * 60 * 1000);
-    const filteredEvents = allEvents.filter(e => e.timestamp >= cutoffDate);
-    
-    await storeData('ANALYTICS_EVENTS', filteredEvents);
+    return sensitivePatterns.some(pattern => 
+      key.toLowerCase().includes(pattern)
+    );
   }
 
-  private async getAllEvents(): Promise<AnalyticsEvent[]> {
+  private isCriticalEvent(type: AnalyticsEventType): boolean {
+    return ['error_occurred', 'app_open', 'app_close'].includes(type);
+  }
+
+  private startPeriodicFlush(): void {
+    this.stopPeriodicFlush();
+    this.flushTimer = setInterval(() => {
+      this.flushEvents().catch(error => {
+        console.error('Periodic flush failed:', error);
+      });
+    }, this.config.flushInterval);
+  }
+
+  private stopPeriodicFlush(): void {
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+      this.flushTimer = undefined;
+    }
+  }
+
+  private async loadPrivacySettings(): Promise<AnalyticsPrivacySettings> {
     try {
-      const events = await getData<AnalyticsEvent[]>('ANALYTICS_EVENTS');
-      return events || [];
+      const stored = await AsyncStorage.getItem('analytics_privacy_settings');
+      return stored ? JSON.parse(stored) : {};
     } catch (error) {
-      console.error('Error getting all events:', error);
+      console.error('Failed to load privacy settings:', error);
+      return {};
+    }
+  }
+
+  private async savePrivacySettings(settings: AnalyticsPrivacySettings): Promise<void> {
+    try {
+      await AsyncStorage.setItem('analytics_privacy_settings', JSON.stringify(settings));
+    } catch (error) {
+      console.error('Failed to save privacy settings:', error);
+      throw error;
+    }
+  }
+
+  private async loadQueuedEvents(): Promise<void> {
+    try {
+      const stored = await AsyncStorage.getItem('analytics_event_queue');
+      if (stored) {
+        const events = JSON.parse(stored);
+        this.eventQueue = events.map((event: any) => ({
+          ...event,
+          timestamp: new Date(event.timestamp)
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load queued events:', error);
+    }
+  }
+
+  private async storeEvents(events: AnalyticsEvent[]): Promise<void> {
+    try {
+      const existingEvents = await this.getStoredEvents();
+      const allEvents = [...existingEvents, ...events];
+      
+      await AsyncStorage.setItem('analytics_stored_events', JSON.stringify(allEvents));
+    } catch (error) {
+      console.error('Failed to store events:', error);
+      throw error;
+    }
+  }
+
+  private async getStoredEvents(startDate?: Date, endDate?: Date): Promise<AnalyticsEvent[]> {
+    try {
+      const stored = await AsyncStorage.getItem('analytics_stored_events');
+      if (!stored) return [];
+      
+      let events: AnalyticsEvent[] = JSON.parse(stored).map((event: any) => ({
+        ...event,
+        timestamp: new Date(event.timestamp)
+      }));
+      
+      // Filter by date range if provided
+      if (startDate || endDate) {
+        events = events.filter(event => {
+          const eventDate = event.timestamp;
+          if (startDate && eventDate < startDate) return false;
+          if (endDate && eventDate > endDate) return false;
+          return true;
+        });
+      }
+      
+      return events;
+    } catch (error) {
+      console.error('Failed to get stored events:', error);
       return [];
     }
   }
 
-  private async getUserEvents(userId: string): Promise<AnalyticsEvent[]> {
-    const allEvents = await this.getAllEvents();
-    return allEvents.filter(event => event.userId === userId);
-  }
-
-  private async flushEvents(): Promise<void> {
-    if (this.eventQueue.length === 0) return;
-
+  private async clearStoredEvents(): Promise<void> {
     try {
-      // In a real app, you'd send events to your analytics backend
-      await this.syncService.handleOfflineAction('analytics_batch', {
-        events: [...this.eventQueue],
-        timestamp: new Date(),
-      });
-
-      this.eventQueue = [];
-      console.log('Analytics events flushed');
+      await AsyncStorage.removeItem('analytics_stored_events');
+      await AsyncStorage.removeItem('analytics_event_queue');
     } catch (error) {
-      console.error('Error flushing events:', error);
+      console.error('Failed to clear stored events:', error);
+      throw error;
     }
   }
 
-  private initializeFlushTimer(): void {
-    if (this.flushTimer) {
-      clearInterval(this.flushTimer);
+  private async cleanupOldEvents(): Promise<void> {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - this.privacySettings.dataRetentionDays);
+      
+      const events = await this.getStoredEvents();
+      const filteredEvents = events.filter(event => event.timestamp >= cutoffDate);
+      
+      if (filteredEvents.length !== events.length) {
+        await AsyncStorage.setItem('analytics_stored_events', JSON.stringify(filteredEvents));
+        console.log(`Cleaned up ${events.length - filteredEvents.length} old analytics events`);
+      }
+    } catch (error) {
+      console.error('Failed to cleanup old events:', error);
     }
-
-    this.flushTimer = setInterval(() => {
-      this.flushEvents();
-    }, this.config.flushInterval);
   }
 
-  private groupEventsBySessions(events: AnalyticsEvent[]): AnalyticsEvent[][] {
-    const sessions: Record<string, AnalyticsEvent[]> = {};
+  // Analytics calculation methods
+
+  private countEventsByType(events: AnalyticsEvent[], type: AnalyticsEventType): number {
+    return events.filter(event => event.type === type).length;
+  }
+
+  private calculateAverageSessionDuration(events: AnalyticsEvent[]): number {
+    const sessionDurations = new Map<string, { start: Date; end: Date }>();
     
     events.forEach(event => {
-      if (!sessions[event.sessionId]) {
-        sessions[event.sessionId] = [];
+      if (!sessionDurations.has(event.sessionId)) {
+        sessionDurations.set(event.sessionId, {
+          start: event.timestamp,
+          end: event.timestamp
+        });
+      } else {
+        const session = sessionDurations.get(event.sessionId)!;
+        if (event.timestamp < session.start) session.start = event.timestamp;
+        if (event.timestamp > session.end) session.end = event.timestamp;
       }
-      sessions[event.sessionId].push(event);
     });
     
-    return Object.values(sessions);
-  }
-
-  private calculateTotalSessionDuration(sessions: AnalyticsEvent[][]): number {
-    return sessions.reduce((total, session) => {
-      if (session.length < 2) return total;
-      
-      const start = Math.min(...session.map(e => e.timestamp.getTime()));
-      const end = Math.max(...session.map(e => e.timestamp.getTime()));
-      
-      return total + (end - start);
-    }, 0);
-  }
-
-  private calculateAverageSessionDuration(sessions: AnalyticsEvent[][]): number {
-    if (sessions.length === 0) return 0;
+    const durations = Array.from(sessionDurations.values())
+      .map(session => session.end.getTime() - session.start.getTime());
     
-    const totalDuration = this.calculateTotalSessionDuration(sessions);
-    return totalDuration / sessions.length;
+    return durations.length > 0 ? 
+      durations.reduce((sum, duration) => sum + duration, 0) / durations.length : 0;
   }
 
-  private calculateStreakDays(events: AnalyticsEvent[]): number {
-    const dates = Array.from(new Set(events.map(e => e.timestamp.toDateString()))).sort();
-    let streak = 0;
-    let currentStreak = 0;
+  private calculateActiveUsers(events: AnalyticsEvent[], period: 'day' | 'week' | 'month'): number {
+    const now = new Date();
+    let cutoffDate = new Date();
     
-    for (let i = dates.length - 1; i >= 0; i--) {
-      const currentDate = new Date(dates[i]);
-      const expectedDate = new Date();
-      expectedDate.setDate(expectedDate.getDate() - currentStreak);
-      
-      if (currentDate.toDateString() === expectedDate.toDateString()) {
-        currentStreak++;
-      } else {
+    switch (period) {
+      case 'day':
+        cutoffDate.setDate(now.getDate() - 1);
         break;
-      }
+      case 'week':
+        cutoffDate.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        cutoffDate.setMonth(now.getMonth() - 1);
+        break;
     }
     
-    return currentStreak;
+    const activeUsers = new Set(
+      events
+        .filter(event => event.timestamp >= cutoffDate && event.userId)
+        .map(event => event.userId)
+    );
+    
+    return activeUsers.size;
   }
 
-  private calculateFavoriteCategories(tipEvents: AnalyticsEvent[]): string[] {
-    const categoryCount: Record<string, number> = {};
+  private calculateStreakMilestones(events: AnalyticsEvent[]): Record<number, number> {
+    const milestones: Record<number, number> = {};
     
-    tipEvents.forEach(event => {
-      const category = event.eventData.tipCategory;
-      if (category) {
-        categoryCount[category] = (categoryCount[category] || 0) + 1;
+    events
+      .filter(event => event.type === 'streak_milestone')
+      .forEach(event => {
+        const milestone = event.properties.milestone;
+        if (typeof milestone === 'number') {
+          milestones[milestone] = (milestones[milestone] || 0) + 1;
+        }
+      });
+    
+    return milestones;
+  }
+
+  private calculateAverageSessionsPerDay(events: AnalyticsEvent[]): number {
+    const sessionsByDay = new Map<string, Set<string>>();
+    
+    events.forEach(event => {
+      const day = event.timestamp.toDateString();
+      if (!sessionsByDay.has(day)) {
+        sessionsByDay.set(day, new Set());
       }
+      sessionsByDay.get(day)!.add(event.sessionId);
     });
     
-    return Object.entries(categoryCount)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 3)
+    const totalSessions = Array.from(sessionsByDay.values())
+      .reduce((sum, sessions) => sum + sessions.size, 0);
+    
+    return sessionsByDay.size > 0 ? totalSessions / sessionsByDay.size : 0;
+  }
+
+  private calculateMostActiveTimeOfDay(events: AnalyticsEvent[]): string {
+    const hourCounts = new Array(24).fill(0);
+    
+    events.forEach(event => {
+      const hour = event.timestamp.getHours();
+      hourCounts[hour]++;
+    });
+    
+    const maxCount = Math.max(...hourCounts);
+    const mostActiveHour = hourCounts.indexOf(maxCount);
+    
+    return `${mostActiveHour}:00`;
+  }
+
+  private calculatePreferredCategories(events: AnalyticsEvent[]): string[] {
+    const categoryCounts = new Map<string, number>();
+    
+    events
+      .filter(event => event.properties.category)
+      .forEach(event => {
+        const category = event.properties.category;
+        categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1);
+      });
+    
+    return Array.from(categoryCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
       .map(([category]) => category);
   }
 
-  private calculateBounceRate(sessions: AnalyticsEvent[][]): number {
-    if (sessions.length === 0) return 0;
-    
-    const bouncedSessions = sessions.filter(session => session.length <= 1).length;
-    return (bouncedSessions / sessions.length) * 100;
+  private calculateEngagementTrends(events: AnalyticsEvent[]): UserBehaviorAnalytics['engagementTrends'] {
+    // Simplified implementation - would need more sophisticated trend analysis
+    return {
+      daily: new Array(7).fill(0),
+      weekly: new Array(4).fill(0),
+      monthly: new Array(12).fill(0)
+    };
   }
 
-  private getMostViewedTips(tipEvents: AnalyticsEvent[]): Array<{ tipId: string; views: number; title: string }> {
-    const tipViews: Record<string, { views: number; title: string }> = {};
-    
-    tipEvents
-      .filter(e => e.eventType === 'tip_view')
-      .forEach(event => {
-        const tipId = event.eventData.tipId;
-        const title = event.eventData.tipTitle || 'Unknown';
-        
-        if (tipId) {
-          if (!tipViews[tipId]) {
-            tipViews[tipId] = { views: 0, title };
-          }
-          tipViews[tipId].views++;
-        }
-      });
-    
-    return Object.entries(tipViews)
-      .map(([tipId, data]) => ({ tipId, ...data }))
-      .sort((a, b) => b.views - a.views)
-      .slice(0, 10);
+  private calculateRetentionRates(events: AnalyticsEvent[]): UserBehaviorAnalytics['retentionRates'] {
+    // Simplified implementation - would need cohort analysis
+    return {
+      day1: 0.8,
+      day7: 0.6,
+      day30: 0.4
+    };
   }
 
-  private getMostLikedTips(tipEvents: AnalyticsEvent[]): Array<{ tipId: string; likes: number; title: string }> {
-    const tipLikes: Record<string, { likes: number; title: string }> = {};
-    
-    tipEvents
-      .filter(e => e.eventType === 'tip_like')
-      .forEach(event => {
-        const tipId = event.eventData.tipId;
-        const title = event.eventData.tipTitle || 'Unknown';
-        
-        if (tipId) {
-          if (!tipLikes[tipId]) {
-            tipLikes[tipId] = { likes: 0, title };
-          }
-          tipLikes[tipId].likes++;
-        }
-      });
-    
-    return Object.entries(tipLikes)
-      .map(([tipId, data]) => ({ tipId, ...data }))
-      .sort((a, b) => b.likes - a.likes)
-      .slice(0, 10);
+  private getEmptyEngagementMetrics(): EngagementMetrics {
+    return {
+      tipViews: 0,
+      tipLikes: 0,
+      tipBookmarks: 0,
+      tipCompletions: 0,
+      tipShares: 0,
+      averageSessionDuration: 0,
+      dailyActiveUsers: 0,
+      weeklyActiveUsers: 0,
+      monthlyActiveUsers: 0,
+      streakMilestones: {}
+    };
   }
 
-  private getCategoryPopularity(tipEvents: AnalyticsEvent[]): Record<string, number> {
-    const categoryCount: Record<string, number> = {};
-    
-    tipEvents.forEach(event => {
-      const category = event.eventData.tipCategory;
-      if (category) {
-        categoryCount[category] = (categoryCount[category] || 0) + 1;
+  private getEmptyUserBehaviorAnalytics(): UserBehaviorAnalytics {
+    return {
+      averageSessionsPerDay: 0,
+      averageSessionDuration: 0,
+      mostActiveTimeOfDay: '12:00',
+      preferredCategories: [],
+      engagementTrends: {
+        daily: new Array(7).fill(0),
+        weekly: new Array(4).fill(0),
+        monthly: new Array(12).fill(0)
+      },
+      retentionRates: {
+        day1: 0,
+        day7: 0,
+        day30: 0
       }
-    });
-    
-    return categoryCount;
+    };
   }
 
-  private calculateAverageTipsPerSession(sessions: AnalyticsEvent[][], tipEvents: AnalyticsEvent[]): number {
-    if (sessions.length === 0) return 0;
-    
-    const tipEventsBySession: Record<string, number> = {};
-    
-    tipEvents.forEach(event => {
-      tipEventsBySession[event.sessionId] = (tipEventsBySession[event.sessionId] || 0) + 1;
-    });
-    
-    const totalTips = Object.values(tipEventsBySession).reduce((sum, count) => sum + count, 0);
-    return totalTips / sessions.length;
-  }
+  /**
+   * Cleanup on app termination
+   */
+  public async cleanup(): Promise<void> {
+    try {
+      // Track app close
+      if (this.privacySettings.enableAnalytics) {
+        await this.trackEvent('app_close', {
+          sessionDuration: Date.now() - this.sessionStartTime.getTime()
+        });
+      }
 
-  private calculateCompletionRate(tipEvents: AnalyticsEvent[]): number {
-    const viewEvents = tipEvents.filter(e => e.eventType === 'tip_view').length;
-    const completeEvents = tipEvents.filter(e => e.eventType === 'tip_complete').length;
-    
-    return viewEvents > 0 ? (completeEvents / viewEvents) * 100 : 0;
-  }
+      // Flush remaining events
+      await this.flushEvents();
 
-  private calculateRetentionRate(events: AnalyticsEvent[], days: number): number {
-    const users = Array.from(new Set(events.filter(e => e.userId).map(e => e.userId)));
-    if (users.length === 0) return 0;
-    
-    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const recentUsers = new Set(
-      events
-        .filter(e => e.timestamp >= cutoffDate && e.userId)
-        .map(e => e.userId)
-    );
-    
-    return (recentUsers.size / users.length) * 100;
+      // Stop periodic flush
+      this.stopPeriodicFlush();
+
+      console.log('Analytics service cleaned up');
+    } catch (error) {
+      console.error('Failed to cleanup analytics service:', error);
+    }
   }
 }
-
-// Export singleton instance
-export const analyticsService = AnalyticsService.getInstance();

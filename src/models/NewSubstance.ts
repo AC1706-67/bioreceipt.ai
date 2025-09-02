@@ -1,6 +1,6 @@
 /**
  * NewSubstance Model
- * Data model for creating custom substances in BioPulse
+ * Data model for creating custom substances in BioReceipt
  */
 
 import { SubstanceCategory } from './Substance';

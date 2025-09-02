@@ -1,5 +1,5 @@
 /**
- * BioPulse.AI Analysis Service
+ * BioReceipt.AI Analysis Service
  * Advanced AI-powered analysis engine for substance intake insights
  */
 
@@ -15,7 +15,7 @@ import { storage } from '../../utils/storage';
 import { loggingService } from '../logging/loggingService';
 
 // Enhanced analysis interfaces
-export interface BioPulseAnalysis {
+export interface BioReceiptAnalysis {
   analysisId: string;
   userId: string;
   timestamp: Date;
@@ -170,18 +170,18 @@ export interface RecommendationStep {
   resources?: string[];
 }
 
-class BioPulseAnalysisService {
-  private static instance: BioPulseAnalysisService;
-  private analysisCache: Map<string, BioPulseAnalysis> = new Map();
+class BioReceiptAnalysisService {
+  private static instance: BioReceiptAnalysisService;
+  private analysisCache: Map<string, BioReceiptAnalysis> = new Map();
   private isInitialized = false;
 
   private constructor() {}
 
-  static getInstance(): BioPulseAnalysisService {
-    if (!BioPulseAnalysisService.instance) {
-      BioPulseAnalysisService.instance = new BioPulseAnalysisService();
+  static getInstance(): BioReceiptAnalysisService {
+    if (!BioReceiptAnalysisService.instance) {
+      BioReceiptAnalysisService.instance = new BioReceiptAnalysisService();
     }
-    return BioPulseAnalysisService.instance;
+    return BioReceiptAnalysisService.instance;
   }
 
   async initialize(): Promise<void> {
@@ -190,7 +190,7 @@ class BioPulseAnalysisService {
     try {
       await this.loadAnalysisCache();
       this.isInitialized = true;
-      await loggingService.info('BioPulse Analysis Service initialized');
+      await loggingService.info('BioReceipt Analysis Service initialized');
     } catch (error) {
       console.error('Failed to initialize analysis service:', error);
       throw error;
@@ -199,7 +199,7 @@ class BioPulseAnalysisService {
 *
    * Analyze current user state and recent intakes
    */
-  async analyzeCurrentState(userId: string): Promise<BioPulseAnalysis> {
+  async analyzeCurrentState(userId: string): Promise<BioReceiptAnalysis> {
     try {
       // Get recent intakes (last 48 hours)
       const recentIntakes = await intakeLoggingService.getRecentIntakes(userId, 48);
@@ -208,7 +208,7 @@ class BioPulseAnalysisService {
       const userStats = await intakeLoggingService.getIntakeStatistics(userId, 30);
       
       // Create comprehensive analysis
-      const analysis: BioPulseAnalysis = {
+      const analysis: BioReceiptAnalysis = {
         analysisId: this.generateAnalysisId(),
         userId,
         timestamp: new Date(),
@@ -301,7 +301,7 @@ class BioPulseAnalysisService {
     return Math.min(100, impact);
   }
 
-  private async assessRiskLevel(intakes: SubstanceIntake[]): Promise<BioPulseAnalysis['riskLevel']> {
+  private async assessRiskLevel(intakes: SubstanceIntake[]): Promise<BioReceiptAnalysis['riskLevel']> {
     const impactScore = await this.calculateImpactScore(intakes);
     const interactionRisks = await this.analyzeInteractionRisks(intakes);
     
@@ -338,7 +338,7 @@ class BioPulseAnalysisService {
     }
   }
 
-  private async persistAnalysis(analysis: BioPulseAnalysis): Promise<void> {
+  private async persistAnalysis(analysis: BioReceiptAnalysis): Promise<void> {
     try {
       const cacheData = Object.fromEntries(this.analysisCache);
       await storage.storeData('ANALYSIS_CACHE', cacheData);
@@ -348,4 +348,4 @@ class BioPulseAnalysisService {
   }
 }
 
-export const bioPulseAnalysisService = BioPulseAnalysisService.getInstance();
+export const BioReceiptAnalysisService = BioReceiptAnalysisService.getInstance();

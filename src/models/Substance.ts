@@ -1,6 +1,6 @@
 /**
  * Substance Model
- * Core data model for substances that can be logged in BioPulse.AI
+ * Core data model for substances that can be logged in BioReceipt.AI
  */
 
 export enum SubstanceCategory {

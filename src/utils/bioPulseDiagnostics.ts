@@ -1,14 +1,14 @@
 /**
- * BioPulse System Diagnostics
+ * BioReceipt System Diagnostics
  * Comprehensive health check and system validation
  */
 
 import { predictiveAnalyticsEngine } from '../services/analytics/predictiveAnalyticsEngine';
 import { wearableIntegrationService } from '../services/wearables/wearableIntegrationService';
-import { bioPulseIntegrationService } from '../services/integration/bioPulseIntegrationService';
-import { bioPulseAnalysisEngine } from '../services/analysis/bioPulseAnalysisEngine';
-import { bioPulseAIService } from '../services/ai/bioPulseAIService';
-import { bioPulseSafetyAlertService } from '../services/alerts/bioPulseSafetyAlertService';
+import { BioReceiptIntegrationService } from '../services/integration/BioReceiptIntegrationService';
+import { BioReceiptAnalysisEngine } from '../services/analysis/BioReceiptAnalysisEngine';
+import { BioReceiptAIService } from '../services/ai/BioReceiptAIService';
+import { BioReceiptSafetyAlertService } from '../services/alerts/BioReceiptSafetyAlertService';
 import { intakeLoggingService } from '../services/substance/intakeLoggingService';
 import { substanceDatabase } from '../services/substance/substanceDatabase';
 
@@ -42,20 +42,20 @@ interface SystemDiagnostics {
   };
 }
 
-class BioPulseDiagnostics {
-  private static instance: BioPulseDiagnostics;
+class BioReceiptDiagnostics {
+  private static instance: BioReceiptDiagnostics;
 
   private constructor() {}
 
-  static getInstance(): BioPulseDiagnostics {
-    if (!BioPulseDiagnostics.instance) {
-      BioPulseDiagnostics.instance = new BioPulseDiagnostics();
+  static getInstance(): BioReceiptDiagnostics {
+    if (!BioReceiptDiagnostics.instance) {
+      BioReceiptDiagnostics.instance = new BioReceiptDiagnostics();
     }
-    return BioPulseDiagnostics.instance;
+    return BioReceiptDiagnostics.instance;
   }
 
   async runFullDiagnostics(): Promise<SystemDiagnostics> {
-    console.log('🔍 Starting BioPulse System Diagnostics...\n');
+    console.log('🔍 Starting BioReceipt System Diagnostics...\n');
     
     const startTime = Date.now();
     const results: DiagnosticResult[] = [];
@@ -212,17 +212,17 @@ class BioPulseDiagnostics {
     const startTime = Date.now();
     
     try {
-      await bioPulseAnalysisEngine.initialize();
+      await BioReceiptAnalysisEngine.initialize();
       
       // Test basic analysis
       const testUserId = 'diagnostic_test_user';
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(testUserId);
       
       const responseTime = Date.now() - startTime;
       
       if (!analysis) {
         return {
-          component: 'BioPulse Analysis Engine',
+          component: 'BioReceipt Analysis Engine',
           status: 'ERROR',
           message: 'Analysis generation failed',
           performance: { responseTime }
@@ -231,7 +231,7 @@ class BioPulseDiagnostics {
 
       if (responseTime > 8000) {
         return {
-          component: 'BioPulse Analysis Engine',
+          component: 'BioReceipt Analysis Engine',
           status: 'WARNING',
           message: 'Slow analysis performance',
           details: `Analysis time: ${responseTime}ms (target: <5000ms)`,
@@ -241,7 +241,7 @@ class BioPulseDiagnostics {
       }
 
       return {
-        component: 'BioPulse Analysis Engine',
+        component: 'BioReceipt Analysis Engine',
         status: 'HEALTHY',
         message: 'Operating normally',
         details: `Analysis completed in ${responseTime}ms`,
@@ -250,7 +250,7 @@ class BioPulseDiagnostics {
 
     } catch (error) {
       return {
-        component: 'BioPulse Analysis Engine',
+        component: 'BioReceipt Analysis Engine',
         status: 'ERROR',
         message: 'Service failure',
         details: error.message,
@@ -263,7 +263,7 @@ class BioPulseDiagnostics {
     const startTime = Date.now();
     
     try {
-      await bioPulseAIService.initialize();
+      await BioReceiptAIService.initialize();
       
       // Create mock analysis for AI service test
       const mockAnalysis = {
@@ -281,12 +281,12 @@ class BioPulseDiagnostics {
         processingTime: 1000
       };
 
-      const insights = await bioPulseAIService.generateInsights(mockAnalysis, []);
+      const insights = await BioReceiptAIService.generateInsights(mockAnalysis, []);
       const responseTime = Date.now() - startTime;
       
       if (!insights) {
         return {
-          component: 'BioPulse AI Service',
+          component: 'BioReceipt AI Service',
           status: 'ERROR',
           message: 'AI insight generation failed',
           performance: { responseTime }
@@ -295,7 +295,7 @@ class BioPulseDiagnostics {
 
       if (responseTime > 5000) {
         return {
-          component: 'BioPulse AI Service',
+          component: 'BioReceipt AI Service',
           status: 'WARNING',
           message: 'Slow AI processing',
           details: `AI processing time: ${responseTime}ms (target: <3000ms)`,
@@ -305,7 +305,7 @@ class BioPulseDiagnostics {
       }
 
       return {
-        component: 'BioPulse AI Service',
+        component: 'BioReceipt AI Service',
         status: 'HEALTHY',
         message: 'Operating normally',
         details: `AI insights generated in ${responseTime}ms`,
@@ -314,7 +314,7 @@ class BioPulseDiagnostics {
 
     } catch (error) {
       return {
-        component: 'BioPulse AI Service',
+        component: 'BioReceipt AI Service',
         status: 'ERROR',
         message: 'Service failure',
         details: error.message,
@@ -327,17 +327,17 @@ class BioPulseDiagnostics {
     const startTime = Date.now();
     
     try {
-      await bioPulseSafetyAlertService.initialize();
+      await BioReceiptSafetyAlertService.initialize();
       
       // Test alert retrieval
       const testUserId = 'diagnostic_test_user';
-      const activeAlerts = await bioPulseSafetyAlertService.getActiveAlerts(testUserId);
+      const activeAlerts = await BioReceiptSafetyAlertService.getActiveAlerts(testUserId);
       
       const responseTime = Date.now() - startTime;
       
       if (!Array.isArray(activeAlerts)) {
         return {
-          component: 'BioPulse Safety Alert Service',
+          component: 'BioReceipt Safety Alert Service',
           status: 'ERROR',
           message: 'Alert retrieval failed',
           performance: { responseTime }
@@ -345,7 +345,7 @@ class BioPulseDiagnostics {
       }
 
       return {
-        component: 'BioPulse Safety Alert Service',
+        component: 'BioReceipt Safety Alert Service',
         status: 'HEALTHY',
         message: 'Operating normally',
         details: `Alert system responsive in ${responseTime}ms`,
@@ -354,7 +354,7 @@ class BioPulseDiagnostics {
 
     } catch (error) {
       return {
-        component: 'BioPulse Safety Alert Service',
+        component: 'BioReceipt Safety Alert Service',
         status: 'ERROR',
         message: 'Service failure',
         details: error.message,
@@ -367,17 +367,17 @@ class BioPulseDiagnostics {
     const startTime = Date.now();
     
     try {
-      await bioPulseIntegrationService.initialize();
+      await BioReceiptIntegrationService.initialize();
       
       // Test monitoring status
       const testUserId = 'diagnostic_test_user';
-      const monitoringStatus = bioPulseIntegrationService.getMonitoringStatus(testUserId);
+      const monitoringStatus = BioReceiptIntegrationService.getMonitoringStatus(testUserId);
       
       const responseTime = Date.now() - startTime;
       
       if (!monitoringStatus) {
         return {
-          component: 'BioPulse Integration Service',
+          component: 'BioReceipt Integration Service',
           status: 'ERROR',
           message: 'Integration service not responding',
           performance: { responseTime }
@@ -385,7 +385,7 @@ class BioPulseDiagnostics {
       }
 
       return {
-        component: 'BioPulse Integration Service',
+        component: 'BioReceipt Integration Service',
         status: 'HEALTHY',
         message: 'Operating normally',
         details: `Integration service responsive in ${responseTime}ms`,
@@ -394,7 +394,7 @@ class BioPulseDiagnostics {
 
     } catch (error) {
       return {
-        component: 'BioPulse Integration Service',
+        component: 'BioReceipt Integration Service',
         status: 'ERROR',
         message: 'Service failure',
         details: error.message,
@@ -611,7 +611,7 @@ class BioPulseDiagnostics {
   }
 
   private printDiagnosticsReport(diagnostics: SystemDiagnostics): void {
-    console.log('\n🏥 BIOPULSE SYSTEM DIAGNOSTICS REPORT');
+    console.log('\n🏥 BioReceipt SYSTEM DIAGNOSTICS REPORT');
     console.log('='.repeat(60));
     console.log(`Timestamp: ${diagnostics.timestamp.toISOString()}`);
     console.log(`Overall Status: ${this.getStatusIcon(diagnostics.overallStatus)} ${diagnostics.overallStatus}`);
@@ -686,12 +686,12 @@ class BioPulseDiagnostics {
 }
 
 // Export diagnostics runner
-export const runBioPulseDiagnostics = async (): Promise<SystemDiagnostics> => {
-  const diagnostics = BioPulseDiagnostics.getInstance();
+export const runBioReceiptDiagnostics = async (): Promise<SystemDiagnostics> => {
+  const diagnostics = BioReceiptDiagnostics.getInstance();
   return await diagnostics.runFullDiagnostics();
 };
 
 // Auto-run if called directly
 if (require.main === module) {
-  runBioPulseDiagnostics().catch(console.error);
+  runBioReceiptDiagnostics().catch(console.error);
 }

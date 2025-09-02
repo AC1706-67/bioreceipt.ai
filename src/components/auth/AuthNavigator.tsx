@@ -11,7 +11,7 @@ import LoginScreen from './LoginScreen';
 import SignupScreen from './SignupScreen';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
 import LoadingScreen from './LoadingScreen';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 type AuthScreen = 'login' | 'signup' | 'forgot-password';
 
@@ -91,7 +91,7 @@ const AuthNavigator: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
 });
 

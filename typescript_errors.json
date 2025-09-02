@@ -24,7 +24,7 @@
         "description": "Test file syntax issues"
       },
       {
-        "file": "src/services/analysis/bioPulseAnalysisService.ts",
+        "file": "src/services/analysis/BioReceiptAnalysisService.ts",
         "errors": 6,
         "description": "Missing interface declarations and malformed export statements"
       },
@@ -39,6 +39,6 @@
       "Source files have interface declaration issues",
       "The fontSize theme update was successful but existing codebase has pre-existing TypeScript errors"
     ],
-    "theme_update_status": "SUCCESS - md: 16 fontSize entry was successfully added to BioPulseTheme.typography.fontSize"
+    "theme_update_status": "SUCCESS - md: 16 fontSize entry was successfully added to BioReceiptTheme.typography.fontSize"
   }
 }

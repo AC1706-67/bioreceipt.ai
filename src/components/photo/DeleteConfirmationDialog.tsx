@@ -12,7 +12,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 interface DeleteConfirmationDialogProps {
   visible: boolean;
@@ -106,12 +106,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
   },
   dialog: {
-    backgroundColor: BioPulseTheme.colors.surface,
-    borderRadius: BioPulseTheme.borderRadius.lg,
-    width: Math.min(screenWidth - BioPulseTheme.spacing.lg * 2, 400),
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.lg,
+    width: Math.min(screenWidth - BioReceiptTheme.spacing.lg * 2, 400),
     maxWidth: '100%',
     elevation: 8,
     shadowColor: '#000',
@@ -123,44 +123,44 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   header: {
-    paddingTop: BioPulseTheme.spacing.lg,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingBottom: BioPulseTheme.spacing.md,
+    paddingTop: BioReceiptTheme.spacing.lg,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingBottom: BioReceiptTheme.spacing.md,
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
     textAlign: 'center',
   },
   content: {
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingBottom: BioPulseTheme.spacing.lg,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingBottom: BioReceiptTheme.spacing.lg,
   },
   message: {
     fontSize: 16,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
   actions: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: BioPulseTheme.colors.border,
+    borderTopColor: BioReceiptTheme.colors.border,
   },
   button: {
     flex: 1,
-    paddingVertical: BioPulseTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: 48,
   },
   cancelButton: {
     borderRightWidth: 1,
-    borderRightColor: BioPulseTheme.colors.border,
+    borderRightColor: BioReceiptTheme.colors.border,
   },
   confirmButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
   },
   destructiveButton: {
     backgroundColor: 'transparent',
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   confirmButtonText: {
     fontSize: 16,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   destructiveButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: BioPulseTheme.colors.error,
+    color: BioReceiptTheme.colors.error,
   },
 });
 

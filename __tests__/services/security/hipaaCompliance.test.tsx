@@ -277,7 +277,7 @@ describe('HIPAA Compliance Test Suite', () => {
     });
 
     it('should apply certificate pinning', () => {
-      const hostname = 'api.healthytipapp.com';
+      const hostname = 'api.BioReceipt.com';
       const validCert = 'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
       const invalidCert = 'sha256/INVALID_CERT_HASH';
 

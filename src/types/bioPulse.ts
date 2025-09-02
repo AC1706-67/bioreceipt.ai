@@ -1,6 +1,6 @@
 /**
- * BioPulse Types
- * Types specific to BioPulse functionality
+ * BioReceipt Types
+ * Types specific to BioReceipt functionality
  */
 
 export interface UserEngagement {
@@ -14,7 +14,7 @@ export interface UserEngagement {
   metadata?: Record<string, any>;
 }
 
-export interface BioPulseMetrics {
+export interface BioReceiptMetrics {
   totalAnalyses: number;
   totalInsights: number;
   totalRecommendations: number;

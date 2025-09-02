@@ -13,11 +13,12 @@ import {
   Alert,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import SubstanceSelector from './SubstanceSelector';
 import QuantityInput from './QuantityInput';
 import IntakeHistory from './IntakeHistory';
 import { supabaseHelpers } from '../../config/supabase';
+import { OfflineQueueStatus } from '../photo/OfflineQueueStatus';
 
 interface Substance {
   id: string;
@@ -36,7 +37,16 @@ interface IntakeEntry {
   notes?: string;
 }
 
-const LoggingScreen: React.FC = () => {
+interface LoggingScreenProps {
+  route?: {
+    params?: {
+      preSelectedSubstance?: Substance;
+      autoFocusQuantity?: boolean;
+    };
+  };
+}
+
+const LoggingScreen: React.FC<LoggingScreenProps> = ({ route }) => {
   const { user } = useSelector((state: any) => state.auth);
   
   const [substances, setSubstances] = useState<Substance[]>([]);
@@ -47,11 +57,33 @@ const LoggingScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSubstances, setIsLoadingSubstances] = useState(true);
   const [refreshHistory, setRefreshHistory] = useState(0);
+  const [shouldAutoFocusQuantity, setShouldAutoFocusQuantity] = useState(false);
 
   // Load substances on component mount
   useEffect(() => {
     loadSubstances();
   }, []);
+
+  // Handle pre-selected substance from navigation params
+  useEffect(() => {
+    if (route?.params?.preSelectedSubstance) {
+      const preSelected = route.params.preSelectedSubstance;
+      setSelectedSubstance(preSelected);
+      setUnit(preSelected.default_unit);
+      
+      // Auto-focus quantity input if requested
+      if (route.params.autoFocusQuantity) {
+        setShouldAutoFocusQuantity(true);
+      }
+      
+      // Show success message for smooth UX
+      Alert.alert(
+        'Substance Selected',
+        `${preSelected.name} is ready for logging. Enter the quantity to continue.`,
+        [{ text: 'OK', style: 'default' }]
+      );
+    }
+  }, [route?.params]);
 
   // Set default unit when substance is selected
   useEffect(() => {
@@ -188,6 +220,18 @@ const LoggingScreen: React.FC = () => {
           substances={substances}
           selectedSubstance={selectedSubstance}
           onSelectSubstance={setSelectedSubstance}
+          onSubstanceAdded={(newSubstance) => {
+            // Auto-select the newly created substance
+            setSelectedSubstance(newSubstance);
+            setUnit(newSubstance.default_unit);
+            setShouldAutoFocusQuantity(true);
+            
+            // Update local substances list
+            setSubstances(prev => {
+              const exists = prev.some(s => s.id === newSubstance.id);
+              return exists ? prev : [...prev, newSubstance];
+            });
+          }}
           isLoading={isLoadingSubstances}
         />
 
@@ -199,6 +243,8 @@ const LoggingScreen: React.FC = () => {
             defaultUnit={selectedSubstance.default_unit}
             onQuantityChange={setQuantity}
             onUnitChange={setUnit}
+            autoFocus={shouldAutoFocusQuantity}
+            onFocus={() => setShouldAutoFocusQuantity(false)}
           />
         )}
 
@@ -255,6 +301,9 @@ const LoggingScreen: React.FC = () => {
         )}
       </View>
 
+      {/* Offline Photo Queue Status */}
+      <OfflineQueueStatus compact={true} />
+
       {/* Recent History */}
       <View style={styles.historyContainer}>
         <Text style={styles.sectionTitle}>Recent Intakes</Text>
@@ -271,120 +320,120 @@ const LoggingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   scrollContent: {
-    paddingBottom: BioPulseTheme.spacing.xl,
+    paddingBottom: BioReceiptTheme.spacing.xl,
   },
   header: {
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingTop: BioPulseTheme.spacing.xl,
-    paddingBottom: BioPulseTheme.spacing.lg,
-    backgroundColor: BioPulseTheme.colors.surface,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingTop: BioReceiptTheme.spacing.xl,
+    paddingBottom: BioReceiptTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   title: {
-    fontSize: BioPulseTheme.typography.fontSize['2xl'],
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
-    color: BioPulseTheme.colors.text,
-    marginBottom: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize['2xl'],
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
+    color: BioReceiptTheme.colors.text,
+    marginBottom: BioReceiptTheme.spacing.xs,
   },
   subtitle: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   quickActionsContainer: {
-    paddingVertical: BioPulseTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.lg,
   },
   sectionTitle: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.text,
-    marginBottom: BioPulseTheme.spacing.md,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.text,
+    marginBottom: BioReceiptTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
   },
   quickActionsScroll: {
-    paddingLeft: BioPulseTheme.spacing.lg,
+    paddingLeft: BioReceiptTheme.spacing.lg,
   },
   quickActionsContent: {
-    paddingRight: BioPulseTheme.spacing.lg,
+    paddingRight: BioReceiptTheme.spacing.lg,
   },
   quickActionButton: {
-    backgroundColor: BioPulseTheme.colors.surface,
-    borderRadius: BioPulseTheme.borderRadius.lg,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.sm,
-    marginRight: BioPulseTheme.spacing.sm,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.lg,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
     minHeight: 44, // Accessibility: minimum touch target
     justifyContent: 'center',
     alignItems: 'center',
   },
   quickActionText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
     textAlign: 'center',
   },
   quickActionUnit: {
-    fontSize: BioPulseTheme.typography.fontSize.xs,
-    color: BioPulseTheme.colors.textTertiary,
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
+    color: BioReceiptTheme.colors.textTertiary,
     textAlign: 'center',
     marginTop: 2,
   },
   formContainer: {
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.lg,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.lg,
   },
   inputContainer: {
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   label: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   notesInput: {
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    backgroundColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.border,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    backgroundColor: BioReceiptTheme.colors.surface,
     minHeight: 48, // Accessibility: minimum touch target
     justifyContent: 'center',
   },
   notesText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.text,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.text,
   },
   notesPlaceholder: {
-    color: BioPulseTheme.colors.textTertiary,
+    color: BioReceiptTheme.colors.textTertiary,
   },
   logButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
     alignItems: 'center',
     minHeight: 48, // Accessibility: minimum touch target
     justifyContent: 'center',
-    marginTop: BioPulseTheme.spacing.md,
+    marginTop: BioReceiptTheme.spacing.md,
   },
   logButtonDisabled: {
-    backgroundColor: BioPulseTheme.colors.disabled,
+    backgroundColor: BioReceiptTheme.colors.disabled,
   },
   logButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.white,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.white,
   },
   historyContainer: {
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingTop: BioPulseTheme.spacing.lg,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingTop: BioReceiptTheme.spacing.lg,
   },
 });
 

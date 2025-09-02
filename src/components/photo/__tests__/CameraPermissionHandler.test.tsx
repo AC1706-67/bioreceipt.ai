@@ -220,7 +220,7 @@ describe('CameraPermissionHandler', () => {
       await waitFor(() => {
         expect(alertSpy).toHaveBeenCalledWith(
           'Settings Unavailable',
-          'Unable to open settings automatically. Please go to your device settings > Apps > BioPulse > Permissions and enable the required permissions.',
+          'Unable to open settings automatically. Please go to your device settings > Apps > BioReceipt > Permissions and enable the required permissions.',
           [{ text: 'OK' }]
         );
       });

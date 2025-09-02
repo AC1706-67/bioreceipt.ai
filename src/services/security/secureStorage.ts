@@ -20,7 +20,7 @@ export class SecureStorageService {
     this.encryptionService = EncryptionService.getInstance();
     this.config = {
       encryptionEnabled: true,
-      keyPrefix: 'biopulse_secure_'
+      keyPrefix: 'BioReceipt_secure_'
     };
   }
 

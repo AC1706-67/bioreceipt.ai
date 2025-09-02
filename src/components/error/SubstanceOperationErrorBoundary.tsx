@@ -5,7 +5,7 @@
 
 import React, { Component, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 interface Props {
   children: ReactNode;
@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: BioPulseTheme.spacing.lg,
-    backgroundColor: BioPulseTheme.colors.background,
+    padding: BioReceiptTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   errorContent: {
     alignItems: 'center',
@@ -120,53 +120,53 @@ const styles = StyleSheet.create({
   },
   errorIcon: {
     fontSize: 48,
-    marginBottom: BioPulseTheme.spacing.md,
+    marginBottom: BioReceiptTheme.spacing.md,
   },
   errorTitle: {
-    fontSize: BioPulseTheme.typography.fontSize.xl,
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
-    color: BioPulseTheme.colors.error,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.xl,
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
+    color: BioReceiptTheme.colors.error,
+    marginBottom: BioReceiptTheme.spacing.sm,
     textAlign: 'center',
   },
   errorMessage: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
     lineHeight: 22,
   },
   debugInfo: {
-    backgroundColor: BioPulseTheme.colors.surfaceLight,
-    padding: BioPulseTheme.spacing.md,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    marginBottom: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.surfaceLight,
+    padding: BioReceiptTheme.spacing.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    marginBottom: BioReceiptTheme.spacing.lg,
     width: '100%',
   },
   debugTitle: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.error,
-    marginBottom: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.error,
+    marginBottom: BioReceiptTheme.spacing.xs,
   },
   debugText: {
-    fontSize: BioPulseTheme.typography.fontSize.xs,
-    color: BioPulseTheme.colors.textTertiary,
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
+    color: BioReceiptTheme.colors.textTertiary,
     fontFamily: 'monospace',
   },
   retryButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   retryButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.surface,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.surface,
   },
 });
 

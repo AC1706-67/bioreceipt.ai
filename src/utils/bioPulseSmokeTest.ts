@@ -1,5 +1,5 @@
 /**
- * BioPulse.AI Smoke Test
+ * BioReceipt.AI Smoke Test
  * Comprehensive testing of core functionality after rebrand
  */
 
@@ -23,14 +23,14 @@ interface SmokeTestSuite {
   totalDuration: number;
 }
 
-class BioPulseSmokeTest {
+class BioReceiptSmokeTest {
   private testUserId = 'smoke_test_user_' + Date.now();
 
   async runAllTests(): Promise<SmokeTestSuite> {
     const startTime = Date.now();
     const results: SmokeTestResult[] = [];
 
-    console.log('🧪 Starting BioPulse.AI Smoke Tests...');
+    console.log('🧪 Starting BioReceipt.AI Smoke Tests...');
 
     // Test 1: Substance Database Initialization
     results.push(await this.testSubstanceDatabaseInit());
@@ -66,7 +66,7 @@ class BioPulseSmokeTest {
     const overallPassed = results.every(result => result.passed);
 
     const suite: SmokeTestSuite = {
-      suiteName: 'BioPulse.AI Core Functionality',
+      suiteName: 'BioReceipt.AI Core Functionality',
       results,
       overallPassed,
       totalDuration
@@ -292,17 +292,17 @@ class BioPulseSmokeTest {
 
   private async testThemeConstants(): Promise<SmokeTestResult> {
     return this.runTest('Theme Constants', async () => {
-      const { BioPulseTheme, BioPulseConstants } = await import('../constants/bioPulseTheme');
+      const { BioReceiptTheme, BioReceiptConstants } = await import('../constants/BioReceiptTheme');
       
-      if (!BioPulseTheme.colors.primary) {
+      if (!BioReceiptTheme.colors.primary) {
         throw new Error('Primary color not defined in theme');
       }
       
-      if (BioPulseConstants.appName !== 'BioPulse.AI') {
-        throw new Error('App name not updated to BioPulse.AI');
+      if (BioReceiptConstants.appName !== 'BioReceipt.AI') {
+        throw new Error('App name not updated to BioReceipt.AI');
       }
       
-      if (!BioPulseConstants.features.intakeLogging) {
+      if (!BioReceiptConstants.features.intakeLogging) {
         throw new Error('Intake logging feature not enabled');
       }
       
@@ -341,7 +341,7 @@ class BioPulseSmokeTest {
 
   private async logTestResults(suite: SmokeTestSuite): Promise<void> {
     try {
-      await loggingService.info('BioPulse.AI Smoke Test Results', {
+      await loggingService.info('BioReceipt.AI Smoke Test Results', {
         suiteName: suite.suiteName,
         overallPassed: suite.overallPassed,
         totalDuration: suite.totalDuration,
@@ -371,10 +371,10 @@ class BioPulseSmokeTest {
 
   // Utility method to run smoke test and display results
   static async runAndDisplay(): Promise<boolean> {
-    const smokeTest = new BioPulseSmokeTest();
+    const smokeTest = new BioReceiptSmokeTest();
     const results = await smokeTest.runAllTests();
     
-    console.log('\n🧪 BioPulse.AI Smoke Test Results');
+    console.log('\n🧪 BioReceipt.AI Smoke Test Results');
     console.log('================================');
     console.log(`Suite: ${results.suiteName}`);
     console.log(`Overall: ${results.overallPassed ? '✅ PASSED' : '❌ FAILED'}`);
@@ -393,11 +393,11 @@ class BioPulseSmokeTest {
     if (!results.overallPassed) {
       console.log('\n❌ Some tests failed. Please check the errors above.');
     } else {
-      console.log('\n✅ All tests passed! BioPulse.AI is ready to go.');
+      console.log('\n✅ All tests passed! BioReceipt.AI is ready to go.');
     }
     
     return results.overallPassed;
   }
 }
 
-export default BioPulseSmokeTest;
+export default BioReceiptSmokeTest;

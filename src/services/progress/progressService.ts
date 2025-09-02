@@ -291,7 +291,7 @@ class ProgressService {
       const categoryData = await storage.getData('PROGRESS_DATA') || {};
       const userCategoryData = categoryData[`${userId}_categories`] || {};
 
-      // Get all available categories from BioPulse enum
+      // Get all available categories from BioReceipt enum
       const allCategories = [
         'nutrition', 'fitness', 'mental_wellness', 'sleep', 
         'recovery', 'hygiene', 'general'

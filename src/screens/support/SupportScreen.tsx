@@ -112,8 +112,8 @@ export const SupportScreen: React.FC = () => {
       description: 'Contact our support team directly',
       icon: '📧',
       action: () => {
-        const email = 'support@healthytipapp.com';
-        const subject = 'Support Request - Healthy Tip App';
+        const email = 'support@BioReceipt.com';
+        const subject = 'Support Request - BioReceipt';
         const body = 'Please describe your issue or question:';
         const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         
@@ -136,12 +136,12 @@ export const SupportScreen: React.FC = () => {
       description: 'Browse our help center and documentation',
       icon: '🌐',
       action: () => {
-        const url = 'https://healthytipapp.com/help';
+        const url = 'https://BioReceipt.com/help';
         Linking.canOpenURL(url).then((supported) => {
           if (supported) {
             Linking.openURL(url);
           } else {
-            Alert.alert('Cannot open website', 'Please visit healthytipapp.com/help');
+            Alert.alert('Cannot open website', 'Please visit BioReceipt.com/help');
           }
         });
       },
@@ -276,10 +276,10 @@ export const SupportScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Contact Information</Text>
           <View style={styles.contactInfo}>
             <Text style={styles.contactText}>
-              📧 support@healthytipapp.com
+              📧 support@BioReceipt.com
             </Text>
             <Text style={styles.contactText}>
-              🌐 healthytipapp.com
+              🌐 BioReceipt.com
             </Text>
             <Text style={styles.contactText}>
               ⏰ Support Hours: Mon-Fri, 9AM-5PM EST

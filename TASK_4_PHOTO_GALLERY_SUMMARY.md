@@ -165,7 +165,7 @@ interface PhotoGalleryProps {
 - Consistent navigation and control behavior
 
 ### Theme Integration
-- Uses BioPulseTheme for consistent styling
+- Uses BioReceiptTheme for consistent styling
 - Responsive spacing and color schemes
 - Maintains design system consistency
 

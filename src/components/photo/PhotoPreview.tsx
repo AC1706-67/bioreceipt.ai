@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 interface PhotoPreviewProps {
   photoUrl: string;
@@ -100,7 +100,7 @@ const PhotoPreview: React.FC<PhotoPreviewProps> = ({
           <View style={[styles.loadingOverlay, { width: size, height: size }]}>
             <ActivityIndicator 
               size="small" 
-              color={BioPulseTheme.colors.primary} 
+              color={BioReceiptTheme.colors.primary} 
             />
           </View>
         )}
@@ -128,6 +128,7 @@ const PhotoPreview: React.FC<PhotoPreviewProps> = ({
           accessibilityRole="button"
           accessibilityLabel="Delete photo"
           accessibilityHint="Removes this photo permanently"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Text style={styles.deleteIcon}>×</Text>
         </TouchableOpacity>
@@ -159,15 +160,15 @@ const PhotoPreview: React.FC<PhotoPreviewProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    marginRight: BioPulseTheme.spacing.sm,
-    marginBottom: BioPulseTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   previewContainer: {
-    borderRadius: BioPulseTheme.borderRadius.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     overflow: 'hidden',
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
@@ -178,22 +179,22 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   image: {
-    borderRadius: BioPulseTheme.borderRadius.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
   },
   loadingOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: BioPulseTheme.borderRadius.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
   },
   errorContainer: {
-    backgroundColor: BioPulseTheme.colors.surfaceLight,
+    backgroundColor: BioReceiptTheme.colors.surfaceLight,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: BioPulseTheme.borderRadius.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
   },
   errorIcon: {
     fontSize: 24,
@@ -201,17 +202,17 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 10,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
   },
   deleteButton: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: BioPulseTheme.colors.error,
+    top: -12,
+    right: -12,
+    width: 32, // Increased for better touch target
+    height: 32, // Increased for better touch target
+    borderRadius: 16,
+    backgroundColor: BioReceiptTheme.colors.error,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
@@ -222,6 +223,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 3,
+    minWidth: 48, // Minimum touch target
+    minHeight: 48, // Minimum touch target
   },
   deleteIcon: {
     color: 'white',
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
   },
   metadataText: {
     fontSize: 10,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
   },
 });

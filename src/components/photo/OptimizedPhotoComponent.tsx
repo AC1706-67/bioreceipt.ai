@@ -364,7 +364,6 @@ export const OptimizedPhotoComponent: React.FC<OptimizedPhotoComponentProps> = m
     </TouchableOpacity>
   );
 });
-};
 
 const styles = StyleSheet.create({
   container: {

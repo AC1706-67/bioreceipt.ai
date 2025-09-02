@@ -7,7 +7,7 @@ import {
   SeasonalPattern,
   StreakMetadata
 } from '../../types/progress';
-import { UserEngagement } from '../../types/bioPulse';
+import { UserEngagement } from '../../types/BioReceipt';
 import { kiroAIService } from '../ai/kiroAIService';
 import { storage } from '../../utils/storage';
 import { cacheService } from '../cache/cacheService';

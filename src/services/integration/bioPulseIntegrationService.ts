@@ -1,23 +1,23 @@
 /**
- * BioPulse Integration Service
+ * BioReceipt Integration Service
  * Orchestrates the complete AI-powered analysis pipeline
  */
 
-import { bioPulseAnalysisEngine, BioPulseAnalysis } from '../analysis/bioPulseAnalysisEngine';
-import { bioPulseAIService, AIInsightResponse } from '../ai/bioPulseAIService';
-import { bioPulseSafetyAlertService, SafetyAlert } from '../alerts/bioPulseSafetyAlertService';
+import { BioReceiptAnalysisEngine, BioReceiptAnalysis } from '../analysis/BioReceiptAnalysisEngine';
+import { BioReceiptAIService, AIInsightResponse } from '../ai/BioReceiptAIService';
+import { BioReceiptSafetyAlertService, SafetyAlert } from '../alerts/BioReceiptSafetyAlertService';
 import { intakeLoggingService } from '../substance/intakeLoggingService';
 import { SubstanceIntake } from '../../models/SubstanceIntake';
 import { loggingService } from '../logging/loggingService';
 
 // Integration Response Interface
-export interface BioPulseIntegratedResponse {
+export interface BioReceiptIntegratedResponse {
   responseId: string;
   userId: string;
   timestamp: Date;
   
   // Core Analysis
-  analysis: BioPulseAnalysis;
+  analysis: BioReceiptAnalysis;
   aiInsights: AIInsightResponse;
   safetyAlerts: SafetyAlert[];
   
@@ -39,7 +39,7 @@ export interface IntegrationError {
 }
 
 // Real-time Monitoring Interface
-export interface BioPulseMonitoringConfig {
+export interface BioReceiptMonitoringConfig {
   userId: string;
   enabled: boolean;
   
@@ -64,20 +64,20 @@ export interface BioPulseMonitoringConfig {
   };
 }
 
-class BioPulseIntegrationService {
-  private static instance: BioPulseIntegrationService;
-  private monitoringConfigs: Map<string, BioPulseMonitoringConfig> = new Map();
+class BioReceiptIntegrationService {
+  private static instance: BioReceiptIntegrationService;
+  private monitoringConfigs: Map<string, BioReceiptMonitoringConfig> = new Map();
   private activeMonitoring: Map<string, NodeJS.Timeout> = new Map();
-  private processingQueue: Map<string, Promise<BioPulseIntegratedResponse>> = new Map();
+  private processingQueue: Map<string, Promise<BioReceiptIntegratedResponse>> = new Map();
   private isInitialized = false;
 
   private constructor() {}
 
-  static getInstance(): BioPulseIntegrationService {
-    if (!BioPulseIntegrationService.instance) {
-      BioPulseIntegrationService.instance = new BioPulseIntegrationService();
+  static getInstance(): BioReceiptIntegrationService {
+    if (!BioReceiptIntegrationService.instance) {
+      BioReceiptIntegrationService.instance = new BioReceiptIntegrationService();
     }
-    return BioPulseIntegrationService.instance;
+    return BioReceiptIntegrationService.instance;
   }
 
   async initialize(): Promise<void> {
@@ -86,13 +86,13 @@ class BioPulseIntegrationService {
     try {
       // Initialize all dependent services
       await Promise.all([
-        bioPulseAnalysisEngine.initialize(),
-        bioPulseAIService.initialize(),
-        bioPulseSafetyAlertService.initialize()
+        BioReceiptAnalysisEngine.initialize(),
+        BioReceiptAIService.initialize(),
+        BioReceiptSafetyAlertService.initialize()
       ]);
 
       this.isInitialized = true;
-      await loggingService.info('BioPulse Integration Service initialized');
+      await loggingService.info('BioReceipt Integration Service initialized');
     } catch (error) {
       console.error('Failed to initialize integration service:', error);
       throw error;
@@ -102,7 +102,7 @@ class BioPulseIntegrationService {
   /**
    * Complete integrated analysis pipeline
    */
-  async runCompleteAnalysis(userId: string): Promise<BioPulseIntegratedResponse> {
+  async runCompleteAnalysis(userId: string): Promise<BioReceiptIntegratedResponse> {
     const startTime = Date.now();
     const responseId = this.generateResponseId();
     
@@ -131,10 +131,10 @@ class BioPulseIntegrationService {
     userId: string,
     responseId: string,
     startTime: number
-  ): Promise<BioPulseIntegratedResponse> {
+  ): Promise<BioReceiptIntegratedResponse> {
     const errors: IntegrationError[] = [];
     const componentsProcessed: string[] = [];
-    let analysis: BioPulseAnalysis | null = null;
+    let analysis: BioReceiptAnalysis | null = null;
     let aiInsights: AIInsightResponse | null = null;
     let safetyAlerts: SafetyAlert[] = [];
 
@@ -143,7 +143,7 @@ class BioPulseIntegrationService {
 
       // Step 1: Core Analysis
       try {
-        analysis = await bioPulseAnalysisEngine.analyzeCurrentState(userId);
+        analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(userId);
         componentsProcessed.push('analysis');
         
         await loggingService.info('Core analysis completed', {
@@ -179,7 +179,7 @@ class BioPulseIntegrationService {
 
       // Step 3: AI Insights Generation
       try {
-        aiInsights = await bioPulseAIService.generateInsights(analysis, recentIntakes);
+        aiInsights = await BioReceiptAIService.generateInsights(analysis, recentIntakes);
         componentsProcessed.push('ai_insights');
         
         await loggingService.info('AI insights generated', {
@@ -202,7 +202,7 @@ class BioPulseIntegrationService {
 
       // Step 4: Safety Alert Processing
       try {
-        safetyAlerts = await bioPulseSafetyAlertService.processAnalysisForAlerts(analysis, aiInsights);
+        safetyAlerts = await BioReceiptSafetyAlertService.processAnalysisForAlerts(analysis, aiInsights);
         componentsProcessed.push('safety_alerts');
         
         await loggingService.info('Safety alerts processed', {
@@ -238,7 +238,7 @@ class BioPulseIntegrationService {
       const status = this.determineStatus(errors);
       const confidence = this.calculateOverallConfidence(analysis, aiInsights, errors);
 
-      const response: BioPulseIntegratedResponse = {
+      const response: BioReceiptIntegratedResponse = {
         responseId,
         userId,
         timestamp: new Date(),
@@ -305,7 +305,7 @@ class BioPulseIntegrationService {
   /**
    * Start real-time monitoring for a user
    */
-  async startMonitoring(userId: string, config?: Partial<BioPulseMonitoringConfig>): Promise<void> {
+  async startMonitoring(userId: string, config?: Partial<BioReceiptMonitoringConfig>): Promise<void> {
     const fullConfig = this.createMonitoringConfig(userId, config);
     this.monitoringConfigs.set(userId, fullConfig);
 
@@ -381,7 +381,7 @@ class BioPulseIntegrationService {
   /**
    * Get monitoring status for user
    */
-  getMonitoringStatus(userId: string): { active: boolean; config?: BioPulseMonitoringConfig } {
+  getMonitoringStatus(userId: string): { active: boolean; config?: BioReceiptMonitoringConfig } {
     const config = this.monitoringConfigs.get(userId);
     const active = this.activeMonitoring.has(userId);
     
@@ -393,7 +393,7 @@ class BioPulseIntegrationService {
    */
   async updateMonitoringConfig(
     userId: string, 
-    updates: Partial<BioPulseMonitoringConfig>
+    updates: Partial<BioReceiptMonitoringConfig>
   ): Promise<void> {
     const currentConfig = this.monitoringConfigs.get(userId) || this.createMonitoringConfig(userId);
     const updatedConfig = { ...currentConfig, ...updates };
@@ -440,7 +440,7 @@ class BioPulseIntegrationService {
 
   private async performPostProcessing(
     userId: string,
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     aiInsights: AIInsightResponse | null,
     safetyAlerts: SafetyAlert[]
   ): Promise<void> {
@@ -454,7 +454,7 @@ class BioPulseIntegrationService {
     });
   }
 
-  private createFallbackAIResponse(userId: string, analysis: BioPulseAnalysis): AIInsightResponse {
+  private createFallbackAIResponse(userId: string, analysis: BioReceiptAnalysis): AIInsightResponse {
     return {
       responseId: this.generateResponseId(),
       userId,
@@ -479,7 +479,7 @@ class BioPulseIntegrationService {
   }
 
   private calculateOverallConfidence(
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     aiInsights: AIInsightResponse | null,
     errors: IntegrationError[]
   ): number {
@@ -506,8 +506,8 @@ class BioPulseIntegrationService {
 
   private createMonitoringConfig(
     userId: string, 
-    partial?: Partial<BioPulseMonitoringConfig>
-  ): BioPulseMonitoringConfig {
+    partial?: Partial<BioReceiptMonitoringConfig>
+  ): BioReceiptMonitoringConfig {
     return {
       userId,
       enabled: true,
@@ -529,7 +529,7 @@ class BioPulseIntegrationService {
 
   private async checkMonitoringTriggers(
     userId: string, 
-    response: BioPulseIntegratedResponse
+    response: BioReceiptIntegratedResponse
   ): Promise<void> {
     const config = this.monitoringConfigs.get(userId);
     if (!config || !config.enabled) return;
@@ -546,8 +546,8 @@ class BioPulseIntegrationService {
 
   private async checkThresholdTriggers(
     userId: string,
-    response: BioPulseIntegratedResponse,
-    config: BioPulseMonitoringConfig
+    response: BioReceiptIntegratedResponse,
+    config: BioReceiptMonitoringConfig
   ): Promise<void> {
     if (response.analysis.impactScore.overall >= config.impactThreshold) {
       await loggingService.info('Impact threshold exceeded', {
@@ -570,7 +570,7 @@ class BioPulseIntegrationService {
     });
   }
 
-  private async sendSummaryReport(userId: string, response: BioPulseIntegratedResponse): Promise<void> {
+  private async sendSummaryReport(userId: string, response: BioReceiptIntegratedResponse): Promise<void> {
     // Implementation would generate and send summary report
     await loggingService.info('Summary report sent', {
       userId,
@@ -583,4 +583,4 @@ class BioPulseIntegrationService {
   }
 }
 
-export const bioPulseIntegrationService = BioPulseIntegrationService.getInstance();
+export const BioReceiptIntegrationService = BioReceiptIntegrationService.getInstance();

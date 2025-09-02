@@ -14,9 +14,9 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
-import { useOfflinePhotoQueue } from '../../hooks/useOfflinePhotoQueue';
-import { QueuedPhoto } from '../../services/photo/offlinePhotoQueueService';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
+import { usePhotoUploadQueue } from '../../hooks/usePhotoUploadQueue';
+import { usePhotoManager } from '../../features/photos/usePhotoManager';
 
 interface OfflineQueueStatusProps {
   visible?: boolean;
@@ -29,84 +29,29 @@ export const OfflineQueueStatus: React.FC<OfflineQueueStatusProps> = ({
   onClose,
   compact = false,
 }) => {
-  const {
-    queue,
-    stats,
-    isProcessing,
-    isPaused,
-    currentUploads,
-    failedPhotos,
-    retryPhoto,
-    retryAllFailed,
-    removeFromQueue,
-    clearQueue,
-    pauseQueue,
-    resumeQueue,
-    getUploadProgress,
-  } = useOfflinePhotoQueue();
-
+  const { status, triggerProcessing, isActive, hasErrors, isOnline } = usePhotoUploadQueue();
+  const { getPhotosByStatus, uploadPhotoById } = usePhotoManager();
   const [showDetails, setShowDetails] = useState(false);
 
-  if (!stats || (!compact && !visible)) {
+  // Get photos by status
+  const queuedPhotos = getPhotosByStatus('queued');
+  const errorPhotos = getPhotosByStatus('error');
+  const uploadingPhotos = getPhotosByStatus('uploading');
+
+  if (!compact && !visible) {
     return null;
   }
 
   const handleRetryPhoto = async (photoId: string) => {
     try {
-      await retryPhoto(photoId);
+      await uploadPhotoById(photoId);
     } catch (error) {
       Alert.alert('Error', 'Failed to retry photo upload');
     }
   };
 
-  const handleRetryAll = async () => {
-    try {
-      await retryAllFailed();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to retry failed uploads');
-    }
-  };
-
-  const handleRemovePhoto = async (photoId: string) => {
-    Alert.alert(
-      'Remove Photo',
-      'Are you sure you want to remove this photo from the upload queue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeFromQueue(photoId);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to remove photo from queue');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleClearQueue = async () => {
-    Alert.alert(
-      'Clear Queue',
-      'Are you sure you want to clear all photos from the upload queue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearQueue();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to clear queue');
-            }
-          },
-        },
-      ]
-    );
+  const handleTriggerProcessing = () => {
+    triggerProcessing();
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -124,32 +69,34 @@ export const OfflineQueueStatus: React.FC<OfflineQueueStatusProps> = ({
   };
 
   const getStatusColor = (): string => {
-    if (stats.failed > 0) return BioPulseTheme.colors.error;
-    if (isProcessing) return BioPulseTheme.colors.primary;
-    if (stats.totalQueued > 0) return BioPulseTheme.colors.warning;
-    return BioPulseTheme.colors.success;
+    if (!isOnline) return BioReceiptTheme.colors.textSecondary;
+    if (hasErrors) return BioReceiptTheme.colors.error;
+    if (status.isProcessing) return BioReceiptTheme.colors.primary;
+    if (status.totalPending > 0) return BioReceiptTheme.colors.warning;
+    return BioReceiptTheme.colors.success;
   };
 
   const getStatusText = (): string => {
-    if (stats.failed > 0) return `${stats.failed} failed`;
-    if (isProcessing) return `Uploading ${stats.uploading}/${stats.totalQueued}`;
-    if (stats.totalQueued > 0) return `${stats.totalQueued} queued`;
+    if (!isOnline) return 'Offline';
+    if (hasErrors) return `${status.errorCount} failed`;
+    if (status.isProcessing) return `Uploading...`;
+    if (status.totalPending > 0) return `${status.totalPending} queued`;
     return 'All uploaded';
   };
 
-  const renderPhotoItem = ({ item }: { item: QueuedPhoto }) => {
-    const progress = getUploadProgress(item.id);
-    const isUploading = currentUploads.some(u => u.photoId === item.id);
-    const isFailed = item.uploadAttempts >= 3;
+  const renderPhotoItem = ({ item }: { item: any }) => {
+    const isUploading = item.status === 'uploading';
+    const isFailed = item.status === 'error';
+    const progress = item.uploadProgress || 0;
 
     return (
       <View style={styles.photoItem}>
         <View style={styles.photoInfo}>
           <Text style={styles.photoName} numberOfLines={1}>
-            {item.metadata.fileName}
+            {item.metadata?.fileName || `Photo ${item.id.slice(-6)}`}
           </Text>
           <Text style={styles.photoSize}>
-            {formatFileSize(item.metadata.fileSize)}
+            {item.metadata?.fileSize ? formatFileSize(item.metadata.fileSize) : 'Unknown size'}
           </Text>
           {item.error && (
             <Text style={styles.errorText} numberOfLines={2}>
@@ -174,19 +121,17 @@ export const OfflineQueueStatus: React.FC<OfflineQueueStatusProps> = ({
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
           )}
-          
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => handleRemovePhoto(item.id)}
-          >
-            <Text style={styles.removeButtonText}>✕</Text>
-          </TouchableOpacity>
         </View>
       </View>
     );
   };
 
   if (compact) {
+    // Only show if there's something to show
+    if (!isActive && isOnline) {
+      return null;
+    }
+
     return (
       <TouchableOpacity
         style={[styles.compactContainer, { borderColor: getStatusColor() }]}
@@ -196,7 +141,7 @@ export const OfflineQueueStatus: React.FC<OfflineQueueStatusProps> = ({
       >
         <View style={[styles.statusIndicator, { backgroundColor: getStatusColor() }]} />
         <Text style={styles.compactText}>{getStatusText()}</Text>
-        {isProcessing && <ActivityIndicator size="small" color={getStatusColor()} />}
+        {status.isProcessing && <ActivityIndicator size="small" color={getStatusColor()} />}
       </TouchableOpacity>
     );
   }
@@ -218,58 +163,31 @@ export const OfflineQueueStatus: React.FC<OfflineQueueStatusProps> = ({
 
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.totalQueued}</Text>
+            <Text style={styles.statValue}>{status.queuedCount}</Text>
             <Text style={styles.statLabel}>Queued</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.uploading}</Text>
+            <Text style={styles.statValue}>{uploadingPhotos.length}</Text>
             <Text style={styles.statLabel}>Uploading</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.failed}</Text>
+            <Text style={styles.statValue}>{status.errorCount}</Text>
             <Text style={styles.statLabel}>Failed</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{formatFileSize(stats.totalSize)}</Text>
-            <Text style={styles.statLabel}>Total Size</Text>
+            <Text style={styles.statValue}>{isOnline ? 'Online' : 'Offline'}</Text>
+            <Text style={styles.statLabel}>Status</Text>
           </View>
         </View>
 
-        {stats.estimatedTimeRemaining > 0 && (
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>
-              Estimated time remaining: {formatTime(stats.estimatedTimeRemaining)}
-            </Text>
-          </View>
-        )}
-
         <View style={styles.controlsContainer}>
-          {isPaused ? (
-            <TouchableOpacity style={styles.controlButton} onPress={resumeQueue}>
-              <Text style={styles.controlButtonText}>Resume</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.controlButton} onPress={pauseQueue}>
-              <Text style={styles.controlButtonText}>Pause</Text>
-            </TouchableOpacity>
-          )}
-          
-          {failedPhotos.length > 0 && (
-            <TouchableOpacity style={styles.controlButton} onPress={handleRetryAll}>
-              <Text style={styles.controlButtonText}>Retry All</Text>
-            </TouchableOpacity>
-          )}
-          
-          <TouchableOpacity
-            style={[styles.controlButton, styles.dangerButton]}
-            onPress={handleClearQueue}
-          >
-            <Text style={[styles.controlButtonText, styles.dangerButtonText]}>Clear All</Text>
+          <TouchableOpacity style={styles.controlButton} onPress={handleTriggerProcessing}>
+            <Text style={styles.controlButtonText}>Process Queue</Text>
           </TouchableOpacity>
         </View>
 
         <FlatList
-          data={queue}
+          data={[...queuedPhotos, ...uploadingPhotos, ...errorPhotos]}
           renderItem={renderPhotoItem}
           keyExtractor={(item) => item.id}
           style={styles.photoList}
@@ -289,101 +207,101 @@ const styles = StyleSheet.create({
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.sm,
-    paddingVertical: BioPulseTheme.spacing.xs,
-    backgroundColor: BioPulseTheme.colors.surface,
-    borderRadius: BioPulseTheme.borderRadius.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.sm,
+    paddingVertical: BioReceiptTheme.spacing.xs,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
     borderWidth: 1,
-    marginHorizontal: BioPulseTheme.spacing.md,
-    marginVertical: BioPulseTheme.spacing.xs,
+    marginHorizontal: BioReceiptTheme.spacing.md,
+    marginVertical: BioReceiptTheme.spacing.xs,
   },
   statusIndicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: BioPulseTheme.spacing.xs,
+    marginRight: BioReceiptTheme.spacing.xs,
   },
   compactText: {
     flex: 1,
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textPrimary,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textPrimary,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: BioPulseTheme.spacing.lg,
+    padding: BioReceiptTheme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   title: {
-    fontSize: BioPulseTheme.typography.fontSize.xl,
+    fontSize: BioReceiptTheme.typography.fontSize.xl,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonText: {
     fontSize: 18,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: BioPulseTheme.spacing.lg,
-    backgroundColor: BioPulseTheme.colors.surface,
+    padding: BioReceiptTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.surface,
   },
   statItem: {
     alignItems: 'center',
   },
   statValue: {
-    fontSize: BioPulseTheme.typography.fontSize.xl,
+    fontSize: BioReceiptTheme.typography.fontSize.xl,
     fontWeight: '600',
-    color: BioPulseTheme.colors.primary,
+    color: BioReceiptTheme.colors.primary,
   },
   statLabel: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textSecondary,
-    marginTop: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginTop: BioReceiptTheme.spacing.xs,
   },
   timeContainer: {
-    padding: BioPulseTheme.spacing.md,
+    padding: BioReceiptTheme.spacing.md,
     alignItems: 'center',
   },
   timeText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: BioPulseTheme.spacing.md,
+    padding: BioReceiptTheme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   controlButton: {
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.sm,
-    backgroundColor: BioPulseTheme.colors.primary,
-    borderRadius: BioPulseTheme.borderRadius.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
   },
   controlButtonText: {
     color: 'white',
-    fontSize: BioPulseTheme.typography.fontSize.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
     fontWeight: '500',
   },
   dangerButton: {
-    backgroundColor: BioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
   },
   dangerButtonText: {
     color: 'white',
@@ -394,27 +312,27 @@ const styles = StyleSheet.create({
   photoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: BioPulseTheme.spacing.md,
+    padding: BioReceiptTheme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   photoInfo: {
     flex: 1,
   },
   photoName: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
     fontWeight: '500',
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
   },
   photoSize: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textSecondary,
-    marginTop: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginTop: BioReceiptTheme.spacing.xs,
   },
   errorText: {
-    fontSize: BioPulseTheme.typography.fontSize.xs,
-    color: BioPulseTheme.colors.error,
-    marginTop: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
+    color: BioReceiptTheme.colors.error,
+    marginTop: BioReceiptTheme.spacing.xs,
   },
   photoStatus: {
     flexDirection: 'row',
@@ -423,9 +341,9 @@ const styles = StyleSheet.create({
   progressContainer: {
     width: 60,
     height: 20,
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderRadius: 10,
-    marginRight: BioPulseTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
@@ -435,48 +353,48 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     borderRadius: 10,
   },
   progressText: {
-    fontSize: BioPulseTheme.typography.fontSize.xs,
-    color: BioPulseTheme.colors.textPrimary,
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
+    color: BioReceiptTheme.colors.textPrimary,
     fontWeight: '500',
   },
   retryButton: {
-    paddingHorizontal: BioPulseTheme.spacing.sm,
-    paddingVertical: BioPulseTheme.spacing.xs,
-    backgroundColor: BioPulseTheme.colors.warning,
-    borderRadius: BioPulseTheme.borderRadius.sm,
-    marginRight: BioPulseTheme.spacing.xs,
+    paddingHorizontal: BioReceiptTheme.spacing.sm,
+    paddingVertical: BioReceiptTheme.spacing.xs,
+    backgroundColor: BioReceiptTheme.colors.warning,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
+    marginRight: BioReceiptTheme.spacing.xs,
   },
   retryButtonText: {
     color: 'white',
-    fontSize: BioPulseTheme.typography.fontSize.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
     fontWeight: '500',
   },
   removeButton: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: BioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
     justifyContent: 'center',
     alignItems: 'center',
   },
   removeButtonText: {
     color: 'white',
-    fontSize: BioPulseTheme.typography.fontSize.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
     fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: BioPulseTheme.spacing.xl,
+    paddingVertical: BioReceiptTheme.spacing.xl,
   },
   emptyText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
   },
 });
 

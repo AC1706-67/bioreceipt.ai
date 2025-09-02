@@ -203,7 +203,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ userId, onClose 
 
         {/* App info */}
         <View style={styles.appInfo}>
-          <Text style={styles.appInfoText}>BioPulse Health Tips</Text>
+          <Text style={styles.appInfoText}>BioReceipt Health Tips</Text>
           <Text style={styles.appInfoText}>Version 1.0.0</Text>
         </View>
       </ScrollView>

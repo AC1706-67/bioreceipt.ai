@@ -1,4 +1,4 @@
-# 🔄 BioPulse Project Rename Guide
+# 🔄 BioReceipt Project Rename Guide
 
 ## 📋 Complete Renaming Checklist
 
@@ -12,7 +12,7 @@
 
 **New Project Path:**
 ```
-C:\Users\andre\Documents\bio_pulse_app\BioPulseApp\
+C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp\
 ```
 
 ### **Step 2: Package.json Updates** 📦
@@ -22,7 +22,7 @@ Update the main package.json file with new project identity:
 ```json
 {
   "name": "bio-pulse-app",
-  "displayName": "BioPulse.AI",
+  "displayName": "BioReceipt.AI",
   "version": "3.0.0",
   "description": "AI-powered health insights and predictive analytics platform",
   "main": "index.js",
@@ -32,8 +32,8 @@ Update the main package.json file with new project identity:
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "test:biopulse-phase3": "node src/utils/bioPulsePhase3Test.ts",
-    "test:diagnostics": "node src/utils/bioPulseDiagnostics.ts",
+    "test:BioReceipt-phase3": "node src/utils/BioReceiptPhase3Test.ts",
+    "test:diagnostics": "node src/utils/BioReceiptDiagnostics.ts",
     "build": "expo build",
     "eject": "expo eject"
   },
@@ -44,15 +44,15 @@ Update the main package.json file with new project identity:
     "wearables",
     "biometrics",
     "substance-tracking",
-    "biopulse"
+    "BioReceipt"
   ],
-  "author": "BioPulse Team",
+  "author": "BioReceipt Team",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/your-username/bio-pulse-app.git"
   },
-  "homepage": "https://biopulse.ai"
+  "homepage": "https://BioReceipt.ai"
 }
 ```
 
@@ -62,13 +62,13 @@ Update the main package.json file with new project identity:
 ```json
 {
   "expo": {
-    "name": "BioPulse.AI",
+    "name": "BioReceipt.AI",
     "slug": "bio-pulse-app",
     "version": "3.0.0",
     "orientation": "portrait",
-    "icon": "./assets/biopulse-icon.png",
+    "icon": "./assets/BioReceipt-icon.png",
     "splash": {
-      "image": "./assets/biopulse-splash.png",
+      "image": "./assets/BioReceipt-splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#1a365d"
     },
@@ -80,17 +80,17 @@ Update the main package.json file with new project identity:
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.biopulse.app"
+      "bundleIdentifier": "com.BioReceipt.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/biopulse-adaptive-icon.png",
+        "foregroundImage": "./assets/BioReceipt-adaptive-icon.png",
         "backgroundColor": "#1a365d"
       },
-      "package": "com.biopulse.app"
+      "package": "com.BioReceipt.app"
     },
     "web": {
-      "favicon": "./assets/biopulse-favicon.png"
+      "favicon": "./assets/BioReceipt-favicon.png"
     }
   }
 }
@@ -127,13 +127,13 @@ Update the main package.json file with new project identity:
 **New command paths after rename:**
 ```bash
 # Navigate to new project location
-cd C:\Users\andre\Documents\bio_pulse_app\BioPulseApp
+cd C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp
 
 # Run Phase 3 test suite
-node src/utils/bioPulsePhase3Test.ts
+node src/utils/BioReceiptPhase3Test.ts
 
 # Run diagnostics
-node src/utils/bioPulseDiagnostics.ts
+node src/utils/BioReceiptDiagnostics.ts
 
 # Run all tests
 npm test
@@ -170,10 +170,10 @@ npm start
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "BioPulse Debug",
+      "name": "BioReceipt Debug",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/src/utils/bioPulsePhase3Test.ts",
+      "program": "${workspaceFolder}/src/utils/BioReceiptPhase3Test.ts",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "env": {
         "NODE_ENV": "development"
@@ -189,7 +189,7 @@ If you have a git repository, update these files:
 
 #### **README.md**
 ```markdown
-# 🧬 BioPulse.AI
+# 🧬 BioReceipt.AI
 
 AI-powered health insights and predictive analytics platform with wearable device integration.
 
@@ -204,7 +204,7 @@ AI-powered health insights and predictive analytics platform with wearable devic
 ## 🏃‍♂️ Quick Start
 
 ```bash
-cd bio_pulse_app/BioPulseApp
+cd bio_pulse_app/BioReceiptApp
 npm install
 npm start
 ```
@@ -213,10 +213,10 @@ npm start
 
 ```bash
 # Run Phase 3 test suite
-node src/utils/bioPulsePhase3Test.ts
+node src/utils/BioReceiptPhase3Test.ts
 
 # Run diagnostics
-node src/utils/bioPulseDiagnostics.ts
+node src/utils/BioReceiptDiagnostics.ts
 ```
 ```
 
@@ -253,8 +253,8 @@ Thumbs.db
 
 Update all documentation files to reflect the new branding:
 
-- All `BIOPULSE_*.md` files ✅ (Already correctly named)
-- Update any references to "HealthyTipApp" in documentation
+- All `BioReceipt_*.md` files ✅ (Already correctly named)
+- Update any references to "BioReceipt" in documentation
 - Update file paths in documentation to reflect new structure
 
 ### **Step 8: Verification Checklist** ✅
@@ -264,7 +264,7 @@ After completing the rename:
 - [ ] Project opens correctly in new location
 - [ ] `npm install` runs without errors
 - [ ] `npm start` launches the app successfully
-- [ ] Test command works: `node src/utils/bioPulsePhase3Test.ts`
+- [ ] Test command works: `node src/utils/BioReceiptPhase3Test.ts`
 - [ ] All imports resolve correctly
 - [ ] No broken file references
 - [ ] Git repository (if applicable) tracks changes correctly
@@ -275,19 +275,19 @@ After completing the rename:
 2. **Rename folder** in File Explorer: `health_tip_app` → `bio_pulse_app`
 3. **Re-open project** from new location
 4. **Update package.json** with the configuration above
-5. **Test the rename** with: `cd C:\Users\andre\Documents\bio_pulse_app\BioPulseApp && node src/utils/bioPulsePhase3Test.ts`
+5. **Test the rename** with: `cd C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp && node src/utils/BioReceiptPhase3Test.ts`
 
 ## 🚀 **Post-Rename Next Steps**
 
 Once the rename is complete, you can immediately run:
 
 ```bash
-cd C:\Users\andre\Documents\bio_pulse_app\BioPulseApp
-node src/utils/bioPulsePhase3Test.ts
+cd C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp
+node src/utils/BioReceiptPhase3Test.ts
 ```
 
 This will execute your Phase 3 test suite and validate that everything is working correctly with the new project structure!
 
 ---
 
-**Ready to proceed with the rename?** Follow the steps above, and then we can run the comprehensive test suite to validate your BioPulse system! 🎉
+**Ready to proceed with the rename?** Follow the steps above, and then we can run the comprehensive test suite to validate your BioReceipt system! 🎉

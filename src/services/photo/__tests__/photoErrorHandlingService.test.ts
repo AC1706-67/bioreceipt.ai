@@ -406,7 +406,7 @@ describe('PhotoErrorHandlingService', () => {
       });
       
       expect(mockLinking.openURL).toHaveBeenCalledWith(
-        'mailto:support@biopulse.app?subject=Photo%20Issue%20Report'
+        'mailto:support@BioReceipt.app?subject=Photo%20Issue%20Report'
       );
     });
   });

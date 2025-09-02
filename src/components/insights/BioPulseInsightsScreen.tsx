@@ -1,5 +1,5 @@
 /**
- * BioPulse Insights Screen
+ * BioReceipt Insights Screen
  * Advanced AI-powered insights and recommendations display
  */
 
@@ -18,11 +18,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 
-import { bioPulseAnalysisEngine, BioPulseAnalysis } from '../../services/analysis/bioPulseAnalysisEngine';
-import { bioPulseAIService, AIInsightResponse, AIRecommendation, AIWarning } from '../../services/ai/bioPulseAIService';
-import { bioPulseSafetyAlertService, SafetyAlert } from '../../services/alerts/bioPulseSafetyAlertService';
+import { BioReceiptAnalysisEngine, BioReceiptAnalysis } from '../../services/analysis/BioReceiptAnalysisEngine';
+import { BioReceiptAIService, AIInsightResponse, AIRecommendation, AIWarning } from '../../services/ai/BioReceiptAIService';
+import { BioReceiptSafetyAlertService, SafetyAlert } from '../../services/alerts/BioReceiptSafetyAlertService';
 import { intakeLoggingService } from '../../services/substance/intakeLoggingService';
-import { bioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import TrendForecastPanel from './TrendForecastPanel';
 
@@ -32,8 +32,8 @@ interface InsightsScreenProps {
   userId: string;
 }
 
-export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }) => {
-  const [analysis, setAnalysis] = useState<BioPulseAnalysis | null>(null);
+export const BioReceiptInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }) => {
+  const [analysis, setAnalysis] = useState<BioReceiptAnalysis | null>(null);
   const [aiInsights, setAiInsights] = useState<AIInsightResponse | null>(null);
   const [safetyAlerts, setSafetyAlerts] = useState<SafetyAlert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,19 +58,19 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
       setLoading(true);
 
       // Load analysis
-      const analysisResult = await bioPulseAnalysisEngine.analyzeCurrentState(userId);
+      const analysisResult = await BioReceiptAnalysisEngine.analyzeCurrentState(userId);
       setAnalysis(analysisResult);
 
       // Get recent intakes for AI context
       const recentIntakes = await intakeLoggingService.getRecentIntakes(userId, 24);
 
       // Generate AI insights
-      const aiResult = await bioPulseAIService.generateInsights(analysisResult, recentIntakes);
+      const aiResult = await BioReceiptAIService.generateInsights(analysisResult, recentIntakes);
       setAiInsights(aiResult);
 
       // Process safety alerts
-      const alerts = await bioPulseSafetyAlertService.processAnalysisForAlerts(analysisResult, aiResult);
-      const activeAlerts = await bioPulseSafetyAlertService.getActiveAlerts(userId);
+      const alerts = await BioReceiptSafetyAlertService.processAnalysisForAlerts(analysisResult, aiResult);
+      const activeAlerts = await BioReceiptSafetyAlertService.getActiveAlerts(userId);
       setSafetyAlerts(activeAlerts);
 
     } catch (error) {
@@ -88,7 +88,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
 
   const handleAlertAcknowledge = async (alertId: string) => {
     try {
-      await bioPulseSafetyAlertService.acknowledgeAlert(userId, alertId);
+      await BioReceiptSafetyAlertService.acknowledgeAlert(userId, alertId);
       setSafetyAlerts(prev => prev.map(alert => 
         alert.alertId === alertId ? { ...alert, acknowledged: true } : alert
       ));
@@ -100,10 +100,10 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
   const renderHeader = () => (
     <View style={styles.header}>
       <LinearGradient
-        colors={[bioPulseTheme.colors.primary, bioPulseTheme.colors.secondary]}
+        colors={[BioReceiptTheme.colors.primary, BioReceiptTheme.colors.secondary]}
         style={styles.headerGradient}
       >
-        <Text style={styles.headerTitle}>BioPulse Insights</Text>
+        <Text style={styles.headerTitle}>BioReceipt Insights</Text>
         <Text style={styles.headerSubtitle}>AI-Powered Analysis & Recommendations</Text>
       </LinearGradient>
     </View>
@@ -125,7 +125,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
           <MaterialIcons 
             name={tab.icon as any} 
             size={20} 
-            color={selectedTab === tab.key ? bioPulseTheme.colors.primary : bioPulseTheme.colors.textSecondary} 
+            color={selectedTab === tab.key ? BioReceiptTheme.colors.primary : BioReceiptTheme.colors.textSecondary} 
           />
           <Text style={[
             styles.tabLabel,
@@ -153,7 +153,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
         {/* Executive Summary */}
         <View style={styles.summaryCard}>
           <View style={styles.cardHeader}>
-            <MaterialIcons name="summarize" size={24} color={bioPulseTheme.colors.primary} />
+            <MaterialIcons name="summarize" size={24} color={BioReceiptTheme.colors.primary} />
             <Text style={styles.cardTitle}>Executive Summary</Text>
           </View>
           <Text style={styles.summaryText}>{aiInsights.summary}</Text>
@@ -162,7 +162,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
         {/* Impact Score Visualization */}
         <View style={styles.impactCard}>
           <View style={styles.cardHeader}>
-            <MaterialIcons name="speed" size={24} color={bioPulseTheme.colors.primary} />
+            <MaterialIcons name="speed" size={24} color={BioReceiptTheme.colors.primary} />
             <Text style={styles.cardTitle}>Impact Analysis</Text>
           </View>
           
@@ -198,7 +198,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
         {analysis.recoveryTimeline.phases.length > 0 && (
           <View style={styles.timelineCard}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="timeline" size={24} color={bioPulseTheme.colors.primary} />
+              <MaterialIcons name="timeline" size={24} color={BioReceiptTheme.colors.primary} />
               <Text style={styles.cardTitle}>Recovery Timeline</Text>
             </View>
             
@@ -227,7 +227,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
         {analysis.personalizedInsights.length > 0 && (
           <View style={styles.insightsCard}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="insights" size={24} color={bioPulseTheme.colors.primary} />
+              <MaterialIcons name="insights" size={24} color={BioReceiptTheme.colors.primary} />
               <Text style={styles.cardTitle}>Key Insights</Text>
             </View>
             
@@ -258,7 +258,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
     if (!aiInsights || aiInsights.recommendations.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <MaterialIcons name="lightbulb-outline" size={64} color={bioPulseTheme.colors.textSecondary} />
+          <MaterialIcons name="lightbulb-outline" size={64} color={BioReceiptTheme.colors.textSecondary} />
           <Text style={styles.emptyStateText}>No recommendations available</Text>
         </View>
       );
@@ -280,7 +280,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
     if (safetyAlerts.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <MaterialIcons name="security" size={64} color={bioPulseTheme.colors.success} />
+          <MaterialIcons name="security" size={64} color={BioReceiptTheme.colors.success} />
           <Text style={styles.emptyStateText}>All clear! No active alerts</Text>
         </View>
       );
@@ -316,7 +316,7 @@ export const BioPulseInsightsScreen: React.FC<InsightsScreenProps> = ({ userId }
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <MaterialIcons name="analytics" size={48} color={bioPulseTheme.colors.primary} />
+        <MaterialIcons name="analytics" size={48} color={BioReceiptTheme.colors.primary} />
         <Text style={styles.loadingText}>Analyzing your data...</Text>
       </View>
     );
@@ -420,34 +420,34 @@ const AlertCard: React.FC<{ alert: SafetyAlert; onAcknowledge?: () => void }> = 
 // Helper Functions
 const getTrendColor = (trend: string) => {
   switch (trend) {
-    case 'improving': return bioPulseTheme.colors.success;
-    case 'declining': return bioPulseTheme.colors.error;
-    default: return bioPulseTheme.colors.warning;
+    case 'improving': return BioReceiptTheme.colors.success;
+    case 'declining': return BioReceiptTheme.colors.error;
+    default: return BioReceiptTheme.colors.warning;
   }
 };
 
 const getScoreColor = (score: number) => {
-  if (score >= 80) return bioPulseTheme.colors.error;
-  if (score >= 60) return bioPulseTheme.colors.warning;
-  if (score >= 40) return bioPulseTheme.colors.info;
-  return bioPulseTheme.colors.success;
+  if (score >= 80) return BioReceiptTheme.colors.error;
+  if (score >= 60) return BioReceiptTheme.colors.warning;
+  if (score >= 40) return BioReceiptTheme.colors.info;
+  return BioReceiptTheme.colors.success;
 };
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case 'urgent': case 'critical': return bioPulseTheme.colors.error;
-    case 'high': return bioPulseTheme.colors.warning;
-    case 'medium': return bioPulseTheme.colors.info;
-    default: return bioPulseTheme.colors.success;
+    case 'urgent': case 'critical': return BioReceiptTheme.colors.error;
+    case 'high': return BioReceiptTheme.colors.warning;
+    case 'medium': return BioReceiptTheme.colors.info;
+    default: return BioReceiptTheme.colors.success;
   }
 };
 
 const getSeverityColor = (severity: string) => {
   switch (severity) {
-    case 'critical': case 'emergency': return bioPulseTheme.colors.error;
-    case 'warning': return bioPulseTheme.colors.warning;
-    case 'caution': return bioPulseTheme.colors.info;
-    default: return bioPulseTheme.colors.textSecondary;
+    case 'critical': case 'emergency': return BioReceiptTheme.colors.error;
+    case 'warning': return BioReceiptTheme.colors.warning;
+    case 'caution': return BioReceiptTheme.colors.info;
+    default: return BioReceiptTheme.colors.textSecondary;
   }
 };
 
@@ -473,7 +473,7 @@ const getSeverityIcon = (severity: string) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: bioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   header: {
     height: 120,
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: bioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   tab: {
     flex: 1,
@@ -511,22 +511,22 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: bioPulseTheme.colors.primary,
+    borderBottomColor: BioReceiptTheme.colors.primary,
   },
   tabLabel: {
     marginLeft: 6,
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   activeTabLabel: {
-    color: bioPulseTheme.colors.primary,
+    color: BioReceiptTheme.colors.primary,
     fontWeight: '600',
   },
   alertBadge: {
     position: 'absolute',
     top: 4,
     right: 8,
-    backgroundColor: bioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -545,12 +545,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: bioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   overviewContainer: {
     padding: 16,
@@ -574,13 +574,13 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginLeft: 8,
   },
   summaryText: {
     fontSize: 16,
     lineHeight: 24,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   impactCard: {
     backgroundColor: 'white',
@@ -604,11 +604,11 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: bioPulseTheme.colors.primary,
+    color: BioReceiptTheme.colors.primary,
   },
   scoreLabel: {
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginBottom: 4,
   },
   trendLabel: {
@@ -626,12 +626,12 @@ const styles = StyleSheet.create({
   categoryLabel: {
     width: 80,
     fontSize: 14,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   scoreBar: {
     flex: 1,
     height: 8,
-    backgroundColor: bioPulseTheme.colors.border,
+    backgroundColor: BioReceiptTheme.colors.border,
     borderRadius: 4,
     marginHorizontal: 8,
   },
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     width: 30,
     fontSize: 14,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     textAlign: 'right',
   },
   timelineCard: {
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
   timelineTotal: {
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginBottom: 16,
   },
   timelinePhase: {
@@ -683,17 +683,17 @@ const styles = StyleSheet.create({
   phaseName: {
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginBottom: 4,
   },
   phaseDescription: {
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginBottom: 4,
   },
   phaseDuration: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   insightsCard: {
     backgroundColor: 'white',
@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: bioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   insightHeader: {
     flexDirection: 'row',
@@ -725,19 +725,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   insightConfidence: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
-    backgroundColor: bioPulseTheme.colors.border,
+    color: BioReceiptTheme.colors.textSecondary,
+    backgroundColor: BioReceiptTheme.colors.border,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
   insightDescription: {
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 8,
   },
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
   },
   actionItem: {
     fontSize: 14,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginBottom: 4,
   },
   recommendationsContainer: {
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   priorityBadge: {
     paddingHorizontal: 8,
@@ -791,12 +791,12 @@ const styles = StyleSheet.create({
   },
   recommendationType: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     fontWeight: '500',
   },
   recommendationDescription: {
     fontSize: 16,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     lineHeight: 24,
     marginBottom: 12,
   },
@@ -806,12 +806,12 @@ const styles = StyleSheet.create({
   actionStepsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginBottom: 8,
   },
   actionStep: {
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginBottom: 4,
   },
   recommendationFooter: {
@@ -821,11 +821,11 @@ const styles = StyleSheet.create({
   },
   timeframe: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   expectedOutcome: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     flex: 1,
     textAlign: 'right',
   },
@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   alertSectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginBottom: 12,
   },
   alertCard: {
@@ -869,7 +869,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   severityBadge: {
     paddingHorizontal: 8,
@@ -883,7 +883,7 @@ const styles = StyleSheet.create({
   },
   alertMessage: {
     fontSize: 14,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -893,12 +893,12 @@ const styles = StyleSheet.create({
   immediateActionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginBottom: 8,
   },
   immediateAction: {
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginBottom: 4,
   },
   alertFooter: {
@@ -908,10 +908,10 @@ const styles = StyleSheet.create({
   },
   alertTimestamp: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   acknowledgeButton: {
-    backgroundColor: bioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
@@ -929,9 +929,9 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginTop: 16,
   },
 });
 
-export default BioPulseInsightsScreen;
+export default BioReceiptInsightsScreen;

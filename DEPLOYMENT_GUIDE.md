@@ -1,4 +1,4 @@
-# 🚀 BioPulse.AI Deployment Guide
+# 🚀 BioReceipt.AI Deployment Guide
 
 ## 📋 **What's Missing for Deployment**
 
@@ -41,13 +41,13 @@
 ```bash
 # 1. Create repository on GitHub.com
 # 2. Add remote origin:
-git remote add origin https://github.com/yourusername/biopulse-ai.git
+git remote add origin https://github.com/yourusername/BioReceipt-ai.git
 
 # 3. Add all files:
 git add .
 
 # 4. Make first commit:
-git commit -m "Initial BioPulse.AI codebase with photo gallery enhancements"
+git commit -m "Initial BioReceipt.AI codebase with photo gallery enhancements"
 
 # 5. Push to GitHub:
 git push -u origin main

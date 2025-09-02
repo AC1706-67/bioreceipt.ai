@@ -12,7 +12,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 interface UndoNotificationProps {
   visible: boolean;
@@ -145,13 +145,13 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     top: 50, // Below status bar
-    left: BioPulseTheme.spacing.md,
-    right: BioPulseTheme.spacing.md,
+    left: BioReceiptTheme.spacing.md,
+    right: BioReceiptTheme.spacing.md,
     zIndex: 1000,
   },
   notification: {
-    backgroundColor: BioPulseTheme.colors.textPrimary,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.textPrimary,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: {
@@ -166,22 +166,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: BioPulseTheme.spacing.md,
-    paddingLeft: BioPulseTheme.spacing.lg,
-    paddingRight: BioPulseTheme.spacing.sm,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    paddingLeft: BioReceiptTheme.spacing.lg,
+    paddingRight: BioReceiptTheme.spacing.sm,
   },
   message: {
     flex: 1,
     fontSize: 16,
     color: 'white',
-    marginRight: BioPulseTheme.spacing.md,
+    marginRight: BioReceiptTheme.spacing.md,
   },
   undoButton: {
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.sm,
-    borderRadius: BioPulseTheme.borderRadius.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    marginRight: BioPulseTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
   },
   undoButtonText: {
     fontSize: 14,
@@ -190,8 +190,8 @@ const styles = StyleSheet.create({
   },
   dismissButton: {
     position: 'absolute',
-    top: BioPulseTheme.spacing.xs,
-    right: BioPulseTheme.spacing.xs,
+    top: BioReceiptTheme.spacing.xs,
+    right: BioReceiptTheme.spacing.xs,
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     height: 3,
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
   },
 });
 

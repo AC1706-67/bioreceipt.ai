@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -88,28 +88,28 @@ const Toast: React.FC<ToastProps> = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: BioPulseTheme.colors.success,
-          borderColor: BioPulseTheme.colors.successDark,
+          backgroundColor: BioReceiptTheme.colors.success,
+          borderColor: BioReceiptTheme.colors.successDark,
         };
       case 'error':
         return {
-          backgroundColor: BioPulseTheme.colors.error,
-          borderColor: BioPulseTheme.colors.errorDark,
+          backgroundColor: BioReceiptTheme.colors.error,
+          borderColor: BioReceiptTheme.colors.errorDark,
         };
       case 'warning':
         return {
-          backgroundColor: BioPulseTheme.colors.warning,
-          borderColor: BioPulseTheme.colors.warningDark,
+          backgroundColor: BioReceiptTheme.colors.warning,
+          borderColor: BioReceiptTheme.colors.warningDark,
         };
       case 'info':
         return {
-          backgroundColor: BioPulseTheme.colors.info,
-          borderColor: BioPulseTheme.colors.infoDark,
+          backgroundColor: BioReceiptTheme.colors.info,
+          borderColor: BioReceiptTheme.colors.infoDark,
         };
       default:
         return {
-          backgroundColor: BioPulseTheme.colors.primary,
-          borderColor: BioPulseTheme.colors.primaryDark,
+          backgroundColor: BioReceiptTheme.colors.primary,
+          borderColor: BioReceiptTheme.colors.primaryDark,
         };
     }
   };
@@ -187,10 +187,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 9999,
-    paddingHorizontal: BioPulseTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
   },
   toast: {
-    borderRadius: BioPulseTheme.borderRadius.lg,
+    borderRadius: BioReceiptTheme.borderRadius.lg,
     borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
@@ -204,48 +204,48 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: BioPulseTheme.spacing.md,
+    padding: BioReceiptTheme.spacing.md,
     minHeight: 60,
   },
   iconContainer: {
-    marginRight: BioPulseTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
   },
   icon: {
     fontSize: 20,
-    color: BioPulseTheme.colors.surface,
+    color: BioReceiptTheme.colors.surface,
     fontWeight: 'bold',
   },
   messageContainer: {
     flex: 1,
-    marginRight: BioPulseTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
   },
   message: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.surface,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.surface,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
     lineHeight: 20,
   },
   actionButton: {
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: BioPulseTheme.borderRadius.sm,
-    marginRight: BioPulseTheme.spacing.sm,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
   },
   actionText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.surface,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.surface,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
     textTransform: 'uppercase',
   },
   closeButton: {
-    padding: BioPulseTheme.spacing.xs,
+    padding: BioReceiptTheme.spacing.xs,
     minWidth: 30,
     alignItems: 'center',
   },
   closeText: {
     fontSize: 24,
-    color: BioPulseTheme.colors.surface,
+    color: BioReceiptTheme.colors.surface,
     fontWeight: 'bold',
     lineHeight: 24,
   },

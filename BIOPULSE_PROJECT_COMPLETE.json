@@ -1,11 +1,11 @@
 {
   "project": {
-    "name": "BioPulse.AI",
+    "name": "BioReceipt.AI",
     "version": "3.0.0",
     "description": "AI-powered health insights and predictive analytics platform with wearable device integration",
     "tagline": "AI-Powered Biohacking",
-    "location": "C:\\Users\\andre\\Documents\\health_tip_app\\HealthyTipApp\\",
-    "originalName": "HealthyTipApp",
+    "location": "C:\\Users\\andre\\Documents\\health_tip_app\\BioReceipt\\",
+    "originalName": "BioReceipt",
     "rebranded": "2025-08-01",
     "currentStatus": "85% MVP Complete - Ready for Testing",
     "lastUpdated": "2025-08-01"
@@ -70,7 +70,7 @@
         "wearableIntegrationService",
         "appleHealthConnector",
         "googleFitConnector",
-        "bioPulseSafetyAlertService",
+        "BioReceiptSafetyAlertService",
         "trendForecastPanel"
       ],
       "advanced": true,
@@ -199,21 +199,21 @@
       "suites": [
         "aiPersonalizationService.test.ts",
         "analyticsInstrumentation.test.ts",
-        "bioPulseContentService.test.ts"
+        "BioReceiptContentService.test.ts"
       ]
     },
     "phase3Tests": {
       "status": "Passing",
       "coverage": "95%+",
       "suites": [
-        "bioPulsePhase3Test.ts",
-        "bioPulseDiagnostics.ts",
-        "bioPulseSmokeTest.ts"
+        "BioReceiptPhase3Test.ts",
+        "BioReceiptDiagnostics.ts",
+        "BioReceiptSmokeTest.ts"
       ],
       "results": "All Phase 3 components verified and operational"
     },
     "diagnostics": {
-      "bioPulseDiagnostics": "All services initialized and functional",
+      "BioReceiptDiagnostics": "All services initialized and functional",
       "smokeTests": "Basic functionality verified",
       "integrationTests": "Cross-service communication validated"
     }
@@ -249,7 +249,7 @@
       "language": "TypeScript 5.0.4",
       "stateManagement": "Redux Toolkit",
       "navigation": "@react-navigation/native",
-      "ui": "Custom BioPulse theme system",
+      "ui": "Custom BioReceipt theme system",
       "accessibility": "WCAG 2.1 AA compliant",
       "testing": "Jest + React Native Testing Library"
     },

@@ -1,6 +1,6 @@
 /**
  * Intake Logging Service
- * Manages substance intake logging and analysis for BioPulse.AI
+ * Manages substance intake logging and analysis for BioReceipt.AI
  */
 
 import {

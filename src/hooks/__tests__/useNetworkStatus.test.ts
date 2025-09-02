@@ -29,6 +29,14 @@ jest.mock('../../contexts/ToastContext', () => ({
 describe('useNetworkStatus', () => {
   const mockNetInfo = NetInfo as jest.Mocked<typeof NetInfo>;
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockNetInfo.addEventListener.mockReturnValue(() => {});
@@ -68,6 +76,7 @@ describe('useNetworkStatus', () => {
         // Simulate network status update
         const listener = mockNetInfo.addEventListener.mock.calls[0][0];
         listener(mockState as any);
+        jest.advanceTimersByTime(100);
       });
 
       expect(result.current.networkStatus.isConnected).toBe(true);
@@ -91,6 +100,7 @@ describe('useNetworkStatus', () => {
       await act(async () => {
         const listener = mockNetInfo.addEventListener.mock.calls[0][0];
         listener(mockState as any);
+        jest.advanceTimersByTime(100);
       });
 
       expect(result.current.networkStatus.isCellular).toBe(true);
@@ -119,6 +129,7 @@ describe('useNetworkStatus', () => {
       await act(async () => {
         const listener = mockNetInfo.addEventListener.mock.calls[0][0];
         listener(connectedState as any);
+        jest.advanceTimersByTime(100);
       });
 
       expect(result.current.isOnline).toBe(true);
@@ -127,6 +138,7 @@ describe('useNetworkStatus', () => {
       await act(async () => {
         const listener = mockNetInfo.addEventListener.mock.calls[0][0];
         listener(disconnectedState as any);
+        jest.advanceTimersByTime(100);
       });
 
       expect(result.current.isOffline).toBe(true);
@@ -158,12 +170,14 @@ describe('useNetworkStatus', () => {
       await act(async () => {
         const listener = mockNetInfo.addEventListener.mock.calls[0][0];
         listener(disconnectedState as any);
+        jest.advanceTimersByTime(100);
       });
 
       // Second update - connected
       await act(async () => {
         const listener = mockNetInfo.addEventListener.mock.calls[0][0];
         listener(connectedState as any);
+        jest.advanceTimersByTime(100);
       });
 
       expect(mockToast.showSuccess).toHaveBeenCalledWith(
@@ -195,6 +209,7 @@ describe('useNetworkStatus', () => {
         await act(async () => {
           const listener = mockNetInfo.addEventListener.mock.calls[0][0];
           listener(mockState as any);
+          jest.advanceTimersByTime(100);
         });
 
         expect(result.current.networkStatus.strength).toBe(testCase.expected);
@@ -222,6 +237,7 @@ describe('useNetworkStatus', () => {
         await act(async () => {
           const listener = mockNetInfo.addEventListener.mock.calls[0][0];
           listener(mockState as any);
+          jest.advanceTimersByTime(100);
         });
 
         expect(result.current.networkStatus.strength).toBe(testCase.expected);
@@ -256,6 +272,7 @@ describe('useNetworkStatus', () => {
         await act(async () => {
           const listener = mockNetInfo.addEventListener.mock.calls[0][0];
           listener(testCase.state as any);
+          jest.advanceTimersByTime(100);
         });
 
         expect(result.current.networkStatus.canPerformOperations).toBe(testCase.canPerform);
@@ -277,6 +294,7 @@ describe('useNetworkStatus', () => {
 
       await act(async () => {
         const isConnected = await result.current.checkConnectivity();
+        jest.advanceTimersByTime(100);
         expect(isConnected).toBe(true);
       });
 
@@ -308,14 +326,14 @@ describe('useNetworkStatus', () => {
 
       const { result } = renderHook(() => useNetworkStatus());
 
-      // First set up the connected state
       await act(async () => {
+        const waitPromise = result.current.waitForConnection(5000);
+        // Emit online event immediately
         const listener = mockNetInfo.addEventListener.mock.calls[0][0];
         listener(mockState as any);
-      });
-
-      await act(async () => {
-        const connected = await result.current.waitForConnection(5000);
+        jest.advanceTimersByTime(100);
+        
+        const connected = await waitPromise;
         expect(connected).toBe(true);
       });
     });
@@ -332,7 +350,11 @@ describe('useNetworkStatus', () => {
       const { result } = renderHook(() => useNetworkStatus());
 
       await act(async () => {
-        const connected = await result.current.waitForConnection(100); // Short timeout
+        const waitPromise = result.current.waitForConnection(2000);
+        // Advance timers to trigger timeout
+        jest.advanceTimersByTime(2000);
+        
+        const connected = await waitPromise;
         expect(connected).toBe(false);
       });
     });
@@ -366,6 +388,7 @@ describe('useNetworkStatus', () => {
         await act(async () => {
           const listener = mockNetInfo.addEventListener.mock.calls[0][0];
           listener(testCase.state as any);
+          jest.advanceTimersByTime(100);
         });
 
         await act(async () => {

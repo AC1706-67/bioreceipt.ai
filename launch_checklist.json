@@ -1,5 +1,5 @@
 {
-  "project": "BioPulse.AI",
+  "project": "BioReceipt.AI",
   "version": "3.0.0",
   "pending_launch_tasks": [
     {
@@ -37,7 +37,7 @@
     {
       "id": 5,
       "title": "Update App Configuration Files",
-      "description": "Update app.json with correct project name (currently shows HealthyTipApp instead of BioPulse.AI), configure app store metadata and build settings",
+      "description": "Update app.json with correct project name (currently shows BioReceipt instead of BioReceipt.AI), configure app store metadata and build settings",
       "module": "frontend",
       "priority": "Medium",
       "estimated_effort": "2 hours"

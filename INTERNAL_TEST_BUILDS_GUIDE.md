@@ -1,4 +1,4 @@
-# 🚀 BioPulse.AI Internal Test Builds Guide
+# 🚀 BioReceipt.AI Internal Test Builds Guide
 
 **Date:** August 1, 2025  
 **Version:** 3.0.0  
@@ -8,7 +8,7 @@
 
 ## 📋 **OVERVIEW**
 
-This guide will help you generate internal test builds for BioPulse.AI on both Android and iOS platforms. These builds are connected to the production Supabase database and include all Phase 4 MVP features.
+This guide will help you generate internal test builds for BioReceipt.AI on both Android and iOS platforms. These builds are connected to the production Supabase database and include all Phase 4 MVP features.
 
 ---
 
@@ -22,7 +22,7 @@ This guide will help you generate internal test builds for BioPulse.AI on both A
 
 ### **Step 1: Prepare Environment**
 ```bash
-cd HealthyTipApp
+cd BioReceipt
 
 # Install dependencies
 npm install --legacy-peer-deps
@@ -97,13 +97,13 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 
 ### **Step 2: Configure iOS Project**
 ```bash
-cd HealthyTipApp
+cd BioReceipt
 
 # Install iOS dependencies
 cd ios && pod install && cd ..
 
 # Open iOS project in Xcode
-open ios/HealthyTipApp.xcworkspace
+open ios/BioReceipt.xcworkspace
 ```
 
 ### **Step 3: Xcode Configuration**
@@ -111,11 +111,11 @@ open ios/HealthyTipApp.xcworkspace
    - Select your project in the navigator
    - Go to "Signing & Capabilities"
    - Select your Team (Apple Developer Account)
-   - Change Bundle Identifier to unique ID (e.g., com.yourname.biopulse)
+   - Change Bundle Identifier to unique ID (e.g., com.yourname.BioReceipt)
    - Ensure "Automatically manage signing" is checked
 
 2. **Update App Information:**
-   - Display Name: "BioPulse.AI"
+   - Display Name: "BioReceipt.AI"
    - Version: 3.0.0
    - Build: 1
 
@@ -156,7 +156,7 @@ Edit `android/app/src/main/AndroidManifest.xml`:
     
     <application
         android:name=".MainApplication"
-        android:label="BioPulse.AI"
+        android:label="BioReceipt.AI"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="false"
@@ -177,12 +177,12 @@ Edit `android/app/src/main/AndroidManifest.xml`:
 ```
 
 ### **2. Update iOS Info.plist**
-Edit `ios/HealthyTipApp/Info.plist`:
+Edit `ios/BioReceipt/Info.plist`:
 ```xml
 <key>CFBundleDisplayName</key>
-<string>BioPulse.AI</string>
+<string>BioReceipt.AI</string>
 <key>CFBundleIdentifier</key>
-<string>com.biopulse.app</string>
+<string>com.BioReceipt.app</string>
 <key>CFBundleVersion</key>
 <string>1</string>
 <key>CFBundleShortVersionString</key>
@@ -306,7 +306,7 @@ cat .env
 2. **Tester Instructions:**
    - Install TestFlight app from App Store
    - Accept invitation email
-   - Install BioPulse.AI from TestFlight
+   - Install BioReceipt.AI from TestFlight
    - Provide feedback through TestFlight
 
 ---
@@ -383,4 +383,4 @@ cat .env
 
 ---
 
-**🎉 Ready to get BioPulse.AI in users' hands! Start with the Android debug build for fastest testing.**
+**🎉 Ready to get BioReceipt.AI in users' hands! Start with the Android debug build for fastest testing.**

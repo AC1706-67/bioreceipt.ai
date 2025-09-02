@@ -1,4 +1,4 @@
-# ✅ BioPulse Project Rename Checklist
+# ✅ BioReceipt Project Rename Checklist
 
 ## 🎯 **IMMEDIATE ACTIONS** (Do These Now)
 
@@ -6,12 +6,12 @@
 - [ ] **Close VS Code/IDE completely**
 - [ ] **Navigate to**: `C:\Users\andre\Documents\`
 - [ ] **Rename folder**: `health_tip_app` → `bio_pulse_app`
-- [ ] **Verify new path**: `C:\Users\andre\Documents\bio_pulse_app\BioPulseApp\`
+- [ ] **Verify new path**: `C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp\`
 - [ ] **Re-open project** in VS Code from new location
 
 ### **2. Verify Package.json Updates** ✅
 - [x] **Name updated**: `"name": "bio-pulse-app"`
-- [x] **Display name added**: `"displayName": "BioPulse.AI"`
+- [x] **Display name added**: `"displayName": "BioReceipt.AI"`
 - [x] **Version bumped**: `"version": "3.0.0"`
 - [x] **Description updated**: AI-powered health insights platform
 - [x] **Test scripts added**: Phase 3 and diagnostics commands
@@ -21,25 +21,25 @@ After folder rename, run these commands to verify everything works:
 
 ```bash
 # Navigate to new location
-cd C:\Users\andre\Documents\bio_pulse_app\BioPulseApp
+cd C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp
 
 # Install dependencies (if needed)
 npm install
 
 # Test the Phase 3 suite
-npm run test:biopulse-phase3
+npm run test:BioReceipt-phase3
 
 # Or run directly
-node src/utils/bioPulsePhase3Test.ts
+node src/utils/BioReceiptPhase3Test.ts
 ```
 
 ## 📋 **OPTIONAL CONFIGURATION UPDATES**
 
 ### **App Configuration** (Optional)
 If you have an `app.json` or `app.config.js`, update:
-- [ ] App name: `"name": "BioPulse.AI"`
+- [ ] App name: `"name": "BioReceipt.AI"`
 - [ ] Slug: `"slug": "bio-pulse-app"`
-- [ ] Bundle ID: `"bundleIdentifier": "com.biopulse.app"`
+- [ ] Bundle ID: `"bundleIdentifier": "com.BioReceipt.app"`
 
 ### **TypeScript Configuration** (Optional)
 If you want path aliases in `tsconfig.json`:
@@ -58,11 +58,11 @@ Create `.vscode/settings.json` for better development experience:
 - [ ] Project opens without errors
 - [ ] All imports resolve correctly
 - [ ] `npm start` works
-- [ ] Test suite runs: `npm run test:biopulse-phase3`
+- [ ] Test suite runs: `npm run test:BioReceipt-phase3`
 - [ ] Diagnostics run: `npm run test:diagnostics`
 
 ### **File Structure Check**
-- [ ] All BioPulse files are accessible
+- [ ] All BioReceipt files are accessible
 - [ ] No broken file references
 - [ ] Documentation paths are correct
 
@@ -71,7 +71,7 @@ Create `.vscode/settings.json` for better development experience:
 When you can successfully run this command, the rename is complete:
 
 ```bash
-cd C:\Users\andre\Documents\bio_pulse_app\BioPulseApp && npm run test:biopulse-phase3
+cd C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp && npm run test:BioReceipt-phase3
 ```
 
 ## 🔄 **ROLLBACK PLAN** (If Issues Occur)
@@ -95,10 +95,10 @@ Once rename is successful:
 
 ```bash
 # 1. Navigate to new location
-cd C:\Users\andre\Documents\bio_pulse_app\BioPulseApp
+cd C:\Users\andre\Documents\bio_pulse_app\BioReceiptApp
 
 # 2. Run Phase 3 test suite
-npm run test:biopulse-phase3
+npm run test:BioReceipt-phase3
 
 # 3. Run system diagnostics
 npm run test:diagnostics
@@ -107,4 +107,4 @@ npm run test:diagnostics
 npm start
 ```
 
-**Ready to rename?** Follow the checklist above, then run the test suite to validate your BioPulse system! 🚀
+**Ready to rename?** Follow the checklist above, then run the test suite to validate your BioReceipt system! 🚀

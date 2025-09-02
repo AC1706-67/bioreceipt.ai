@@ -1,5 +1,5 @@
 {
-  "database": "BioPulse",
+  "database": "BioReceipt",
   "extensions": ["uuid-ossp", "pgcrypto"],
   "tables": [
     {

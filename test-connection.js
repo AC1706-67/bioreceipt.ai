@@ -11,7 +11,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function testConnection() {
-  console.log('🧪 Testing BioPulse.AI Database Connection...\n');
+  console.log('🧪 Testing BioReceipt.AI Database Connection...\n');
 
   try {
     // Test 1: Check substance categories
@@ -49,7 +49,7 @@ async function testConnection() {
     if (countError) throw countError;
     console.log(`✅ Total substances in database: ${count}`);
 
-    console.log('\n🎉 SUCCESS! Your BioPulse.AI database is ready to go!');
+    console.log('\n🎉 SUCCESS! Your BioReceipt.AI database is ready to go!');
     console.log('\n📋 Next steps:');
     console.log('   1. Run your app: npm start or expo start');
     console.log('   2. Create a user account');

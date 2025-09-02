@@ -263,7 +263,7 @@ export class NotificationScheduler {
         const welcomePayload = {
           id: `welcome_${user.id}_${Date.now()}`,
           type: 'general' as const,
-          title: '🎉 Welcome to Healthy Tip App!',
+          title: '🎉 Welcome to BioReceipt!',
           body: `Hi ${user.name}! Ready to start your wellness journey? Your first daily tip is waiting for you.`,
           data: { welcome: true, userId: user.id },
           priority: 'normal' as const,

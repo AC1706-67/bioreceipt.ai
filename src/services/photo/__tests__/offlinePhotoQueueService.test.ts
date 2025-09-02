@@ -4,8 +4,8 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-netinfo/netinfo';
-import offlinePhotoQueueService, { OfflinePhotoQueueService, QueuedPhoto, QueueConfiguration, QueueStats } from '../offlinePhotoQueueService';
+import NetInfo from '@react-native-community/netinfo';
+import offlinePhotoQueueService, { QueuedPhoto, QueueStats } from '../offlinePhotoQueueService';
 import { supabaseHelpers } from '../../../config/supabase';
 
 // Mock dependencies
@@ -14,7 +14,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(),
 }));
 
-jest.mock('@react-native-netinfo/netinfo', () => ({
+jest.mock('@react-native-community/netinfo', () => ({
   fetch: jest.fn(),
   addEventListener: jest.fn(),
 }));
@@ -30,10 +30,7 @@ const mockNetInfo = NetInfo as jest.Mocked<typeof NetInfo>;
 const mockSupabaseHelpers = supabaseHelpers as jest.Mocked<typeof supabaseHelpers>;
 
 describe('OfflinePhotoQueueService', () => {
-  let service: OfflinePhotoQueueService;
-
   beforeEach(() => {
-    service = new OfflinePhotoQueueService();
     jest.clearAllMocks();
     jest.useFakeTimers();
     
@@ -49,13 +46,12 @@ describe('OfflinePhotoQueueService', () => {
   });
 
   afterEach(() => {
-    service.destroy();
     jest.useRealTimers();
   });
 
   describe('Queue Management', () => {
     it('adds photo to queue successfully', async () => {
-      const photoId = await service.addToQueue(
+      const photoId = await offlinePhotoQueueService.addToQueue(
         'file://photo.jpg',
         'intake123',
         {
@@ -68,7 +64,7 @@ describe('OfflinePhotoQueueService', () => {
       expect(photoId).toBeDefined();
       expect(photoId).toMatch(/^photo_\d+_/);
 
-      const stats = service.getQueueStats();
+      const stats = offlinePhotoQueueService.getQueueStats();
       expect(stats.total).toBe(1);
       expect(stats.pending).toBe(1);
     });
@@ -604,8 +600,8 @@ describe('OfflinePhotoQueueService', () => {
     });
   });
 });
-descr
-ibe('Enhanced Offline Photo Queue Service', () => {
+
+describe('Enhanced Offline Photo Queue Service', () => {
   let service: OfflinePhotoQueueService;
   const mockNetInfo = NetInfo as jest.Mocked<typeof NetInfo>;
   const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;

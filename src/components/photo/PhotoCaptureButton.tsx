@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   View,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import { useImagePicker } from '../../hooks/useImagePicker';
 import { useToast } from '../../contexts/ToastContext';
 import { photoErrorHandlingService } from '../../services/photo/photoErrorHandlingService';
@@ -227,7 +227,7 @@ const PhotoCaptureButton: React.FC<PhotoCaptureButtonProps> = ({
         {isLoading ? (
           <ActivityIndicator 
             size="small" 
-            color={BioPulseTheme.colors.surface} 
+            color={BioReceiptTheme.colors.surface} 
             testID="photo-capture-loading"
           />
         ) : (
@@ -301,7 +301,7 @@ const PhotoCaptureButton: React.FC<PhotoCaptureButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -314,11 +314,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonDisabled: {
-    backgroundColor: BioPulseTheme.colors.textTertiary,
+    backgroundColor: BioReceiptTheme.colors.textTertiary,
     opacity: 0.6,
   },
   buttonError: {
-    backgroundColor: BioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
   },
   content: {
     justifyContent: 'center',
@@ -331,35 +331,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cameraBody: {
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderRadius: 2,
     position: 'absolute',
   },
   cameraLens: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.surface,
     position: 'absolute',
   },
   cameraFlash: {
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     position: 'absolute',
   },
   plusIndicator: {
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: BioPulseTheme.colors.secondary,
+    backgroundColor: BioReceiptTheme.colors.secondary,
     borderRadius: 8,
     width: 16,
     height: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.surface,
   },
   plusText: {
-    color: BioPulseTheme.colors.surface,
+    color: BioReceiptTheme.colors.surface,
     fontWeight: 'bold',
     lineHeight: 12,
   },
@@ -367,17 +367,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: BioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
     borderRadius: 8,
     width: 16,
     height: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.surface,
   },
   errorText: {
-    color: BioPulseTheme.colors.surface,
+    color: BioReceiptTheme.colors.surface,
     fontSize: 10,
     fontWeight: 'bold',
     lineHeight: 12,

@@ -654,7 +654,7 @@ export class LoggingService {
       version: '1.0.0', // Would get from package.json
       buildNumber: '1', // Would get from build system
       environment: __DEV__ ? 'development' : 'production',
-      bundleId: 'com.healthytipapp', // Would get from app config
+      bundleId: 'com.BioReceipt', // Would get from app config
       installationId: 'unknown', // Would generate and store on first launch
     };
   }

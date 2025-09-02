@@ -1,10 +1,10 @@
 /**
- * BioPulse Safety Alert System
+ * BioReceipt Safety Alert System
  * Real-time monitoring and alerting for substance safety
  */
 
-import { BioPulseAnalysis, InteractionRisk, RiskFactor } from '../analysis/bioPulseAnalysisEngine';
-import { AIInsightResponse, AIWarning } from '../ai/bioPulseAIService';
+import { BioReceiptAnalysis, InteractionRisk, RiskFactor } from '../analysis/BioReceiptAnalysisEngine';
+import { AIInsightResponse, AIWarning } from '../ai/BioReceiptAIService';
 import { SubstanceIntake } from '../../models/SubstanceIntake';
 import { loggingService } from '../logging/loggingService';
 
@@ -107,14 +107,14 @@ interface AlertRule {
   ruleId: string;
   name: string;
   category: string;
-  condition: (analysis: BioPulseAnalysis, config: AlertConfiguration) => boolean;
+  condition: (analysis: BioReceiptAnalysis, config: AlertConfiguration) => boolean;
   severity: SafetyAlert['severity'];
   urgency: SafetyAlert['urgency'];
-  generateAlert: (analysis: BioPulseAnalysis, config: AlertConfiguration) => Partial<SafetyAlert>;
+  generateAlert: (analysis: BioReceiptAnalysis, config: AlertConfiguration) => Partial<SafetyAlert>;
 }
 
-class BioPulseSafetyAlertService {
-  private static instance: BioPulseSafetyAlertService;
+class BioReceiptSafetyAlertService {
+  private static instance: BioReceiptSafetyAlertService;
   private alertRules: Map<string, AlertRule> = new Map();
   private activeAlerts: Map<string, SafetyAlert[]> = new Map(); // userId -> alerts
   private alertConfigurations: Map<string, AlertConfiguration> = new Map();
@@ -125,11 +125,11 @@ class BioPulseSafetyAlertService {
     this.initializeAlertRules();
   }
 
-  static getInstance(): BioPulseSafetyAlertService {
-    if (!BioPulseSafetyAlertService.instance) {
-      BioPulseSafetyAlertService.instance = new BioPulseSafetyAlertService();
+  static getInstance(): BioReceiptSafetyAlertService {
+    if (!BioReceiptSafetyAlertService.instance) {
+      BioReceiptSafetyAlertService.instance = new BioReceiptSafetyAlertService();
     }
-    return BioPulseSafetyAlertService.instance;
+    return BioReceiptSafetyAlertService.instance;
   }
 
   async initialize(): Promise<void> {
@@ -139,7 +139,7 @@ class BioPulseSafetyAlertService {
       await this.loadAlertConfigurations();
       this.isInitialized = true;
       
-      await loggingService.info('BioPulse Safety Alert Service initialized');
+      await loggingService.info('BioReceipt Safety Alert Service initialized');
     } catch (error) {
       console.error('Failed to initialize safety alert service:', error);
       throw error;
@@ -150,7 +150,7 @@ class BioPulseSafetyAlertService {
    * Process analysis and generate safety alerts
    */
   async processAnalysisForAlerts(
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     aiInsights?: AIInsightResponse
   ): Promise<SafetyAlert[]> {
     try {
@@ -273,7 +273,7 @@ class BioPulseSafetyAlertService {
     userId: string,
     rule: AlertRule,
     alertData: Partial<SafetyAlert>,
-    analysis: BioPulseAnalysis
+    analysis: BioReceiptAnalysis
   ): Promise<SafetyAlert> {
     const alert: SafetyAlert = {
       alertId: this.generateAlertId(),
@@ -585,4 +585,4 @@ class BioPulseSafetyAlertService {
   }
 }
 
-export const bioPulseSafetyAlertService = BioPulseSafetyAlertService.getInstance();
+export const BioReceiptSafetyAlertService = BioReceiptSafetyAlertService.getInstance();

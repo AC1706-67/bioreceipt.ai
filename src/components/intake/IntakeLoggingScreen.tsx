@@ -1,6 +1,6 @@
 /**
  * Intake Logging Screen
- * Main interface for logging substance intake in BioPulse.AI
+ * Main interface for logging substance intake in BioReceipt.AI
  */
 
 import React, { useState, useEffect } from 'react';
@@ -20,7 +20,7 @@ import { SubstanceIntake } from '../../models/SubstanceIntake';
 import { substanceDatabase } from '../../services/substance/substanceDatabase';
 import { intakeLoggingService } from '../../services/substance/intakeLoggingService';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
-import { BioPulseTheme, SubstanceCategoryIcons, NavigationIcons } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme, SubstanceCategoryIcons, NavigationIcons } from '../../constants/BioReceiptTheme';
 import PhotoCaptureButton from '../photo/PhotoCaptureButton';
 import PhotoPreview from '../photo/PhotoPreview';
 import SubstanceSelector from '../logging/SubstanceSelector';
@@ -453,18 +453,18 @@ const IntakeLoggingScreen: React.FC<Props> = ({ userId, onIntakeLogged, onClose,
 
   const getCategoryColor = (category: SubstanceCategory): string => {
     const colors = {
-      [SubstanceCategory.ALCOHOL]: BioPulseTheme.colors.alcohol,
-      [SubstanceCategory.DRUGS_RECREATIONAL]: BioPulseTheme.colors.drugs,
-      [SubstanceCategory.DRUGS_PRESCRIPTION]: BioPulseTheme.colors.drugs,
-      [SubstanceCategory.DRUGS_OTC]: BioPulseTheme.colors.drugs,
-      [SubstanceCategory.FOOD]: BioPulseTheme.colors.food,
-      [SubstanceCategory.SUPPLEMENTS]: BioPulseTheme.colors.supplements,
-      [SubstanceCategory.STEROIDS]: BioPulseTheme.colors.steroids,
-      [SubstanceCategory.NOOTROPICS]: BioPulseTheme.colors.supplements,
-      [SubstanceCategory.HORMONES]: BioPulseTheme.colors.hormones,
-      [SubstanceCategory.OTHER]: BioPulseTheme.colors.textTertiary
+      [SubstanceCategory.ALCOHOL]: BioReceiptTheme.colors.alcohol,
+      [SubstanceCategory.DRUGS_RECREATIONAL]: BioReceiptTheme.colors.drugs,
+      [SubstanceCategory.DRUGS_PRESCRIPTION]: BioReceiptTheme.colors.drugs,
+      [SubstanceCategory.DRUGS_OTC]: BioReceiptTheme.colors.drugs,
+      [SubstanceCategory.FOOD]: BioReceiptTheme.colors.food,
+      [SubstanceCategory.SUPPLEMENTS]: BioReceiptTheme.colors.supplements,
+      [SubstanceCategory.STEROIDS]: BioReceiptTheme.colors.steroids,
+      [SubstanceCategory.NOOTROPICS]: BioReceiptTheme.colors.supplements,
+      [SubstanceCategory.HORMONES]: BioReceiptTheme.colors.hormones,
+      [SubstanceCategory.OTHER]: BioReceiptTheme.colors.textTertiary
     };
-    return colors[category] || BioPulseTheme.colors.textTertiary;
+    return colors[category] || BioReceiptTheme.colors.textTertiary;
   };
 
   return (
@@ -541,21 +541,21 @@ const IntakeLoggingScreen: React.FC<Props> = ({ userId, onIntakeLogged, onClose,
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: BioPulseTheme.spacing.lg,
-    backgroundColor: BioPulseTheme.colors.surface,
+    padding: BioReceiptTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   headerTitle: {
-    fontSize: BioPulseTheme.typography.fontSize['2xl'],
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
-    color: BioPulseTheme.colors.textPrimary,
+    fontSize: BioReceiptTheme.typography.fontSize['2xl'],
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
+    color: BioReceiptTheme.colors.textPrimary,
   },
   closeButton: {
     width: 32,
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
   photoSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
   },
   photoPreviewContainer: {
     marginTop: 12,
@@ -838,13 +838,13 @@ const styles = StyleSheet.create({
   },
   photoCount: {
     fontSize: 12,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
   },
   photoHint: {
     fontSize: 14,
-    color: BioPulseTheme.colors.textTertiary,
+    color: BioReceiptTheme.colors.textTertiary,
     textAlign: 'center',
     fontStyle: 'italic',
     paddingVertical: 16,
@@ -853,39 +853,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.sm,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   browseButton: {
-    backgroundColor: BioPulseTheme.colors.secondary,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.xs,
-    borderRadius: BioPulseTheme.borderRadius.sm,
+    backgroundColor: BioReceiptTheme.colors.secondary,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.xs,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
   },
   browseButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.surface,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.surface,
   },
   noResultsContainer: {
     alignItems: 'center',
-    paddingVertical: BioPulseTheme.spacing.xl,
+    paddingVertical: BioReceiptTheme.spacing.xl,
   },
   noResultsText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
-    marginBottom: BioPulseTheme.spacing.md,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginBottom: BioReceiptTheme.spacing.md,
     textAlign: 'center',
   },
   addCustomButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
   },
   addCustomButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.surface,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.surface,
   },
   modalOverlay: {
     position: 'absolute',
@@ -899,24 +899,24 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   modalContainer: {
-    backgroundColor: BioPulseTheme.colors.surface,
-    borderRadius: BioPulseTheme.borderRadius.lg,
-    padding: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.lg,
+    padding: BioReceiptTheme.spacing.lg,
     width: '90%',
     maxHeight: '80%',
   },
   modalCloseButton: {
-    backgroundColor: BioPulseTheme.colors.border,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.border,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     alignSelf: 'center',
-    marginTop: BioPulseTheme.spacing.md,
+    marginTop: BioReceiptTheme.spacing.md,
   },
   modalCloseButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
   },
 });
 

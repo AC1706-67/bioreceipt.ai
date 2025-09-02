@@ -1,4 +1,4 @@
-# 🚀 BioPulse.AI Build Scripts
+# 🚀 BioReceipt.AI Build Scripts
 
 Quick commands to generate test builds for internal testing.
 
@@ -7,7 +7,7 @@ Quick commands to generate test builds for internal testing.
 ### **Debug Build (Fastest)**
 ```bash
 # Navigate to project
-cd HealthyTipApp
+cd BioReceipt
 
 # Clean previous builds
 npx react-native clean
@@ -45,7 +45,7 @@ adb install android/app/build/outputs/apk/release/app-release.apk
 ### **Debug Build**
 ```bash
 # Navigate to project
-cd HealthyTipApp
+cd BioReceipt
 
 # Install iOS dependencies
 cd ios && pod install && cd ..
@@ -63,7 +63,7 @@ npx react-native run-ios --device
 npx react-native build-ios --mode=Release
 
 # Or use Xcode:
-# 1. Open ios/HealthyTipApp.xcworkspace
+# 1. Open ios/BioReceipt.xcworkspace
 # 2. Product > Archive
 # 3. Distribute to App Store Connect
 ```
@@ -101,7 +101,7 @@ Create `build-internal.sh`:
 ```bash
 #!/bin/bash
 
-echo "🚀 Building BioPulse.AI Internal Test Builds"
+echo "🚀 Building BioReceipt.AI Internal Test Builds"
 
 # Clean and prepare
 npx react-native clean

@@ -1,12 +1,12 @@
 /**
- * BioPulse Phase 2 Testing Suite
+ * BioReceipt Phase 2 Testing Suite
  * Comprehensive testing for AI Feedback Engine & Safety Alerts
  */
 
-import { bioPulseAnalysisEngine } from '../services/analysis/bioPulseAnalysisEngine';
-import { bioPulseAIService } from '../services/ai/bioPulseAIService';
-import { bioPulseSafetyAlertService } from '../services/alerts/bioPulseSafetyAlertService';
-import { bioPulseIntegrationService } from '../services/integration/bioPulseIntegrationService';
+import { BioReceiptAnalysisEngine } from '../services/analysis/BioReceiptAnalysisEngine';
+import { BioReceiptAIService } from '../services/ai/BioReceiptAIService';
+import { BioReceiptSafetyAlertService } from '../services/alerts/BioReceiptSafetyAlertService';
+import { BioReceiptIntegrationService } from '../services/integration/BioReceiptIntegrationService';
 import { intakeLoggingService } from '../services/substance/intakeLoggingService';
 import { substanceDatabase } from '../services/substance/substanceDatabase';
 import { SubstanceCategory } from '../models/Substance';
@@ -30,12 +30,12 @@ interface TestSuite {
   totalDuration: number;
 }
 
-class BioPulsePhase2TestSuite {
+class BioReceiptPhase2TestSuite {
   private testUserId = 'test_user_phase2';
   private results: TestSuite[] = [];
 
   async runAllTests(): Promise<void> {
-    console.log('🚀 Starting BioPulse Phase 2 Test Suite...\n');
+    console.log('🚀 Starting BioReceipt Phase 2 Test Suite...\n');
     
     try {
       // Initialize all services
@@ -61,10 +61,10 @@ class BioPulsePhase2TestSuite {
     
     try {
       await Promise.all([
-        bioPulseAnalysisEngine.initialize(),
-        bioPulseAIService.initialize(),
-        bioPulseSafetyAlertService.initialize(),
-        bioPulseIntegrationService.initialize()
+        BioReceiptAnalysisEngine.initialize(),
+        BioReceiptAIService.initialize(),
+        BioReceiptSafetyAlertService.initialize(),
+        BioReceiptIntegrationService.initialize()
       ]);
       
       console.log('✅ All services initialized successfully\n');
@@ -92,7 +92,7 @@ class BioPulsePhase2TestSuite {
       // Create test intakes
       await this.createTestIntakes();
       
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       
       if (!analysis) throw new Error('Analysis not generated');
       if (!analysis.analysisId) throw new Error('Analysis ID missing');
@@ -104,7 +104,7 @@ class BioPulsePhase2TestSuite {
 
     // Test 2: Impact Score Calculation
     await this.runTest(suite, 'Impact Score Calculation', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       
       const { overall, categories } = analysis.impactScore;
       
@@ -121,7 +121,7 @@ class BioPulsePhase2TestSuite {
       // Create potentially risky combination
       await this.createRiskyTestIntakes();
       
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       
       if (!Array.isArray(analysis.interactionRisks)) throw new Error('Interaction risks not array');
       
@@ -133,7 +133,7 @@ class BioPulsePhase2TestSuite {
 
     // Test 4: Recovery Timeline Generation
     await this.runTest(suite, 'Recovery Timeline Generation', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       
       const timeline = analysis.recoveryTimeline;
       
@@ -146,7 +146,7 @@ class BioPulsePhase2TestSuite {
 
     // Test 5: Personalized Insights
     await this.runTest(suite, 'Personalized Insights Generation', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       
       if (!Array.isArray(analysis.personalizedInsights)) throw new Error('Insights not array');
       
@@ -174,10 +174,10 @@ class BioPulsePhase2TestSuite {
 
     // Test 1: AI Insights Generation
     await this.runTest(suite, 'AI Insights Generation', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       const recentIntakes = await intakeLoggingService.getRecentIntakes(this.testUserId, 24);
       
-      const aiInsights = await bioPulseAIService.generateInsights(analysis, recentIntakes);
+      const aiInsights = await BioReceiptAIService.generateInsights(analysis, recentIntakes);
       
       if (!aiInsights) throw new Error('AI insights not generated');
       if (!aiInsights.responseId) throw new Error('Response ID missing');
@@ -190,10 +190,10 @@ class BioPulsePhase2TestSuite {
 
     // Test 2: Summary Generation Quality
     await this.runTest(suite, 'Summary Generation Quality', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       const recentIntakes = await intakeLoggingService.getRecentIntakes(this.testUserId, 24);
       
-      const aiInsights = await bioPulseAIService.generateInsights(analysis, recentIntakes);
+      const aiInsights = await BioReceiptAIService.generateInsights(analysis, recentIntakes);
       
       const summary = aiInsights.summary;
       
@@ -206,10 +206,10 @@ class BioPulsePhase2TestSuite {
 
     // Test 3: Recommendation Generation
     await this.runTest(suite, 'Recommendation Generation', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       const recentIntakes = await intakeLoggingService.getRecentIntakes(this.testUserId, 24);
       
-      const aiInsights = await bioPulseAIService.generateInsights(analysis, recentIntakes);
+      const aiInsights = await BioReceiptAIService.generateInsights(analysis, recentIntakes);
       
       const recommendations = aiInsights.recommendations;
       
@@ -236,10 +236,10 @@ class BioPulsePhase2TestSuite {
       // Create high-risk scenario
       await this.createHighRiskTestIntakes();
       
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       const recentIntakes = await intakeLoggingService.getRecentIntakes(this.testUserId, 24);
       
-      const aiInsights = await bioPulseAIService.generateInsights(analysis, recentIntakes);
+      const aiInsights = await BioReceiptAIService.generateInsights(analysis, recentIntakes);
       
       const warnings = aiInsights.warnings;
       
@@ -279,11 +279,11 @@ class BioPulsePhase2TestSuite {
 
     // Test 1: Alert Processing
     await this.runTest(suite, 'Alert Processing', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       const recentIntakes = await intakeLoggingService.getRecentIntakes(this.testUserId, 24);
-      const aiInsights = await bioPulseAIService.generateInsights(analysis, recentIntakes);
+      const aiInsights = await BioReceiptAIService.generateInsights(analysis, recentIntakes);
       
-      const alerts = await bioPulseSafetyAlertService.processAnalysisForAlerts(analysis, aiInsights);
+      const alerts = await BioReceiptSafetyAlertService.processAnalysisForAlerts(analysis, aiInsights);
       
       if (!Array.isArray(alerts)) throw new Error('Alerts not array');
       
@@ -295,7 +295,7 @@ class BioPulsePhase2TestSuite {
 
     // Test 2: Alert Configuration
     await this.runTest(suite, 'Alert Configuration', async () => {
-      await bioPulseSafetyAlertService.updateAlertConfiguration(this.testUserId, {
+      await BioReceiptSafetyAlertService.updateAlertConfiguration(this.testUserId, {
         impactScoreThresholds: {
           warning: 60,
           critical: 80
@@ -312,13 +312,13 @@ class BioPulsePhase2TestSuite {
 
     // Test 3: Alert Acknowledgment
     await this.runTest(suite, 'Alert Acknowledgment', async () => {
-      const activeAlerts = await bioPulseSafetyAlertService.getActiveAlerts(this.testUserId);
+      const activeAlerts = await BioReceiptSafetyAlertService.getActiveAlerts(this.testUserId);
       
       if (activeAlerts.length > 0) {
         const alertId = activeAlerts[0].alertId;
-        await bioPulseSafetyAlertService.acknowledgeAlert(this.testUserId, alertId);
+        await BioReceiptSafetyAlertService.acknowledgeAlert(this.testUserId, alertId);
         
-        const updatedAlerts = await bioPulseSafetyAlertService.getActiveAlerts(this.testUserId);
+        const updatedAlerts = await BioReceiptSafetyAlertService.getActiveAlerts(this.testUserId);
         const acknowledgedAlert = updatedAlerts.find(a => a.alertId === alertId);
         
         if (acknowledgedAlert && !acknowledgedAlert.acknowledged) {
@@ -333,7 +333,7 @@ class BioPulsePhase2TestSuite {
 
     // Test 4: Alert History
     await this.runTest(suite, 'Alert History', async () => {
-      const history = await bioPulseSafetyAlertService.getAlertHistory(this.testUserId, 10);
+      const history = await BioReceiptSafetyAlertService.getAlertHistory(this.testUserId, 10);
       
       if (!Array.isArray(history)) throw new Error('Alert history not array');
       
@@ -359,7 +359,7 @@ class BioPulsePhase2TestSuite {
 
     // Test 1: Complete Analysis Pipeline
     await this.runTest(suite, 'Complete Analysis Pipeline', async () => {
-      const response = await bioPulseIntegrationService.runCompleteAnalysis(this.testUserId);
+      const response = await BioReceiptIntegrationService.runCompleteAnalysis(this.testUserId);
       
       if (!response) throw new Error('Integration response not generated');
       if (!response.responseId) throw new Error('Response ID missing');
@@ -373,7 +373,7 @@ class BioPulsePhase2TestSuite {
 
     // Test 2: Monitoring Configuration
     await this.runTest(suite, 'Monitoring Configuration', async () => {
-      await bioPulseIntegrationService.updateMonitoringConfig(this.testUserId, {
+      await BioReceiptIntegrationService.updateMonitoringConfig(this.testUserId, {
         enabled: true,
         analysisInterval: 30,
         intakeTriggered: true,
@@ -384,7 +384,7 @@ class BioPulsePhase2TestSuite {
         }
       });
       
-      const status = bioPulseIntegrationService.getMonitoringStatus(this.testUserId);
+      const status = BioReceiptIntegrationService.getMonitoringStatus(this.testUserId);
       
       if (!status.config) throw new Error('Monitoring config not found');
       if (status.config.analysisInterval !== 30) throw new Error('Config not updated properly');
@@ -395,7 +395,7 @@ class BioPulsePhase2TestSuite {
     // Test 3: Intake Trigger
     await this.runTest(suite, 'Intake Trigger Processing', async () => {
       // Start monitoring
-      await bioPulseIntegrationService.startMonitoring(this.testUserId);
+      await BioReceiptIntegrationService.startMonitoring(this.testUserId);
       
       // Create new intake
       const newIntake = await intakeLoggingService.logIntake(this.testUserId, {
@@ -407,7 +407,7 @@ class BioPulsePhase2TestSuite {
       });
       
       // Trigger the intake handler
-      await bioPulseIntegrationService.onNewIntake(this.testUserId, newIntake);
+      await BioReceiptIntegrationService.onNewIntake(this.testUserId, newIntake);
       
       return `Intake trigger processed successfully for substance: ${newIntake.substanceId}`;
     });
@@ -416,7 +416,7 @@ class BioPulsePhase2TestSuite {
     await this.runTest(suite, 'Error Handling', async () => {
       // Test with invalid user ID
       try {
-        await bioPulseIntegrationService.runCompleteAnalysis('invalid_user_id');
+        await BioReceiptIntegrationService.runCompleteAnalysis('invalid_user_id');
         throw new Error('Should have thrown error for invalid user');
       } catch (error) {
         if (error.message.includes('Should have thrown')) {
@@ -448,7 +448,7 @@ class BioPulsePhase2TestSuite {
     // Test 1: Analysis Speed
     await this.runTest(suite, 'Analysis Speed', async () => {
       const startTime = Date.now();
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       const duration = Date.now() - startTime;
       
       if (duration > 5000) throw new Error(`Analysis too slow: ${duration}ms`);
@@ -458,11 +458,11 @@ class BioPulsePhase2TestSuite {
 
     // Test 2: AI Generation Speed
     await this.runTest(suite, 'AI Generation Speed', async () => {
-      const analysis = await bioPulseAnalysisEngine.analyzeCurrentState(this.testUserId);
+      const analysis = await BioReceiptAnalysisEngine.analyzeCurrentState(this.testUserId);
       const recentIntakes = await intakeLoggingService.getRecentIntakes(this.testUserId, 24);
       
       const startTime = Date.now();
-      const aiInsights = await bioPulseAIService.generateInsights(analysis, recentIntakes);
+      const aiInsights = await BioReceiptAIService.generateInsights(analysis, recentIntakes);
       const duration = Date.now() - startTime;
       
       if (duration > 3000) throw new Error(`AI generation too slow: ${duration}ms`);
@@ -473,7 +473,7 @@ class BioPulsePhase2TestSuite {
     // Test 3: Complete Pipeline Speed
     await this.runTest(suite, 'Complete Pipeline Speed', async () => {
       const startTime = Date.now();
-      const response = await bioPulseIntegrationService.runCompleteAnalysis(this.testUserId);
+      const response = await BioReceiptIntegrationService.runCompleteAnalysis(this.testUserId);
       const duration = Date.now() - startTime;
       
       if (duration > 10000) throw new Error(`Pipeline too slow: ${duration}ms`);
@@ -487,7 +487,7 @@ class BioPulsePhase2TestSuite {
       
       // Run multiple analyses
       for (let i = 0; i < 5; i++) {
-        await bioPulseIntegrationService.runCompleteAnalysis(this.testUserId);
+        await BioReceiptIntegrationService.runCompleteAnalysis(this.testUserId);
       }
       
       const finalMemory = process.memoryUsage().heapUsed;
@@ -574,7 +574,7 @@ class BioPulsePhase2TestSuite {
     console.log(`TOTAL DURATION: ${totalDuration}ms`);
     
     if (totalFailed === 0) {
-      console.log('🎉 ALL TESTS PASSED! BioPulse Phase 2 is ready for deployment.');
+      console.log('🎉 ALL TESTS PASSED! BioReceipt Phase 2 is ready for deployment.');
     } else {
       console.log(`⚠️  ${totalFailed} tests failed. Please review and fix issues before deployment.`);
     }
@@ -637,12 +637,12 @@ class BioPulsePhase2TestSuite {
 }
 
 // Export test runner
-export const runBioPulsePhase2Tests = async (): Promise<void> => {
-  const testSuite = new BioPulsePhase2TestSuite();
+export const runBioReceiptPhase2Tests = async (): Promise<void> => {
+  const testSuite = new BioReceiptPhase2TestSuite();
   await testSuite.runAllTests();
 };
 
 // Auto-run if called directly
 if (require.main === module) {
-  runBioPulsePhase2Tests().catch(console.error);
+  runBioReceiptPhase2Tests().catch(console.error);
 }

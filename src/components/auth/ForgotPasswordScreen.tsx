@@ -14,7 +14,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import { supabase } from '../../config/supabase';
 
 interface Props {
@@ -53,7 +53,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ onNavigateToLogin }) => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://biopulse.ai/reset-password', // Update with your actual URL
+        redirectTo: 'https://BioReceipt.ai/reset-password', // Update with your actual URL
       });
 
       if (error) {
@@ -167,7 +167,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ onNavigateToLogin }) => {
               value={email}
               onChangeText={handleEmailChange}
               placeholder="Enter your email address"
-              placeholderTextColor={BioPulseTheme.colors.textTertiary}
+              placeholderTextColor={BioReceiptTheme.colors.textTertiary}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -246,179 +246,179 @@ const ForgotPasswordScreen: React.FC<Props> = ({ onNavigateToLogin }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.xl,
-    paddingVertical: BioPulseTheme.spacing.xl,
+    paddingHorizontal: BioReceiptTheme.spacing.xl,
+    paddingVertical: BioReceiptTheme.spacing.xl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.xl * 2,
+    marginBottom: BioReceiptTheme.spacing.xl * 2,
   },
   successIcon: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: BioPulseTheme.colors.success,
+    backgroundColor: BioReceiptTheme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   successIconText: {
     fontSize: 24,
-    color: BioPulseTheme.colors.white,
+    color: BioReceiptTheme.colors.white,
     fontWeight: 'bold',
   },
   title: {
-    fontSize: BioPulseTheme.typography.fontSize['3xl'],
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
-    color: BioPulseTheme.colors.primary,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize['3xl'],
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
+    color: BioReceiptTheme.colors.primary,
+    marginBottom: BioReceiptTheme.spacing.sm,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
   form: {
-    marginBottom: BioPulseTheme.spacing.xl,
+    marginBottom: BioReceiptTheme.spacing.xl,
   },
   inputContainer: {
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   label: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.text,
-    backgroundColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.border,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.text,
+    backgroundColor: BioReceiptTheme.colors.surface,
     minHeight: 48, // Accessibility: minimum touch target
   },
   inputError: {
-    borderColor: BioPulseTheme.colors.error,
+    borderColor: BioReceiptTheme.colors.error,
   },
   errorText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.error,
-    marginTop: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.error,
+    marginTop: BioReceiptTheme.spacing.xs,
   },
   errorContainer: {
-    backgroundColor: BioPulseTheme.colors.errorLight,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    padding: BioPulseTheme.spacing.md,
-    marginBottom: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.errorLight,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    padding: BioReceiptTheme.spacing.md,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   errorMessage: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.error,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.error,
     textAlign: 'center',
   },
   resetButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
     alignItems: 'center',
     minHeight: 48, // Accessibility: minimum touch target
     justifyContent: 'center',
   },
   resetButtonDisabled: {
-    backgroundColor: BioPulseTheme.colors.disabled,
+    backgroundColor: BioReceiptTheme.colors.disabled,
   },
   resetButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.white,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.white,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: BioPulseTheme.spacing.xl,
+    marginTop: BioReceiptTheme.spacing.xl,
   },
   footerText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   loginLink: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.primary,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.primary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
   },
   helpContainer: {
-    marginTop: BioPulseTheme.spacing.xl,
-    paddingHorizontal: BioPulseTheme.spacing.md,
+    marginTop: BioReceiptTheme.spacing.xl,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
   },
   helpText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textTertiary,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textTertiary,
     textAlign: 'center',
     lineHeight: 20,
   },
   instructionsContainer: {
-    backgroundColor: BioPulseTheme.colors.surfaceLight,
-    borderRadius: BioPulseTheme.borderRadius.lg,
-    padding: BioPulseTheme.spacing.lg,
-    marginBottom: BioPulseTheme.spacing.xl,
+    backgroundColor: BioReceiptTheme.colors.surfaceLight,
+    borderRadius: BioReceiptTheme.borderRadius.lg,
+    padding: BioReceiptTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.xl,
   },
   instructionsTitle: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.text,
-    marginBottom: BioPulseTheme.spacing.md,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.text,
+    marginBottom: BioReceiptTheme.spacing.md,
   },
   instructionsText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginBottom: BioReceiptTheme.spacing.sm,
     lineHeight: 22,
   },
   actionsContainer: {
-    gap: BioPulseTheme.spacing.md,
+    gap: BioReceiptTheme.spacing.md,
   },
   resendButton: {
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    borderColor: BioReceiptTheme.colors.border,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
     alignItems: 'center',
     minHeight: 48,
     justifyContent: 'center',
   },
   resendButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
   },
   backButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
     alignItems: 'center',
     minHeight: 48,
     justifyContent: 'center',
   },
   backButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.white,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.white,
   },
 });
 

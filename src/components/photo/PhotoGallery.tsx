@@ -15,22 +15,12 @@ import {
   Alert,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import PhotoPreview from './PhotoPreview';
 import PhotoFullScreen from './PhotoFullScreen';
 import { OfflineQueueStatus } from './OfflineQueueStatus';
-
-export interface Photo {
-  id: string;
-  url: string;
-  thumbnailUrl?: string;
-  metadata?: {
-    captureDate?: string;
-    fileSize?: string;
-    dimensions?: string;
-    fileName?: string;
-  };
-}
+import { Photo } from '../../features/photos/types';
+import { usePhotoManager } from '../../features/photos/usePhotoManager';
 
 export interface PhotoGalleryProps {
   photos: Photo[];
@@ -75,6 +65,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   lazyLoadThreshold = 0.5,
   showOfflineQueue = true,
 }) => {
+  const { uploadPhotoById } = usePhotoManager();
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [fullScreenPhoto, setFullScreenPhoto] = useState<Photo | null>(null);
@@ -87,9 +78,11 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   // Calculate photo size based on screen width and columns
   const screenWidth = Dimensions.get('window').width;
   const photoSize = useMemo(() => {
-    const padding = BioPulseTheme.spacing.lg * 2; // Container padding
-    const spacing = BioPulseTheme.spacing.sm * (columns - 1); // Spacing between items
-    return Math.floor((screenWidth - padding - spacing) / columns);
+    const padding = BioReceiptTheme.spacing.lg * 2; // Container padding
+    const spacing = BioReceiptTheme.spacing.sm * (columns - 1); // Spacing between items
+    const calculatedSize = Math.floor((screenWidth - padding - spacing) / columns);
+    // Ensure minimum touch target of 48dp
+    return Math.max(calculatedSize, 48);
   }, [screenWidth, columns]);
 
   // Display photos (limited by maxPhotosToShow if specified)
@@ -234,39 +227,118 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
     setSelectedPhotos(new Set());
   }, []);
 
+  const handleRetryUpload = useCallback(async (photoId: string) => {
+    try {
+      await uploadPhotoById(photoId);
+    } catch (error) {
+      console.error('Retry upload failed:', error);
+    }
+  }, [uploadPhotoById]);
+
   const renderPhoto = useCallback(({ item, index }: { item: Photo; index: number }) => {
     const isSelected = selectedPhotos.has(item.id);
     const isLastItem = hasMorePhotos && index === displayPhotos.length - 1;
     const isLoaded = !enableLazyLoading || loadedPhotos.has(item.id);
+    const hasError = item.status === 'error';
+    const isUploading = item.status === 'uploading';
+    
+    // Accessibility labels
+    const photoNumber = index + 1;
+    const totalPhotos = displayPhotos.length;
+    const statusText = hasError ? 'upload failed' : isUploading ? 'uploading' : 'uploaded';
+    const accessibilityLabel = `Photo ${photoNumber} of ${totalPhotos}, ${statusText}${isSelected ? ', selected' : ''}`;
+    const accessibilityHint = isMultiSelectMode 
+      ? 'Double tap to select or deselect' 
+      : 'Double tap to view full size, long press to select multiple photos';
     
     return (
-      <View style={[styles.photoContainer, { width: photoSize, height: photoSize }]}>
+      <View 
+        style={[styles.photoContainer, { width: photoSize, height: photoSize }]}
+        accessible={true}
+        accessibilityRole="image"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ selected: isSelected }}
+      >
         {isLoaded ? (
-          <PhotoPreview
-            photoUrl={item.thumbnailUrl || item.url}
-            onPress={() => handlePhotoPress(item)}
-            onLongPress={() => handlePhotoLongPress(item)}
-            onDelete={showControls && !isMultiSelectMode ? () => handleDeletePhoto(item.id) : undefined}
-            showControls={showControls && !isMultiSelectMode}
-            size={photoSize}
-            metadata={item.metadata}
-            style={[
-              isSelected && styles.selectedPhoto,
-              { marginRight: (index + 1) % columns === 0 ? 0 : BioPulseTheme.spacing.sm }
-            ]}
-          />
+          <View style={{ position: 'relative' }}>
+            <PhotoPreview
+              photoUrl={item.uriRemote || item.uriLocal}
+              onPress={() => handlePhotoPress(item)}
+              onLongPress={() => handlePhotoLongPress(item)}
+              onDelete={showControls && !isMultiSelectMode ? () => handleDeletePhoto(item.id) : undefined}
+              showControls={showControls && !isMultiSelectMode}
+              size={photoSize}
+              metadata={item.metadata}
+              style={[
+                isSelected && styles.selectedPhoto,
+                { marginRight: (index + 1) % columns === 0 ? 0 : BioReceiptTheme.spacing.sm }
+              ]}
+            />
+            
+            {/* Upload progress overlay */}
+            {isUploading && (
+              <View 
+                style={styles.uploadOverlay}
+                accessible={true}
+                accessibilityLabel={`Uploading photo, ${item.uploadProgress ? Math.round(item.uploadProgress) + ' percent complete' : 'in progress'}`}
+              >
+                <ActivityIndicator size="small" color="white" />
+                <Text style={styles.uploadText}>
+                  {item.uploadProgress ? `${Math.round(item.uploadProgress)}%` : 'Uploading...'}
+                </Text>
+              </View>
+            )}
+            
+            {/* Error overlay with retry button */}
+            {hasError && (
+              <View 
+                style={styles.errorOverlay}
+                accessible={true}
+                accessibilityLabel="Photo upload failed"
+              >
+                <View style={styles.errorContent}>
+                  <Text style={styles.errorIcon} accessibilityLabel="Warning">⚠️</Text>
+                  <Text style={styles.errorText}>Upload failed</Text>
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={() => handleRetryUpload(item.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Retry uploading photo ${photoNumber}`}
+                    accessibilityHint="Double tap to retry the failed upload"
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
         ) : (
-          <View style={[styles.photoPlaceholder, { width: photoSize, height: photoSize }]}>
-            <ActivityIndicator size="small" color={BioPulseTheme.colors.primary} />
+          <View 
+            style={[styles.photoPlaceholder, { width: photoSize, height: photoSize }]}
+            accessible={true}
+            accessibilityLabel={`Loading photo ${photoNumber}`}
+          >
+            <ActivityIndicator size="small" color={BioReceiptTheme.colors.primary} />
           </View>
         )}
         {isMultiSelectMode && (
-          <View style={[styles.selectionOverlay, isSelected && styles.selectedOverlay]}>
-            {isSelected && <Text style={styles.checkmark}>✓</Text>}
+          <View 
+            style={[styles.selectionOverlay, isSelected && styles.selectedOverlay]}
+            accessible={false}
+            importantForAccessibility="no"
+          >
+            {isSelected && <Text style={styles.checkmark} accessibilityLabel="Selected">✓</Text>}
           </View>
         )}
         {isLastItem && (
-          <View style={styles.morePhotosOverlay}>
+          <View 
+            style={styles.morePhotosOverlay}
+            accessible={true}
+            accessibilityLabel={`${remainingCount} more photos available`}
+            accessibilityRole="text"
+          >
             <Text style={styles.morePhotosText}>+{remainingCount}</Text>
           </View>
         )}
@@ -286,6 +358,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
     handlePhotoPress,
     handlePhotoLongPress,
     handleDeletePhoto,
+    handleRetryUpload,
   ]);
 
   const renderAddButton = useCallback(() => {
@@ -371,7 +444,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={BioPulseTheme.colors.primary} />
+          <ActivityIndicator size="small" color={BioReceiptTheme.colors.primary} />
           <Text style={styles.loadingText}>Loading photos...</Text>
         </View>
       );
@@ -396,8 +469,8 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   }, [renderPhoto, renderAddButton]);
 
   const getItemLayout = useCallback((data: any, index: number) => ({
-    length: photoSize + BioPulseTheme.spacing.md,
-    offset: (photoSize + BioPulseTheme.spacing.md) * Math.floor(index / columns),
+    length: photoSize + BioReceiptTheme.spacing.md,
+    offset: (photoSize + BioReceiptTheme.spacing.md) * Math.floor(index / columns),
     index,
   }), [photoSize, columns]);
 
@@ -425,9 +498,9 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
           showsVerticalScrollIndicator={false}
           getItemLayout={getItemLayout}
           removeClippedSubviews={true}
-          maxToRenderPerBatch={enableLazyLoading ? 6 : 10}
-          windowSize={enableLazyLoading ? 5 : 10}
-          initialNumToRender={enableLazyLoading ? 6 : 6}
+          initialNumToRender={24}
+          maxToRenderPerBatch={24}
+          windowSize={7}
           ListFooterComponent={renderFooter}
           scrollEventThrottle={16}
           onScroll={handleScroll}
@@ -435,6 +508,10 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
           onRefresh={onRefresh}
           onEndReached={onLoadMore && hasMore ? onLoadMore : undefined}
           onEndReachedThreshold={lazyLoadThreshold}
+          // Performance optimizations
+          updateCellsBatchingPeriod={50}
+          legacyImplementation={false}
+          disableVirtualization={false}
         />
       </PanGestureHandler>
 
@@ -463,37 +540,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   photoCount: {
     fontSize: 16,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
   },
   multiSelectControls: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   multiSelectButton: {
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.sm,
-    borderRadius: BioPulseTheme.borderRadius.sm,
-    marginLeft: BioPulseTheme.spacing.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
+    marginLeft: BioReceiptTheme.spacing.sm,
   },
   multiSelectButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: BioPulseTheme.colors.primary,
+    color: BioReceiptTheme.colors.primary,
   },
   gridContainer: {
-    padding: BioPulseTheme.spacing.lg,
-    paddingBottom: BioPulseTheme.spacing.xl,
+    padding: BioReceiptTheme.spacing.lg,
+    paddingBottom: BioReceiptTheme.spacing.xl,
   },
   photoContainer: {
-    marginBottom: BioPulseTheme.spacing.md,
+    marginBottom: BioReceiptTheme.spacing.md,
     position: 'relative',
   },
   selectedPhoto: {
@@ -507,7 +584,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: BioPulseTheme.borderRadius.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -537,29 +614,29 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
-    backgroundColor: BioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
   },
   deleteButtonText: {
     color: 'white',
   },
   addButton: {
-    backgroundColor: BioPulseTheme.colors.surface,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     borderWidth: 2,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.md,
+    marginBottom: BioReceiptTheme.spacing.md,
   },
   addButtonIcon: {
     fontSize: 32,
-    color: BioPulseTheme.colors.textSecondary,
-    marginBottom: BioPulseTheme.spacing.xs,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginBottom: BioReceiptTheme.spacing.xs,
   },
   addButtonText: {
     fontSize: 12,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     fontWeight: '500',
   },
 
@@ -567,26 +644,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.xl,
-    paddingVertical: BioPulseTheme.spacing.xxl,
+    paddingHorizontal: BioReceiptTheme.spacing.xl,
+    paddingVertical: BioReceiptTheme.spacing.xxl,
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
     opacity: 0.5,
   },
   emptyMessage: {
     fontSize: 16,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: BioPulseTheme.spacing.xl,
+    marginBottom: BioReceiptTheme.spacing.xl,
   },
   emptyAddButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
   },
   emptyAddButtonText: {
     color: 'white',
@@ -597,25 +674,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: BioPulseTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.lg,
   },
   loadingText: {
-    marginLeft: BioPulseTheme.spacing.sm,
+    marginLeft: BioReceiptTheme.spacing.sm,
     fontSize: 14,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   photoPlaceholder: {
-    backgroundColor: BioPulseTheme.colors.surface,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.md,
+    marginBottom: BioReceiptTheme.spacing.md,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
   },
   swipeIndicator: {
     position: 'absolute',
-    bottom: BioPulseTheme.spacing.md,
+    bottom: BioReceiptTheme.spacing.md,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -638,7 +715,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingHorizontal: BioPulseTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
   },
   navButton: {
     width: 40,
@@ -653,7 +730,68 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: BioReceiptTheme.borderRadius.md,
+  },
+  uploadText: {
+    color: 'white',
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    marginTop: BioReceiptTheme.spacing.xs,
+    fontWeight: '500',
+  },
+  errorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(220, 53, 69, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: BioReceiptTheme.borderRadius.md,
+  },
+  errorContent: {
+    alignItems: 'center',
+    padding: BioReceiptTheme.spacing.sm,
+  },
+  errorIcon: {
+    fontSize: 20,
+    marginBottom: BioReceiptTheme.spacing.xs,
+  },
+  errorText: {
+    color: 'white',
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
+    textAlign: 'center',
+    marginBottom: BioReceiptTheme.spacing.sm,
+    fontWeight: '500',
+  },
+  retryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    minWidth: 48, // Minimum touch target
+    minHeight: 48, // Minimum touch target
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: BioReceiptTheme.typography.fontSize.xs,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });
 
 export default PhotoGallery;
-export type { Photo, PhotoGalleryProps };
+export type { PhotoGalleryProps };

@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import offlinePhotoQueueService, { QueuedPhoto, UploadProgress, QueueStats } from '../../services/photo/offlinePhotoQueueService';
 
 interface PhotoUploadProgressProps {
@@ -100,15 +100,15 @@ const PhotoUploadProgress: React.FC<PhotoUploadProgressProps> = ({
   const getStatusColor = (status: QueuedPhoto['status']): string => {
     switch (status) {
       case 'pending':
-        return BioPulseTheme.colors.warning;
+        return BioReceiptTheme.colors.warning;
       case 'uploading':
-        return BioPulseTheme.colors.info;
+        return BioReceiptTheme.colors.info;
       case 'completed':
-        return BioPulseTheme.colors.success;
+        return BioReceiptTheme.colors.success;
       case 'failed':
-        return BioPulseTheme.colors.error;
+        return BioReceiptTheme.colors.error;
       default:
-        return BioPulseTheme.colors.textSecondary;
+        return BioReceiptTheme.colors.textSecondary;
     }
   };
 
@@ -213,25 +213,25 @@ const PhotoUploadProgress: React.FC<PhotoUploadProgressProps> = ({
           <Text style={styles.statLabel}>Total</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: BioPulseTheme.colors.warning }]}>
+          <Text style={[styles.statNumber, { color: BioReceiptTheme.colors.warning }]}>
             {queueStats.pending}
           </Text>
           <Text style={styles.statLabel}>Pending</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: BioPulseTheme.colors.info }]}>
+          <Text style={[styles.statNumber, { color: BioReceiptTheme.colors.info }]}>
             {queueStats.uploading}
           </Text>
           <Text style={styles.statLabel}>Uploading</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: BioPulseTheme.colors.error }]}>
+          <Text style={[styles.statNumber, { color: BioReceiptTheme.colors.error }]}>
             {queueStats.failed}
           </Text>
           <Text style={styles.statLabel}>Failed</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: BioPulseTheme.colors.success }]}>
+          <Text style={[styles.statNumber, { color: BioReceiptTheme.colors.success }]}>
             {queueStats.completed}
           </Text>
           <Text style={styles.statLabel}>Completed</Text>
@@ -367,45 +367,45 @@ export const PhotoQueueBadge: React.FC<{
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonText: {
     fontSize: 16,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     fontWeight: 'bold',
   },
   header: {
-    padding: BioPulseTheme.spacing.lg,
+    padding: BioReceiptTheme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   title: {
     fontSize: 24,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
-    marginBottom: BioPulseTheme.spacing.lg,
+    color: BioReceiptTheme.colors.textPrimary,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   statItem: {
     alignItems: 'center',
@@ -413,23 +413,23 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 20,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
   },
   statLabel: {
     fontSize: 12,
-    color: BioPulseTheme.colors.textSecondary,
-    marginTop: BioPulseTheme.spacing.xs,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginTop: BioReceiptTheme.spacing.xs,
   },
   headerActions: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: BioPulseTheme.spacing.md,
+    gap: BioReceiptTheme.spacing.md,
   },
   actionButton: {
-    paddingHorizontal: BioPulseTheme.spacing.lg,
-    paddingVertical: BioPulseTheme.spacing.sm,
-    backgroundColor: BioPulseTheme.colors.primary,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    borderRadius: BioReceiptTheme.borderRadius.md,
   },
   actionButtonText: {
     color: 'white',
@@ -437,36 +437,36 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   listContent: {
-    paddingBottom: BioPulseTheme.spacing.xl,
+    paddingBottom: BioReceiptTheme.spacing.xl,
   },
   queueItem: {
-    backgroundColor: BioPulseTheme.colors.surface,
-    marginHorizontal: BioPulseTheme.spacing.lg,
-    marginVertical: BioPulseTheme.spacing.sm,
-    padding: BioPulseTheme.spacing.md,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    marginHorizontal: BioReceiptTheme.spacing.lg,
+    marginVertical: BioReceiptTheme.spacing.sm,
+    padding: BioReceiptTheme.spacing.md,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
   },
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: BioPulseTheme.spacing.sm,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   itemInfo: {
     flex: 1,
-    marginRight: BioPulseTheme.spacing.md,
+    marginRight: BioReceiptTheme.spacing.md,
   },
   fileName: {
     fontSize: 16,
     fontWeight: '500',
-    color: BioPulseTheme.colors.textPrimary,
-    marginBottom: BioPulseTheme.spacing.xs,
+    color: BioReceiptTheme.colors.textPrimary,
+    marginBottom: BioReceiptTheme.spacing.xs,
   },
   fileSize: {
     fontSize: 12,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: BioPulseTheme.spacing.xs,
+    marginRight: BioReceiptTheme.spacing.xs,
   },
   statusText: {
     fontSize: 12,
@@ -485,47 +485,47 @@ const styles = StyleSheet.create({
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.sm,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   progressBar: {
     flex: 1,
     height: 4,
-    backgroundColor: BioPulseTheme.colors.border,
+    backgroundColor: BioReceiptTheme.colors.border,
     borderRadius: 2,
-    marginRight: BioPulseTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: BioPulseTheme.colors.info,
+    backgroundColor: BioReceiptTheme.colors.info,
     borderRadius: 2,
   },
   progressText: {
     fontSize: 12,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     minWidth: 35,
     textAlign: 'right',
   },
   errorText: {
     fontSize: 12,
-    color: BioPulseTheme.colors.error,
-    marginBottom: BioPulseTheme.spacing.sm,
+    color: BioReceiptTheme.colors.error,
+    marginBottom: BioReceiptTheme.spacing.sm,
     fontStyle: 'italic',
   },
   attemptsText: {
     fontSize: 11,
-    color: BioPulseTheme.colors.textTertiary,
-    marginBottom: BioPulseTheme.spacing.sm,
+    color: BioReceiptTheme.colors.textTertiary,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   itemActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: BioPulseTheme.spacing.sm,
+    gap: BioReceiptTheme.spacing.sm,
   },
   retryButton: {
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.xs,
-    backgroundColor: BioPulseTheme.colors.warning,
-    borderRadius: BioPulseTheme.borderRadius.sm,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.xs,
+    backgroundColor: BioReceiptTheme.colors.warning,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
   },
   retryButtonText: {
     color: 'white',
@@ -533,13 +533,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   removeButton: {
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.xs,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.xs,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: BioPulseTheme.borderRadius.sm,
+    borderRadius: BioReceiptTheme.borderRadius.sm,
   },
   removeButtonText: {
-    color: BioPulseTheme.colors.error,
+    color: BioReceiptTheme.colors.error,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -547,23 +547,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.xl,
+    paddingHorizontal: BioReceiptTheme.spacing.xl,
   },
   emptyStateIcon: {
     fontSize: 64,
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
     opacity: 0.5,
   },
   emptyStateTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textSecondary,
-    marginBottom: BioPulseTheme.spacing.sm,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginBottom: BioReceiptTheme.spacing.sm,
     textAlign: 'center',
   },
   emptyStateText: {
     fontSize: 16,
-    color: BioPulseTheme.colors.textTertiary,
+    color: BioReceiptTheme.colors.textTertiary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     borderRadius: 12,
     minWidth: 24,
     height: 24,
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: BioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
     justifyContent: 'center',
     alignItems: 'center',
   },

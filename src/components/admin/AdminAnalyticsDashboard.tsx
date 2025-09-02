@@ -1,724 +1,829 @@
 /**
  * Admin Analytics Dashboard
- * Comprehensive admin dashboard with charts and detailed metrics
+ * Comprehensive analytics dashboard for administrators
  */
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  StyleSheet,
   RefreshControl,
+  TouchableOpacity,
   Dimensions,
   ActivityIndicator,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
-import { analyticsService, AppUsageMetrics } from '../../services/analytics/analyticsService';
-import { feedbackService, FeedbackStats } from '../../services/feedback/feedbackService';
 
-const { width } = Dimensions.get('window');
+// Guard chart imports for web/Node environments
+let LineChart: any, BarChart: any, PieChart: any;
+if (Platform.OS !== 'web') {
+  try {
+    ({ LineChart, BarChart, PieChart } = require('react-native-chart-kit'));
+  } catch (error) {
+    console.warn('react-native-chart-kit not available:', error);
+  }
+}
+import {
+  AnalyticsService,
+  EngagementMetrics,
+  ContentPerformance,
+  UserBehaviorAnalytics
+} from '../../services/analytics/analyticsService';
+import { AdminUser } from '../../services/admin/adminAuthService';
 
-interface DashboardData {
-  appMetrics: AppUsageMetrics | null;
-  feedbackStats: FeedbackStats | null;
-  lastUpdated: Date;
+interface AdminAnalyticsDashboardProps {
+  adminUser: AdminUser;
 }
 
-interface ChartDataPoint {
+interface DateRange {
   label: string;
-  value: number;
-  color?: string;
+  startDate: Date;
+  endDate: Date;
 }
 
-const AdminAnalyticsDashboard: React.FC = () => {
-  const [data, setData] = useState<DashboardData>({
-    appMetrics: null,
-    feedbackStats: null,
-    lastUpdated: new Date()
-  });
+const screenWidth = Dimensions.get('window').width;
+
+export const AdminAnalyticsDashboard: React.FC<AdminAnalyticsDashboardProps> = ({
+  adminUser
+}) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month'>('week');
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange>({
+    label: 'Last 30 Days',
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    endDate: new Date()
+  });
+
+  // Analytics data state
+  const [engagementMetrics, setEngagementMetrics] = useState<EngagementMetrics | null>(null);
+  const [contentPerformance, setContentPerformance] = useState<ContentPerformance[]>([]);
+  const [userBehavior, setUserBehavior] = useState<UserBehaviorAnalytics | null>(null);
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'content' | 'users' | 'performance'>('overview');
+
+  const analyticsService = AnalyticsService.getInstance();
+
+  const dateRanges: DateRange[] = [
+    {
+      label: 'Last 7 Days',
+      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      endDate: new Date()
+    },
+    {
+      label: 'Last 30 Days',
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      endDate: new Date()
+    },
+    {
+      label: 'Last 90 Days',
+      startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+      endDate: new Date()
+    },
+    {
+      label: 'Last Year',
+      startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+      endDate: new Date()
+    }
+  ];
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    loadAnalyticsData();
+  }, [selectedDateRange]);
 
-  const loadDashboardData = useCallback(async () => {
+  const loadAnalyticsData = async () => {
     try {
       setLoading(true);
-      
-      const [appMetrics, feedbackStats] = await Promise.all([
-        analyticsService.getAppUsageMetrics(),
-        feedbackService.getFeedbackStats()
+
+      // Check admin permissions
+      if (!adminUser.permissions.includes('analytics.read') && adminUser.role !== 'super_admin') {
+        Alert.alert('Access Denied', 'You do not have permission to view analytics data.');
+        return;
+      }
+
+      // Load all analytics data
+      const [engagement, content, behavior] = await Promise.all([
+        analyticsService.getEngagementMetrics(selectedDateRange.startDate, selectedDateRange.endDate),
+        analyticsService.getContentPerformance(selectedDateRange.startDate, selectedDateRange.endDate),
+        analyticsService.getUserBehaviorAnalytics(selectedDateRange.startDate, selectedDateRange.endDate)
       ]);
 
-      setData({
-        appMetrics,
-        feedbackStats,
-        lastUpdated: new Date()
-      });
+      setEngagementMetrics(engagement);
+      setContentPerformance(content);
+      setUserBehavior(behavior);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      Alert.alert('Error', 'Failed to load dashboard data');
+      console.error('Failed to load analytics data:', error);
+      Alert.alert('Error', 'Failed to load analytics data. Please try again.');
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  }, []);
+  };
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    loadDashboardData();
-  }, [loadDashboardData]);
-
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    }
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
+    await loadAnalyticsData();
+    setRefreshing(false);
   };
 
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes % 60}m`;
-    }
-    return `${minutes}m ${seconds % 60}s`;
-  };
-
-  const renderMetricCard = (
-    title: string,
-    value: string | number,
-    subtitle?: string,
-    trend?: 'up' | 'down' | 'neutral',
-    icon?: string
-  ) => (
-    <View style={styles.metricCard}>
-      <View style={styles.metricHeader}>
-        <Text style={styles.metricTitle}>{title}</Text>
-        {icon && <Text style={styles.metricIcon}>{icon}</Text>}
-      </View>
-      <Text style={styles.metricValue}>{value}</Text>
-      {subtitle && (
-        <View style={styles.metricSubtitle}>
-          {trend && (
+  const renderDateRangeSelector = () => (
+    <View style={styles.dateRangeContainer}>
+      <Text style={styles.sectionTitle}>Time Period</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {dateRanges.map((range, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.dateRangeButton,
+              selectedDateRange.label === range.label && styles.dateRangeButtonActive
+            ]}
+            onPress={() => setSelectedDateRange(range)}
+          >
             <Text style={[
-              styles.trendIndicator,
-              trend === 'up' && styles.trendUp,
-              trend === 'down' && styles.trendDown,
+              styles.dateRangeButtonText,
+              selectedDateRange.label === range.label && styles.dateRangeButtonTextActive
             ]}>
-              {trend === 'up' ? '↗' : trend === 'down' ? '↘' : '→'}
+              {range.label}
             </Text>
-          )}
-          <Text style={styles.metricSubtitleText}>{subtitle}</Text>
-        </View>
-      )}
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 
-  const renderBarChart = (title: string, data: ChartDataPoint[]) => {
-    const maxValue = Math.max(...data.map(d => d.value));
-    
-    return (
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>{title}</Text>
-        <View style={styles.barChart}>
-          {data.map((item, index) => (
-            <View key={index} style={styles.barItem}>
-              <View style={styles.barContainer}>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height: maxValue > 0 ? (item.value / maxValue) * 100 : 0,
-                      backgroundColor: item.color || '#007AFF'
-                    }
-                  ]}
-                />
-              </View>
-              <Text style={styles.barLabel}>{item.label}</Text>
-              <Text style={styles.barValue}>{formatNumber(item.value)}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
-  };
-
-  const renderLineChart = (title: string, data: ChartDataPoint[]) => (
-    <View style={styles.chartContainer}>
-      <Text style={styles.chartTitle}>{title}</Text>
-      <View style={styles.lineChart}>
-        <Text style={styles.chartPlaceholder}>
-          📈 Line chart for {title}
-        </Text>
-        <Text style={styles.chartNote}>
-          Chart visualization would be implemented with a charting library
-        </Text>
-      </View>
+  const renderTabSelector = () => (
+    <View style={styles.tabContainer}>
+      {[
+        { key: 'overview', label: 'Overview' },
+        { key: 'content', label: 'Content' },
+        { key: 'users', label: 'Users' },
+        { key: 'performance', label: 'Performance' }
+      ].map((tab) => (
+        <TouchableOpacity
+          key={tab.key}
+          style={[
+            styles.tabButton,
+            selectedTab === tab.key && styles.tabButtonActive
+          ]}
+          onPress={() => setSelectedTab(tab.key as any)}
+        >
+          <Text style={[
+            styles.tabButtonText,
+            selectedTab === tab.key && styles.tabButtonTextActive
+          ]}>
+            {tab.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 
-  const renderUserMetrics = () => {
-    if (!data.appMetrics) return null;
+  const renderOverviewTab = () => {
+    if (!engagementMetrics) return null;
 
-    const { activeUsers, sessionMetrics, userBehavior } = data.appMetrics;
+    const chartData = {
+      labels: ['Views', 'Likes', 'Bookmarks', 'Completions', 'Shares'],
+      datasets: [{
+        data: [
+          engagementMetrics.tipViews,
+          engagementMetrics.tipLikes,
+          engagementMetrics.tipBookmarks,
+          engagementMetrics.tipCompletions,
+          engagementMetrics.tipShares
+        ]
+      }]
+    };
+
+    const pieData = [
+      {
+        name: 'Views',
+        population: engagementMetrics.tipViews,
+        color: '#4CAF50',
+        legendFontColor: '#333333',
+        legendFontSize: 12
+      },
+      {
+        name: 'Likes',
+        population: engagementMetrics.tipLikes,
+        color: '#2196F3',
+        legendFontColor: '#333333',
+        legendFontSize: 12
+      },
+      {
+        name: 'Bookmarks',
+        population: engagementMetrics.tipBookmarks,
+        color: '#FF9800',
+        legendFontColor: '#333333',
+        legendFontSize: 12
+      },
+      {
+        name: 'Completions',
+        population: engagementMetrics.tipCompletions,
+        color: '#9C27B0',
+        legendFontColor: '#333333',
+        legendFontSize: 12
+      }
+    ];
 
     return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>User Metrics</Text>
-        
+      <ScrollView style={styles.tabContent}>
+        {/* Key Metrics Cards */}
         <View style={styles.metricsGrid}>
-          {renderMetricCard(
-            'Daily Active Users',
-            formatNumber(activeUsers.daily),
-            'Active today',
-            'up',
-            '👥'
-          )}
-          
-          {renderMetricCard(
-            'Weekly Active Users',
-            formatNumber(activeUsers.weekly),
-            'Active this week',
-            'up',
-            '📅'
-          )}
-          
-          {renderMetricCard(
-            'Monthly Active Users',
-            formatNumber(activeUsers.monthly),
-            'Active this month',
-            'neutral',
-            '📊'
-          )}
-          
-          {renderMetricCard(
-            'Total Users',
-            formatNumber(data.appMetrics.totalUsers),
-            'All time',
-            'up',
-            '🌟'
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{engagementMetrics.dailyActiveUsers}</Text>
+            <Text style={styles.metricLabel}>Daily Active Users</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{engagementMetrics.weeklyActiveUsers}</Text>
+            <Text style={styles.metricLabel}>Weekly Active Users</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{engagementMetrics.monthlyActiveUsers}</Text>
+            <Text style={styles.metricLabel}>Monthly Active Users</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>
+              {Math.round(engagementMetrics.averageSessionDuration / 1000 / 60)}m
+            </Text>
+            <Text style={styles.metricLabel}>Avg Session Duration</Text>
+          </View>
+        </View>
+
+        {/* Engagement Overview Chart */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Engagement Overview</Text>
+          {BarChart ? (
+            <BarChart
+              data={chartData}
+              width={screenWidth - 40}
+              height={220}
+              chartConfig={{
+                backgroundColor: '#ffffff',
+                backgroundGradientFrom: '#ffffff',
+                backgroundGradientTo: '#ffffff',
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                style: {
+                  borderRadius: 16
+                }
+              }}
+              style={styles.chart}
+            />
+          ) : (
+            <View style={[styles.chart, styles.chartPlaceholder]}>
+              <Text style={styles.chartPlaceholderText}>Chart not available</Text>
+            </View>
           )}
         </View>
 
-        {renderBarChart('Active Users', [
-          { label: 'Daily', value: activeUsers.daily, color: '#FF6B35' },
-          { label: 'Weekly', value: activeUsers.weekly, color: '#F7931E' },
-          { label: 'Monthly', value: activeUsers.monthly, color: '#FFD23F' }
-        ])}
-      </View>
-    );
-  };
-
-  const renderEngagementMetrics = () => {
-    if (!data.appMetrics) return null;
-
-    const { sessionMetrics, userBehavior } = data.appMetrics;
-
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Engagement Metrics</Text>
-        
-        <View style={styles.metricsGrid}>
-          {renderMetricCard(
-            'Avg Session Duration',
-            formatDuration(sessionMetrics.averageDuration),
-            'Per session',
-            'up',
-            '⏱️'
-          )}
-          
-          {renderMetricCard(
-            'Total Sessions',
-            formatNumber(sessionMetrics.totalSessions),
-            'All time',
-            'up',
-            '🔄'
-          )}
-          
-          {renderMetricCard(
-            'Bounce Rate',
-            `${sessionMetrics.bounceRate.toFixed(1)}%`,
-            'Single page visits',
-            'down',
-            '⚡'
-          )}
-          
-          {renderMetricCard(
-            'Completion Rate',
-            `${(userBehavior.completionRate * 100).toFixed(1)}%`,
-            'Tips completed',
-            'up',
-            '✅'
+        {/* Engagement Distribution */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Engagement Distribution</Text>
+          {PieChart ? (
+            <PieChart
+              data={pieData}
+              width={screenWidth - 40}
+              height={220}
+              chartConfig={{
+                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`
+              }}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              style={styles.chart}
+            />
+          ) : (
+            <View style={[styles.chart, styles.chartPlaceholder]}>
+              <Text style={styles.chartPlaceholderText}>Chart not available</Text>
+            </View>
           )}
         </View>
 
-        {renderBarChart('Retention Rates', [
-          { label: 'Day 1', value: userBehavior.retentionRate.day1 * 100, color: '#34C759' },
-          { label: 'Day 7', value: userBehavior.retentionRate.day7 * 100, color: '#007AFF' },
-          { label: 'Day 30', value: userBehavior.retentionRate.day30 * 100, color: '#5856D6' }
-        ])}
-      </View>
+        {/* Streak Milestones */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Streak Milestones</Text>
+          <View style={styles.streakContainer}>
+            {Object.entries(engagementMetrics.streakMilestones).map(([milestone, count]) => (
+              <View key={milestone} style={styles.streakItem}>
+                <Text style={styles.streakMilestone}>{milestone} days</Text>
+                <Text style={styles.streakCount}>{count} users</Text>
+              </View>
+            ))}
+            {Object.keys(engagementMetrics.streakMilestones).length === 0 && (
+              <Text style={styles.noDataText}>No streak milestones achieved yet</Text>
+            )}
+          </View>
+        </View>
+      </ScrollView>
     );
   };
 
-  const renderContentMetrics = () => {
-    if (!data.appMetrics) return null;
-
-    const { contentMetrics } = data.appMetrics;
+  const renderContentTab = () => {
+    const topContent = contentPerformance
+      .sort((a, b) => b.engagementRate - a.engagementRate)
+      .slice(0, 10);
 
     return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Content Performance</Text>
-        
-        <View style={styles.contentList}>
-          <Text style={styles.subsectionTitle}>Most Viewed Tips</Text>
-          {contentMetrics.mostViewedTips.slice(0, 5).map((tip, index) => (
-            <View key={tip.tipId} style={styles.contentItem}>
-              <Text style={styles.contentRank}>#{index + 1}</Text>
-              <View style={styles.contentInfo}>
-                <Text style={styles.contentTitle} numberOfLines={1}>
-                  {tip.title}
-                </Text>
-                <Text style={styles.contentViews}>
-                  {formatNumber(tip.views)} views
+      <ScrollView style={styles.tabContent}>
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Top Performing Content</Text>
+          {topContent.length > 0 ? (
+            topContent.map((content, index) => (
+              <View key={content.tipId} style={styles.contentItem}>
+                <View style={styles.contentRank}>
+                  <Text style={styles.rankNumber}>{index + 1}</Text>
+                </View>
+                <View style={styles.contentDetails}>
+                  <Text style={styles.contentTitle} numberOfLines={2}>
+                    {content.title}
+                  </Text>
+                  <Text style={styles.contentCategory}>{content.category}</Text>
+                  <View style={styles.contentMetrics}>
+                    <Text style={styles.contentMetric}>
+                      {content.views} views
+                    </Text>
+                    <Text style={styles.contentMetric}>
+                      {content.likes} likes
+                    </Text>
+                    <Text style={styles.contentMetric}>
+                      {content.engagementRate.toFixed(1)}% engagement
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noDataText}>No content performance data available</Text>
+          )}
+        </View>
+
+        {/* Category Performance */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Performance by Category</Text>
+          {renderCategoryPerformance()}
+        </View>
+      </ScrollView>
+    );
+  };
+
+  const renderCategoryPerformance = () => {
+    const categoryStats = contentPerformance.reduce((acc, content) => {
+      if (!acc[content.category]) {
+        acc[content.category] = {
+          totalViews: 0,
+          totalLikes: 0,
+          totalEngagement: 0,
+          count: 0
+        };
+      }
+      acc[content.category].totalViews += content.views;
+      acc[content.category].totalLikes += content.likes;
+      acc[content.category].totalEngagement += content.engagementRate;
+      acc[content.category].count += 1;
+      return acc;
+    }, {} as Record<string, any>);
+
+    return (
+      <View>
+        {Object.entries(categoryStats).map(([category, stats]) => {
+          if (!stats || typeof stats !== 'object') return null;
+          return (
+            <View key={category} style={styles.categoryItem}>
+              <Text style={styles.categoryName}>{category.replace('_', ' ').toUpperCase()}</Text>
+              <View style={styles.categoryStats}>
+                <Text style={styles.categoryStat}>{stats.totalViews || 0} views</Text>
+                <Text style={styles.categoryStat}>{stats.totalLikes || 0} likes</Text>
+                <Text style={styles.categoryStat}>
+                  {stats.count > 0 ? (stats.totalEngagement / stats.count).toFixed(1) : '0.0'}% avg engagement
                 </Text>
               </View>
             </View>
-          ))}
-        </View>
-
-        <View style={styles.contentList}>
-          <Text style={styles.subsectionTitle}>Most Liked Tips</Text>
-          {contentMetrics.mostLikedTips.slice(0, 5).map((tip, index) => (
-            <View key={tip.tipId} style={styles.contentItem}>
-              <Text style={styles.contentRank}>#{index + 1}</Text>
-              <View style={styles.contentInfo}>
-                <Text style={styles.contentTitle} numberOfLines={1}>
-                  {tip.title}
-                </Text>
-                <Text style={styles.contentViews}>
-                  {formatNumber(tip.likes)} likes
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {renderBarChart('Category Popularity', 
-          Object.entries(contentMetrics.categoryPopularity).map(([category, count]) => ({
-            label: category.charAt(0).toUpperCase() + category.slice(1),
-            value: count,
-            color: getCategoryColor(category)
-          }))
-        )}
+          );
+        })}
       </View>
     );
   };
 
-  const renderFeedbackMetrics = () => {
-    if (!data.feedbackStats) return null;
-
-    const { totalSubmissions, byCategory, byStatus, resolutionRate, trendingIssues } = data.feedbackStats;
+  const renderUsersTab = () => {
+    if (!userBehavior) return null;
 
     return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Feedback & Support</Text>
-        
+      <ScrollView style={styles.tabContent}>
+        {/* User Behavior Metrics */}
         <View style={styles.metricsGrid}>
-          {renderMetricCard(
-            'Total Feedback',
-            formatNumber(totalSubmissions),
-            'All time',
-            'up',
-            '💬'
-          )}
-          
-          {renderMetricCard(
-            'Resolution Rate',
-            `${resolutionRate.toFixed(1)}%`,
-            'Resolved issues',
-            'up',
-            '✅'
-          )}
-          
-          {renderMetricCard(
-            'Pending Issues',
-            formatNumber(byStatus.submitted || 0),
-            'Need attention',
-            'neutral',
-            '⏳'
-          )}
-          
-          {renderMetricCard(
-            'Bug Reports',
-            formatNumber(byCategory.bug_report || 0),
-            'Technical issues',
-            'down',
-            '🐛'
-          )}
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>
+              {userBehavior.averageSessionsPerDay.toFixed(1)}
+            </Text>
+            <Text style={styles.metricLabel}>Avg Sessions/Day</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>
+              {Math.round(userBehavior.averageSessionDuration / 1000 / 60)}m
+            </Text>
+            <Text style={styles.metricLabel}>Avg Session Duration</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{userBehavior.mostActiveTimeOfDay}</Text>
+            <Text style={styles.metricLabel}>Most Active Time</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>
+              {(userBehavior.retentionRates.day1 * 100).toFixed(0)}%
+            </Text>
+            <Text style={styles.metricLabel}>Day 1 Retention</Text>
+          </View>
         </View>
 
-        {renderBarChart('Feedback by Category', 
-          Object.entries(byCategory).map(([category, count]) => ({
-            label: category.replace('_', ' '),
-            value: count,
-            color: getFeedbackCategoryColor(category)
-          }))
-        )}
+        {/* Retention Rates */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>User Retention</Text>
+          <View style={styles.retentionContainer}>
+            <View style={styles.retentionItem}>
+              <Text style={styles.retentionLabel}>Day 1</Text>
+              <Text style={styles.retentionValue}>
+                {(userBehavior.retentionRates.day1 * 100).toFixed(1)}%
+              </Text>
+            </View>
+            <View style={styles.retentionItem}>
+              <Text style={styles.retentionLabel}>Day 7</Text>
+              <Text style={styles.retentionValue}>
+                {(userBehavior.retentionRates.day7 * 100).toFixed(1)}%
+              </Text>
+            </View>
+            <View style={styles.retentionItem}>
+              <Text style={styles.retentionLabel}>Day 30</Text>
+              <Text style={styles.retentionValue}>
+                {(userBehavior.retentionRates.day30 * 100).toFixed(1)}%
+              </Text>
+            </View>
+          </View>
+        </View>
 
-        {trendingIssues.length > 0 && (
-          <View style={styles.trendingIssues}>
-            <Text style={styles.subsectionTitle}>Trending Issues</Text>
-            {trendingIssues.map((issue, index) => (
-              <View key={index} style={styles.trendingItem}>
-                <Text style={styles.trendingCategory}>
-                  {issue.category.replace('_', ' ')}
-                </Text>
-                <Text style={styles.trendingCount}>
-                  {issue.count} reports
-                </Text>
-                <Text style={styles.trendingTrend}>
-                  {issue.trend === 'increasing' ? '📈' : 
-                   issue.trend === 'decreasing' ? '📉' : '➡️'}
+        {/* Preferred Categories */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Preferred Categories</Text>
+          <View style={styles.categoriesContainer}>
+            {userBehavior.preferredCategories.map((category, index) => (
+              <View key={category} style={styles.preferredCategoryItem}>
+                <Text style={styles.preferredCategoryRank}>{index + 1}</Text>
+                <Text style={styles.preferredCategoryName}>
+                  {category.replace('_', ' ').toUpperCase()}
                 </Text>
               </View>
             ))}
+            {userBehavior.preferredCategories.length === 0 && (
+              <Text style={styles.noDataText}>No category preferences data available</Text>
+            )}
           </View>
-        )}
-      </View>
+        </View>
+      </ScrollView>
     );
   };
 
-  const getCategoryColor = (category: string): string => {
-    const colors: Record<string, string> = {
-      nutrition: '#4CAF50',
-      fitness: '#FF9800',
-      mental_wellness: '#9C27B0',
-      sleep: '#3F51B5',
-      recovery: '#00BCD4',
-      hygiene: '#795548',
-      general: '#607D8B'
-    };
-    return colors[category] || colors.general;
-  };
+  const renderPerformanceTab = () => (
+    <ScrollView style={styles.tabContent}>
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>App Performance Metrics</Text>
+        <Text style={styles.noDataText}>
+          Performance metrics will be displayed here when available
+        </Text>
+      </View>
+    </ScrollView>
+  );
 
-  const getFeedbackCategoryColor = (category: string): string => {
-    const colors: Record<string, string> = {
-      bug_report: '#F44336',
-      feature_request: '#2196F3',
-      content_quality: '#FF9800',
-      usability: '#9C27B0',
-      performance: '#FF5722',
-      accessibility: '#4CAF50',
-      general: '#607D8B'
-    };
-    return colors[category] || colors.general;
-  };
-
-  if (loading && !data.appMetrics) {
+  if (loading && !engagementMetrics) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading dashboard...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+        <Text style={styles.loadingText}>Loading analytics data...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          colors={['#007AFF']}
-        />
-      }
-    >
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Analytics Dashboard</Text>
-        <Text style={styles.lastUpdated}>
-          Last updated: {data.lastUpdated.toLocaleTimeString()}
+        <Text style={styles.subtitle}>
+          Data insights for {selectedDateRange.label.toLowerCase()}
         </Text>
       </View>
 
-      <View style={styles.periodSelector}>
-        {(['day', 'week', 'month'] as const).map(period => (
-          <TouchableOpacity
-            key={period}
-            style={[
-              styles.periodButton,
-              selectedPeriod === period && styles.periodButtonActive
-            ]}
-            onPress={() => setSelectedPeriod(period)}
-          >
-            <Text style={[
-              styles.periodButtonText,
-              selectedPeriod === period && styles.periodButtonTextActive
-            ]}>
-              {period.charAt(0).toUpperCase() + period.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {renderDateRangeSelector()}
+      {renderTabSelector()}
 
-      {renderUserMetrics()}
-      {renderEngagementMetrics()}
-      {renderContentMetrics()}
-      {renderFeedbackMetrics()}
-    </ScrollView>
+      <ScrollView
+        style={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
+        {selectedTab === 'overview' && renderOverviewTab()}
+        {selectedTab === 'content' && renderContentTab()}
+        {selectedTab === 'users' && renderUsersTab()}
+        {selectedTab === 'performance' && renderPerformanceTab()}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F5F5F5',
   },
-  centered: {
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
   },
   header: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#E0E0E0',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1B5E20',
     marginBottom: 4,
   },
-  lastUpdated: {
-    fontSize: 14,
-    color: '#666',
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
   },
-  periodSelector: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+  dateRangeContainer: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#E0E0E0',
   },
-  periodButton: {
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 12,
+  },
+  dateRangeButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginRight: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 16,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  periodButtonActive: {
-    backgroundColor: '#007AFF',
+  dateRangeButtonActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
   },
-  periodButtonText: {
+  dateRangeButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: '#666666',
     fontWeight: '500',
   },
-  periodButtonTextActive: {
-    color: '#fff',
-  },
-  section: {
-    backgroundColor: '#fff',
-    marginTop: 8,
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
+  dateRangeButtonTextActive: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 16,
   },
-  subsectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonActive: {
+    borderBottomColor: '#4CAF50',
+  },
+  tabButtonText: {
+    fontSize: 14,
+    color: '#666666',
+    fontWeight: '500',
+  },
+  tabButtonTextActive: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
+  content: {
+    flex: 1,
+  },
+  tabContent: {
+    flex: 1,
   },
   metricsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -8,
-    marginBottom: 20,
+    padding: 16,
+    gap: 12,
   },
   metricCard: {
-    width: (width - 56) / 2,
-    backgroundColor: '#f8f9fa',
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: '#FFFFFF',
     padding: 16,
-    borderRadius: 12,
-    margin: 8,
-  },
-  metricHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 8,
-  },
-  metricTitle: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  metricIcon: {
-    fontSize: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   metricValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#4CAF50',
     marginBottom: 4,
   },
-  metricSubtitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  trendIndicator: {
+  metricLabel: {
     fontSize: 12,
-    marginRight: 4,
-  },
-  trendUp: {
-    color: '#34C759',
-  },
-  trendDown: {
-    color: '#FF3B30',
-  },
-  metricSubtitleText: {
-    fontSize: 12,
-    color: '#999',
+    color: '#666666',
+    textAlign: 'center',
   },
   chartContainer: {
-    marginBottom: 24,
+    backgroundColor: '#FFFFFF',
+    margin: 16,
+    padding: 16,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   chartTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 16,
   },
-  barChart: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 120,
-    paddingHorizontal: 8,
-  },
-  barItem: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  barContainer: {
-    height: 80,
-    width: '100%',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  bar: {
-    width: '80%',
-    borderRadius: 4,
-  },
-  barLabel: {
-    fontSize: 10,
-    color: '#666',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  barValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-    marginTop: 2,
-  },
-  lineChart: {
-    height: 120,
-    backgroundColor: '#f8f9fa',
+  chart: {
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   chartPlaceholder: {
+    height: 220,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  chartPlaceholderText: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 4,
+    fontStyle: 'italic',
   },
-  chartNote: {
+  streakContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  streakItem: {
+    backgroundColor: '#F5F5F5',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  streakMilestone: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  streakCount: {
     fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
-  },
-  contentList: {
-    marginBottom: 20,
+    color: '#666666',
+    marginTop: 4,
   },
   contentItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
+    padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#F0F0F0',
   },
   contentRank: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  rankNumber: {
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#007AFF',
-    width: 30,
   },
-  contentInfo: {
+  contentDetails: {
     flex: 1,
-    marginLeft: 12,
   },
   contentTitle: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
   },
-  contentViews: {
+  contentCategory: {
     fontSize: 12,
-    color: '#666',
-    marginTop: 2,
+    color: '#666666',
+    marginBottom: 8,
+    textTransform: 'uppercase',
   },
-  trendingIssues: {
-    marginTop: 16,
-  },
-  trendingItem: {
+  contentMetrics: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    gap: 16,
   },
-  trendingCategory: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
-    flex: 1,
-    textTransform: 'capitalize',
-  },
-  trendingCount: {
+  contentMetric: {
     fontSize: 12,
-    color: '#666',
-    marginRight: 8,
+    color: '#999999',
   },
-  trendingTrend: {
-    fontSize: 16,
+  categoryItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 12,
+  categoryName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 8,
+  },
+  categoryStats: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  categoryStat: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  retentionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  retentionItem: {
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    minWidth: 80,
+  },
+  retentionLabel: {
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 8,
+  },
+  retentionValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  categoriesContainer: {
+    gap: 8,
+  },
+  preferredCategoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+  },
+  preferredCategoryRank: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#4CAF50',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginRight: 12,
+  },
+  preferredCategoryName: {
+    fontSize: 14,
+    color: '#333333',
+    fontWeight: '500',
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: '#999999',
+    fontSize: 14,
+    fontStyle: 'italic',
+    padding: 20,
   },
 });
-
-export default AdminAnalyticsDashboard;

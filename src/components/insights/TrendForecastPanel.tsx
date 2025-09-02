@@ -23,7 +23,7 @@ import {
   PreventiveAction,
   OptimalTiming
 } from '../../services/analytics/predictiveAnalyticsEngine';
-import { bioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 const { width } = Dimensions.get('window');
@@ -77,17 +77,17 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
   const getRiskColor = (riskCategory: RiskCategory): string => {
     switch (riskCategory) {
       case RiskCategory.MINIMAL:
-        return bioPulseTheme.colors.success;
+        return BioReceiptTheme.colors.success;
       case RiskCategory.LOW:
-        return bioPulseTheme.colors.info;
+        return BioReceiptTheme.colors.info;
       case RiskCategory.MODERATE:
-        return bioPulseTheme.colors.warning;
+        return BioReceiptTheme.colors.warning;
       case RiskCategory.HIGH:
-        return bioPulseTheme.colors.error;
+        return BioReceiptTheme.colors.error;
       case RiskCategory.CRITICAL:
         return '#d32f2f';
       default:
-        return bioPulseTheme.colors.textSecondary;
+        return BioReceiptTheme.colors.textSecondary;
     }
   };
 
@@ -128,7 +128,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
     <View style={styles.header}>
       <View style={styles.headerContent}>
         <View style={styles.titleContainer}>
-          <MaterialIcons name="trending-up" size={24} color={bioPulseTheme.colors.primary} />
+          <MaterialIcons name="trending-up" size={24} color={BioReceiptTheme.colors.primary} />
           <Text style={styles.headerTitle}>Trend Forecast</Text>
         </View>
         <TouchableOpacity
@@ -137,9 +137,9 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
           disabled={refreshing}
         >
           {refreshing ? (
-            <ActivityIndicator size="small" color={bioPulseTheme.colors.primary} />
+            <ActivityIndicator size="small" color={BioReceiptTheme.colors.primary} />
           ) : (
-            <MaterialIcons name="refresh" size={20} color={bioPulseTheme.colors.primary} />
+            <MaterialIcons name="refresh" size={20} color={BioReceiptTheme.colors.primary} />
           )}
         </TouchableOpacity>
       </View>
@@ -161,7 +161,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
           <MaterialIcons 
             name={tab.icon as any} 
             size={18} 
-            color={selectedTab === tab.key ? bioPulseTheme.colors.primary : bioPulseTheme.colors.textSecondary} 
+            color={selectedTab === tab.key ? BioReceiptTheme.colors.primary : BioReceiptTheme.colors.textSecondary} 
           />
           <Text style={[
             styles.tabLabel,
@@ -211,7 +211,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
         {/* Main Recommendation */}
         <View style={styles.recommendationCard}>
           <View style={styles.cardHeader}>
-            <MaterialIcons name="lightbulb" size={20} color={bioPulseTheme.colors.primary} />
+            <MaterialIcons name="lightbulb" size={20} color={BioReceiptTheme.colors.primary} />
             <Text style={styles.cardTitle}>Recommended Action</Text>
           </View>
           <Text style={styles.recommendationText}>{forecast.recommendedAction}</Text>
@@ -220,7 +220,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
         {/* Trend Analysis */}
         <View style={styles.trendCard}>
           <View style={styles.cardHeader}>
-            <MaterialIcons name="show-chart" size={20} color={bioPulseTheme.colors.primary} />
+            <MaterialIcons name="show-chart" size={20} color={BioReceiptTheme.colors.primary} />
             <Text style={styles.cardTitle}>Trend Analysis</Text>
           </View>
           <View style={styles.trendContent}>
@@ -256,7 +256,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
         {forecast.correlationFactors.length > 0 && (
           <View style={styles.correlationCard}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="device-hub" size={20} color={bioPulseTheme.colors.primary} />
+              <MaterialIcons name="device-hub" size={20} color={BioReceiptTheme.colors.primary} />
               <Text style={styles.cardTitle}>Key Correlations</Text>
             </View>
             {forecast.correlationFactors.slice(0, 3).map((factor, index) => (
@@ -265,7 +265,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
                   <Text style={styles.correlationFactor}>{factor.factor}</Text>
                   <Text style={[
                     styles.correlationValue,
-                    { color: factor.correlation > 0 ? bioPulseTheme.colors.error : bioPulseTheme.colors.success }
+                    { color: factor.correlation > 0 ? BioReceiptTheme.colors.error : BioReceiptTheme.colors.success }
                   ]}>
                     {factor.correlation > 0 ? '+' : ''}{Math.round(factor.correlation * 100)}%
                   </Text>
@@ -283,7 +283,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
     if (!forecast || forecast.preventiveActions.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <MaterialIcons name="assignment-turned-in" size={64} color={bioPulseTheme.colors.textSecondary} />
+          <MaterialIcons name="assignment-turned-in" size={64} color={BioReceiptTheme.colors.textSecondary} />
           <Text style={styles.emptyStateText}>No preventive actions needed</Text>
         </View>
       );
@@ -302,7 +302,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
     if (!forecast || forecast.optimalTiming.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <MaterialIcons name="schedule" size={64} color={bioPulseTheme.colors.textSecondary} />
+          <MaterialIcons name="schedule" size={64} color={BioReceiptTheme.colors.textSecondary} />
           <Text style={styles.emptyStateText}>No timing recommendations available</Text>
         </View>
       );
@@ -320,7 +320,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={bioPulseTheme.colors.primary} />
+        <ActivityIndicator size="large" color={BioReceiptTheme.colors.primary} />
         <Text style={styles.loadingText}>Generating forecast...</Text>
       </View>
     );
@@ -329,7 +329,7 @@ export const TrendForecastPanel: React.FC<TrendForecastPanelProps> = ({
   if (!forecast) {
     return (
       <View style={styles.errorContainer}>
-        <MaterialIcons name="error-outline" size={48} color={bioPulseTheme.colors.error} />
+        <MaterialIcons name="error-outline" size={48} color={BioReceiptTheme.colors.error} />
         <Text style={styles.errorText}>Unable to generate forecast</Text>
         <TouchableOpacity style={styles.retryButton} onPress={loadForecast}>
           <Text style={styles.retryButtonText}>Retry</Text>
@@ -366,11 +366,11 @@ const ActionCard: React.FC<{ action: PreventiveAction }> = ({ action }) => (
     
     <View style={styles.actionFooter}>
       <View style={styles.actionDetail}>
-        <MaterialIcons name="schedule" size={16} color={bioPulseTheme.colors.textSecondary} />
+        <MaterialIcons name="schedule" size={16} color={BioReceiptTheme.colors.textSecondary} />
         <Text style={styles.actionDetailText}>{action.timing}</Text>
       </View>
       <View style={styles.actionDetail}>
-        <MaterialIcons name="trending-up" size={16} color={bioPulseTheme.colors.textSecondary} />
+        <MaterialIcons name="trending-up" size={16} color={BioReceiptTheme.colors.textSecondary} />
         <Text style={styles.actionDetailText}>{action.expectedImpact}% impact</Text>
       </View>
     </View>
@@ -390,7 +390,7 @@ const TimingCard: React.FC<{ timing: OptimalTiming }> = ({ timing }) => (
     <Text style={styles.timingBenefit}>Expected: {timing.expectedBenefit}</Text>
     
     <View style={styles.timingWindow}>
-      <MaterialIcons name="access-time" size={16} color={bioPulseTheme.colors.textSecondary} />
+      <MaterialIcons name="access-time" size={16} color={BioReceiptTheme.colors.textSecondary} />
       <Text style={styles.timingWindowText}>
         {Math.round(timing.timeWindow / 60)}h window
       </Text>
@@ -410,33 +410,33 @@ const getTrendIcon = (direction: string): string => {
 
 const getTrendColor = (direction: string): string => {
   switch (direction) {
-    case 'increasing': return bioPulseTheme.colors.error;
-    case 'decreasing': return bioPulseTheme.colors.success;
-    case 'stable': return bioPulseTheme.colors.info;
-    default: return bioPulseTheme.colors.textSecondary;
+    case 'increasing': return BioReceiptTheme.colors.error;
+    case 'decreasing': return BioReceiptTheme.colors.success;
+    case 'stable': return BioReceiptTheme.colors.info;
+    default: return BioReceiptTheme.colors.textSecondary;
   }
 };
 
 const getPriorityColor = (priority: string): string => {
   switch (priority) {
-    case 'urgent': return bioPulseTheme.colors.error;
-    case 'high': return bioPulseTheme.colors.warning;
-    case 'medium': return bioPulseTheme.colors.info;
-    default: return bioPulseTheme.colors.success;
+    case 'urgent': return BioReceiptTheme.colors.error;
+    case 'high': return BioReceiptTheme.colors.warning;
+    case 'medium': return BioReceiptTheme.colors.info;
+    default: return BioReceiptTheme.colors.success;
   }
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: bioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   header: {
     backgroundColor: 'white',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: bioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   headerContent: {
     flexDirection: 'row',
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginLeft: 8,
   },
   refreshButton: {
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: bioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   tab: {
     flex: 1,
@@ -471,15 +471,15 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: bioPulseTheme.colors.primary,
+    borderBottomColor: BioReceiptTheme.colors.primary,
   },
   tabLabel: {
     marginLeft: 6,
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   activeTabLabel: {
-    color: bioPulseTheme.colors.primary,
+    color: BioReceiptTheme.colors.primary,
     fontWeight: '600',
   },
   content: {
@@ -490,29 +490,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: bioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: bioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
     padding: 32,
   },
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
   },
   retryButton: {
     marginTop: 16,
-    backgroundColor: bioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -590,13 +590,13 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginLeft: 8,
   },
   recommendationText: {
     fontSize: 16,
     lineHeight: 24,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   trendCard: {
     backgroundColor: 'white',
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
   },
   trendLabel: {
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   trendValue: {
     flexDirection: 'row',
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: bioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   correlationHeader: {
     flexDirection: 'row',
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
   correlationFactor: {
     fontSize: 14,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   correlationValue: {
     fontSize: 14,
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
   },
   correlationDescription: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     lineHeight: 16,
   },
   actionCard: {
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     flex: 1,
   },
   priorityBadge: {
@@ -707,12 +707,12 @@ const styles = StyleSheet.create({
   },
   actionType: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     fontWeight: '500',
   },
   actionDescription: {
     fontSize: 14,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
   },
   actionDetailText: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginLeft: 4,
   },
   timingCard: {
@@ -749,22 +749,22 @@ const styles = StyleSheet.create({
   timingActivity: {
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   timingTime: {
     fontSize: 16,
     fontWeight: '600',
-    color: bioPulseTheme.colors.primary,
+    color: BioReceiptTheme.colors.primary,
   },
   timingReasoning: {
     fontSize: 14,
-    color: bioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     lineHeight: 20,
     marginBottom: 8,
   },
   timingBenefit: {
     fontSize: 14,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginBottom: 12,
   },
   timingWindow: {
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
   },
   timingWindowText: {
     fontSize: 12,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginLeft: 4,
   },
   emptyState: {
@@ -784,7 +784,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: bioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginTop: 16,
   },
 });

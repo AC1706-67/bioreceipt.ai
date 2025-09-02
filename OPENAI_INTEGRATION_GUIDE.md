@@ -2,7 +2,7 @@
 
 ## Overview
 
-The BioPulse HealthyTipApp now uses real OpenAI integration for AI personalization features. This replaces the previous mock implementation with actual OpenAI API calls.
+The BioReceipt BioReceipt now uses real OpenAI integration for AI personalization features. This replaces the previous mock implementation with actual OpenAI API calls.
 
 ## Setup
 

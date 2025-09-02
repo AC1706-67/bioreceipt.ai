@@ -1,5 +1,5 @@
 /**
- * BioPulse Analysis Engine
+ * BioReceipt Analysis Engine
  * Stub implementation for the analysis engine
  */
 
@@ -12,16 +12,16 @@ export interface AnalysisResult {
   timestamp: Date;
 }
 
-export class BioPulseAnalysisEngine {
-  private static instance: BioPulseAnalysisEngine;
+export class BioReceiptAnalysisEngine {
+  private static instance: BioReceiptAnalysisEngine;
 
   private constructor() {}
 
-  public static getInstance(): BioPulseAnalysisEngine {
-    if (!BioPulseAnalysisEngine.instance) {
-      BioPulseAnalysisEngine.instance = new BioPulseAnalysisEngine();
+  public static getInstance(): BioReceiptAnalysisEngine {
+    if (!BioReceiptAnalysisEngine.instance) {
+      BioReceiptAnalysisEngine.instance = new BioReceiptAnalysisEngine();
     }
-    return BioPulseAnalysisEngine.instance;
+    return BioReceiptAnalysisEngine.instance;
   }
 
   public async analyzeIntake(userId: string, intakeData: any): Promise<AnalysisResult> {
@@ -49,4 +49,4 @@ export class BioPulseAnalysisEngine {
   }
 }
 
-export const bioPulseAnalysisEngine = BioPulseAnalysisEngine.getInstance();
+export const BioReceiptAnalysisEngine = BioReceiptAnalysisEngine.getInstance();

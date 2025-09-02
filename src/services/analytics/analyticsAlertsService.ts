@@ -1,59 +1,88 @@
 /**
  * Analytics Alerts Service
- * Monitors analytics metrics and sends alerts when thresholds are breached
+ * Monitoring and alerting system for analytics metrics
  */
+import { AnalyticsService, EngagementMetrics, ContentPerformance } from './analyticsService';
+import { AuditLogService } from '../compliance/auditLogService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { analyticsService, AppUsageMetrics } from './analyticsService';
-import { feedbackService, FeedbackStats } from '../feedback/feedbackService';
-import { storage } from '../../utils/storage';
+// Alert Types
+export type AlertType = 
+  | 'low_engagement'
+  | 'high_error_rate'
+  | 'performance_degradation'
+  | 'content_performance_drop'
+  | 'user_retention_drop'
+  | 'unusual_activity'
+  | 'data_anomaly';
 
-export interface AlertThreshold {
+// Alert Severity Levels
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+// Alert Interface
+export interface AnalyticsAlert {
   id: string;
-  name: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  title: string;
   description: string;
-  metric: string;
-  condition: 'greater_than' | 'less_than' | 'equals' | 'percentage_change';
-  threshold: number;
-  timeWindow: 'hour' | 'day' | 'week' | 'month';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  isActive: boolean;
-  lastTriggered?: Date;
-  createdAt: Date;
-}
-
-export interface AlertEvent {
-  id: string;
-  thresholdId: string;
-  thresholdName: string;
-  metric: string;
-  currentValue: number;
-  thresholdValue: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  message: string;
   timestamp: Date;
-  acknowledged: boolean;
-  acknowledgedBy?: string;
-  acknowledgedAt?: Date;
+  metrics: Record<string, number>;
+  threshold: number;
+  currentValue: number;
+  isResolved: boolean;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  actions: AlertAction[];
 }
 
-export interface AlertNotification {
+// Alert Action Interface
+export interface AlertAction {
   id: string;
-  alertEventId: string;
-  channel: 'email' | 'sms' | 'push' | 'webhook';
+  label: string;
+  type: 'investigate' | 'resolve' | 'escalate' | 'ignore';
+  url?: string;
+  metadata?: Record<string, any>;
+}
+
+// Alert Configuration
+export interface AlertConfig {
+  type: AlertType;
+  enabled: boolean;
+  threshold: number;
+  severity: AlertSeverity;
+  checkInterval: number; // minutes
+  cooldownPeriod: number; // minutes
+  description: string;
+}
+
+// Alert Notification Interface
+export interface AlertNotification {
+  alertId: string;
+  channel: 'email' | 'push' | 'webhook' | 'dashboard';
   recipient: string;
-  status: 'pending' | 'sent' | 'failed';
+  sent: boolean;
   sentAt?: Date;
   error?: string;
 }
 
-class AnalyticsAlertsService {
+export class AnalyticsAlertsService {
   private static instance: AnalyticsAlertsService;
-  private monitoringInterval?: NodeJS.Timeout;
-  private isMonitoring: boolean = false;
+  private analyticsService: AnalyticsService;
+  private auditLogService: AuditLogService;
+  private alertConfigs: Map<AlertType, AlertConfig> = new Map();
+  private activeAlerts: Map<string, AnalyticsAlert> = new Map();
+  private alertHistory: AnalyticsAlert[] = [];
+  private checkTimer?: NodeJS.Timeout;
+  private isMonitoring = false;
 
-  private constructor() {}
+  private constructor() {
+    this.analyticsService = AnalyticsService.getInstance();
+    this.auditLogService = AuditLogService.getInstance();
+    this.initializeDefaultConfigs();
+  }
 
-  static getInstance(): AnalyticsAlertsService {
+  public static getInstance(): AnalyticsAlertsService {
     if (!AnalyticsAlertsService.instance) {
       AnalyticsAlertsService.instance = new AnalyticsAlertsService();
     }
@@ -61,501 +90,687 @@ class AnalyticsAlertsService {
   }
 
   /**
-   * Initialize default alert thresholds
+   * Initialize default alert configurations
    */
-  async initializeDefaultThresholds(): Promise<void> {
+  private initializeDefaultConfigs(): void {
+    const defaultConfigs: AlertConfig[] = [
+      {
+        type: 'low_engagement',
+        enabled: true,
+        threshold: 0.1, // 10% engagement rate
+        severity: 'medium',
+        checkInterval: 60, // 1 hour
+        cooldownPeriod: 240, // 4 hours
+        description: 'Overall user engagement has dropped below threshold'
+      },
+      {
+        type: 'high_error_rate',
+        enabled: true,
+        threshold: 0.05, // 5% error rate
+        severity: 'high',
+        checkInterval: 15, // 15 minutes
+        cooldownPeriod: 60, // 1 hour
+        description: 'Application error rate has exceeded acceptable threshold'
+      },
+      {
+        type: 'performance_degradation',
+        enabled: true,
+        threshold: 2000, // 2 seconds
+        severity: 'medium',
+        checkInterval: 30, // 30 minutes
+        cooldownPeriod: 120, // 2 hours
+        description: 'Application performance has degraded significantly'
+      },
+      {
+        type: 'content_performance_drop',
+        enabled: true,
+        threshold: 0.2, // 20% drop in performance
+        severity: 'low',
+        checkInterval: 120, // 2 hours
+        cooldownPeriod: 480, // 8 hours
+        description: 'Content performance has dropped significantly'
+      },
+      {
+        type: 'user_retention_drop',
+        enabled: true,
+        threshold: 0.15, // 15% drop in retention
+        severity: 'high',
+        checkInterval: 240, // 4 hours
+        cooldownPeriod: 720, // 12 hours
+        description: 'User retention rates have dropped below threshold'
+      },
+      {
+        type: 'unusual_activity',
+        enabled: true,
+        threshold: 3, // 3 standard deviations
+        severity: 'medium',
+        checkInterval: 30, // 30 minutes
+        cooldownPeriod: 120, // 2 hours
+        description: 'Unusual activity patterns detected'
+      },
+      {
+        type: 'data_anomaly',
+        enabled: true,
+        threshold: 2.5, // 2.5 standard deviations
+        severity: 'low',
+        checkInterval: 60, // 1 hour
+        cooldownPeriod: 240, // 4 hours
+        description: 'Data anomalies detected in analytics metrics'
+      }
+    ];
+
+    defaultConfigs.forEach(config => {
+      this.alertConfigs.set(config.type, config);
+    });
+  }
+
+  /**
+   * Start monitoring analytics metrics
+   */
+  public async startMonitoring(): Promise<void> {
     try {
-      const existingThresholds = await this.getThresholds();
-      
-      if (existingThresholds.length === 0) {
-        const defaultThresholds: Omit<AlertThreshold, 'id' | 'createdAt'>[] = [
-          {
-            name: 'Daily Active Users Drop',
-            description: 'Alert when DAU drops by more than 20%',
-            metric: 'daily_active_users',
-            condition: 'percentage_change',
-            threshold: -20,
-            timeWindow: 'day',
-            severity: 'high',
-            isActive: true
-          },
-          {
-            name: 'High Error Rate',
-            description: 'Alert when error events exceed 50 per hour',
-            metric: 'error_events_per_hour',
-            condition: 'greater_than',
-            threshold: 50,
-            timeWindow: 'hour',
-            severity: 'critical',
-            isActive: true
-          },
-          {
-            name: 'Low Engagement Rate',
-            description: 'Alert when tip completion rate drops below 30%',
-            metric: 'tip_completion_rate',
-            condition: 'less_than',
-            threshold: 0.3,
-            timeWindow: 'day',
-            severity: 'medium',
-            isActive: true
-          },
-          {
-            name: 'High Bounce Rate',
-            description: 'Alert when bounce rate exceeds 70%',
-            metric: 'bounce_rate',
-            condition: 'greater_than',
-            threshold: 0.7,
-            timeWindow: 'day',
-            severity: 'medium',
-            isActive: true
-          },
-          {
-            name: 'Critical Feedback Spike',
-            description: 'Alert when critical feedback submissions spike',
-            metric: 'critical_feedback_count',
-            condition: 'greater_than',
-            threshold: 10,
-            timeWindow: 'day',
-            severity: 'high',
-            isActive: true
-          },
-          {
-            name: 'App Crash Rate',
-            description: 'Alert when app crashes exceed 5% of sessions',
-            metric: 'crash_rate',
-            condition: 'greater_than',
-            threshold: 0.05,
-            timeWindow: 'hour',
-            severity: 'critical',
-            isActive: true
-          }
-        ];
-
-        for (const threshold of defaultThresholds) {
-          await this.createThreshold(threshold);
-        }
-
-        console.log('✅ Default alert thresholds initialized');
+      if (this.isMonitoring) {
+        return;
       }
+
+      // Load existing alerts and configurations
+      await this.loadAlertsFromStorage();
+      await this.loadConfigsFromStorage();
+
+      this.isMonitoring = true;
+      this.scheduleNextCheck();
+
+      await this.auditLogService.logDataAccess({
+        userId: 'system',
+        action: 'ANALYTICS_MONITORING_STARTED',
+        resourceType: 'ANALYTICS_ALERTS',
+        resourceId: 'monitoring_service',
+        ipAddress: 'system',
+        userAgent: 'AnalyticsAlertsService',
+        success: true
+      });
+
+      console.log('Analytics alerts monitoring started');
     } catch (error) {
-      console.error('Error initializing default thresholds:', error);
-    }
-  }
-
-  /**
-   * Start monitoring metrics against thresholds
-   */
-  async startMonitoring(intervalMinutes: number = 15): Promise<void> {
-    if (this.isMonitoring) {
-      console.log('Monitoring is already active');
-      return;
-    }
-
-    this.isMonitoring = true;
-    console.log(`🔍 Starting analytics monitoring (every ${intervalMinutes} minutes)`);
-
-    // Run initial check
-    await this.checkAllThresholds();
-
-    // Set up recurring checks
-    this.monitoringInterval = setInterval(async () => {
-      try {
-        await this.checkAllThresholds();
-      } catch (error) {
-        console.error('Error during threshold monitoring:', error);
-      }
-    }, intervalMinutes * 60 * 1000);
-  }
-
-  /**
-   * Stop monitoring
-   */
-  stopMonitoring(): void {
-    if (this.monitoringInterval) {
-      clearInterval(this.monitoringInterval);
-      this.monitoringInterval = undefined;
-    }
-    this.isMonitoring = false;
-    console.log('🛑 Analytics monitoring stopped');
-  }
-
-  /**
-   * Check all active thresholds
-   */
-  async checkAllThresholds(): Promise<AlertEvent[]> {
-    try {
-      const thresholds = await this.getActiveThresholds();
-      const triggeredAlerts: AlertEvent[] = [];
-
-      console.log(`🔍 Checking ${thresholds.length} active thresholds...`);
-
-      for (const threshold of thresholds) {
-        try {
-          const currentValue = await this.getCurrentMetricValue(threshold.metric, threshold.timeWindow);
-          const isTriggered = await this.evaluateThreshold(threshold, currentValue);
-
-          if (isTriggered) {
-            const alertEvent = await this.createAlertEvent(threshold, currentValue);
-            triggeredAlerts.push(alertEvent);
-            
-            // Send notifications
-            await this.sendAlertNotifications(alertEvent);
-            
-            console.log(`🚨 Alert triggered: ${threshold.name} (${currentValue})`);
-          }
-        } catch (error) {
-          console.error(`Error checking threshold ${threshold.name}:`, error);
-        }
-      }
-
-      if (triggeredAlerts.length > 0) {
-        console.log(`🚨 ${triggeredAlerts.length} alerts triggered`);
-      } else {
-        console.log('✅ All thresholds within normal ranges');
-      }
-
-      return triggeredAlerts;
-    } catch (error) {
-      console.error('Error checking thresholds:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Create a new alert threshold
-   */
-  async createThreshold(thresholdData: Omit<AlertThreshold, 'id' | 'createdAt'>): Promise<AlertThreshold> {
-    try {
-      const threshold: AlertThreshold = {
-        ...thresholdData,
-        id: this.generateId('threshold'),
-        createdAt: new Date()
-      };
-
-      const thresholds = await this.getThresholds();
-      thresholds.push(threshold);
-      await storage.storeData('ALERT_THRESHOLDS', thresholds);
-
-      return threshold;
-    } catch (error) {
-      console.error('Error creating threshold:', error);
+      console.error('Failed to start analytics monitoring:', error);
       throw error;
     }
   }
 
   /**
-   * Get all alert thresholds
+   * Stop monitoring analytics metrics
    */
-  async getThresholds(): Promise<AlertThreshold[]> {
+  public async stopMonitoring(): Promise<void> {
     try {
-      const thresholds = await storage.getData('ALERT_THRESHOLDS') || [];
-      return thresholds.map((t: any) => ({
-        ...t,
-        createdAt: new Date(t.createdAt),
-        lastTriggered: t.lastTriggered ? new Date(t.lastTriggered) : undefined
-      }));
-    } catch (error) {
-      console.error('Error getting thresholds:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get active alert thresholds
-   */
-  async getActiveThresholds(): Promise<AlertThreshold[]> {
-    const thresholds = await this.getThresholds();
-    return thresholds.filter(t => t.isActive);
-  }
-
-  /**
-   * Get recent alert events
-   */
-  async getRecentAlerts(limit: number = 50): Promise<AlertEvent[]> {
-    try {
-      const alerts = await storage.getData('ALERT_EVENTS') || [];
-      return alerts
-        .map((a: any) => ({
-          ...a,
-          timestamp: new Date(a.timestamp),
-          acknowledgedAt: a.acknowledgedAt ? new Date(a.acknowledgedAt) : undefined
-        }))
-        .sort((a: AlertEvent, b: AlertEvent) => b.timestamp.getTime() - a.timestamp.getTime())
-        .slice(0, limit);
-    } catch (error) {
-      console.error('Error getting recent alerts:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Acknowledge an alert
-   */
-  async acknowledgeAlert(alertId: string, acknowledgedBy: string): Promise<void> {
-    try {
-      const alerts = await storage.getData('ALERT_EVENTS') || [];
-      const alertIndex = alerts.findIndex((a: any) => a.id === alertId);
+      this.isMonitoring = false;
       
-      if (alertIndex !== -1) {
-        alerts[alertIndex].acknowledged = true;
-        alerts[alertIndex].acknowledgedBy = acknowledgedBy;
-        alerts[alertIndex].acknowledgedAt = new Date();
-        
-        await storage.storeData('ALERT_EVENTS', alerts);
-        console.log(`✅ Alert ${alertId} acknowledged by ${acknowledgedBy}`);
+      if (this.checkTimer) {
+        clearTimeout(this.checkTimer);
+        this.checkTimer = undefined;
       }
+
+      await this.auditLogService.logDataAccess({
+        userId: 'system',
+        action: 'ANALYTICS_MONITORING_STOPPED',
+        resourceType: 'ANALYTICS_ALERTS',
+        resourceId: 'monitoring_service',
+        ipAddress: 'system',
+        userAgent: 'AnalyticsAlertsService',
+        success: true
+      });
+
+      console.log('Analytics alerts monitoring stopped');
     } catch (error) {
-      console.error('Error acknowledging alert:', error);
+      console.error('Failed to stop analytics monitoring:', error);
       throw error;
     }
   }
 
   /**
-   * Get current metric value
+   * Check all metrics and generate alerts
    */
-  private async getCurrentMetricValue(metric: string, timeWindow: string): Promise<number> {
+  public async checkMetrics(): Promise<AnalyticsAlert[]> {
+    const newAlerts: AnalyticsAlert[] = [];
+
     try {
-      switch (metric) {
-        case 'daily_active_users': {
-          const appMetrics = await analyticsService.getAppUsageMetrics();
-          return appMetrics?.activeUsers.daily || 0;
+      // Get current analytics data
+      const engagementMetrics = await this.analyticsService.getEngagementMetrics();
+      const contentPerformance = await this.analyticsService.getContentPerformance();
+      const userBehavior = await this.analyticsService.getUserBehaviorAnalytics();
+
+      // Check each alert type
+      for (const [alertType, config] of this.alertConfigs.entries()) {
+        if (!config.enabled) continue;
+
+        // Skip if in cooldown period
+        if (this.isInCooldown(alertType)) continue;
+
+        let alert: AnalyticsAlert | null = null;
+
+        switch (alertType) {
+          case 'low_engagement':
+            alert = await this.checkEngagementAlert(engagementMetrics, config);
+            break;
+          case 'high_error_rate':
+            alert = await this.checkErrorRateAlert(config);
+            break;
+          case 'performance_degradation':
+            alert = await this.checkPerformanceAlert(config);
+            break;
+          case 'content_performance_drop':
+            alert = await this.checkContentPerformanceAlert(contentPerformance, config);
+            break;
+          case 'user_retention_drop':
+            alert = await this.checkRetentionAlert(userBehavior, config);
+            break;
+          case 'unusual_activity':
+            alert = await this.checkUnusualActivityAlert(engagementMetrics, config);
+            break;
+          case 'data_anomaly':
+            alert = await this.checkDataAnomalyAlert(engagementMetrics, config);
+            break;
         }
-        
-        case 'weekly_active_users': {
-          const appMetrics = await analyticsService.getAppUsageMetrics();
-          return appMetrics?.activeUsers.weekly || 0;
+
+        if (alert) {
+          newAlerts.push(alert);
+          this.activeAlerts.set(alert.id, alert);
+          this.alertHistory.push(alert);
         }
-        
-        case 'bounce_rate': {
-          const appMetrics = await analyticsService.getAppUsageMetrics();
-          return appMetrics?.sessionMetrics.bounceRate || 0;
-        }
-        
-        case 'tip_completion_rate': {
-          const appMetrics = await analyticsService.getAppUsageMetrics();
-          return appMetrics?.userBehavior.completionRate || 0;
-        }
-        
-        case 'critical_feedback_count': {
-          const feedbackStats = await feedbackService.getFeedbackStats();
-          return feedbackStats?.byPriority.critical || 0;
-        }
-        
-        case 'error_events_per_hour': {
-          // This would require querying recent error events
-          // For now, return a simulated value
-          return Math.floor(Math.random() * 100);
-        }
-        
-        case 'crash_rate': {
-          // This would require crash tracking
-          // For now, return a simulated value
-          return Math.random() * 0.1;
-        }
-        
-        default:
-          console.warn(`Unknown metric: ${metric}`);
-          return 0;
       }
+
+      // Save alerts to storage
+      if (newAlerts.length > 0) {
+        await this.saveAlertsToStorage();
+        await this.notifyAlerts(newAlerts);
+      }
+
+      return newAlerts;
     } catch (error) {
-      console.error(`Error getting metric value for ${metric}:`, error);
-      return 0;
+      console.error('Failed to check analytics metrics:', error);
+      return [];
     }
   }
 
   /**
-   * Evaluate if threshold is triggered
+   * Get all active alerts
    */
-  private async evaluateThreshold(threshold: AlertThreshold, currentValue: number): Promise<boolean> {
+  public getActiveAlerts(): AnalyticsAlert[] {
+    return Array.from(this.activeAlerts.values())
+      .filter(alert => !alert.isResolved)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  /**
+   * Get alert history
+   */
+  public getAlertHistory(limit?: number): AnalyticsAlert[] {
+    const sorted = this.alertHistory
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    
+    return limit ? sorted.slice(0, limit) : sorted;
+  }
+
+  /**
+   * Resolve an alert
+   */
+  public async resolveAlert(alertId: string, resolvedBy: string): Promise<boolean> {
     try {
-      switch (threshold.condition) {
-        case 'greater_than':
-          return currentValue > threshold.threshold;
-          
-        case 'less_than':
-          return currentValue < threshold.threshold;
-          
-        case 'equals':
-          return currentValue === threshold.threshold;
-          
-        case 'percentage_change': {
-          // For percentage change, we need historical data
-          const historicalValue = await this.getHistoricalMetricValue(
-            threshold.metric, 
-            threshold.timeWindow
-          );
-          
-          if (historicalValue === 0) return false;
-          
-          const percentageChange = ((currentValue - historicalValue) / historicalValue) * 100;
-          return threshold.threshold > 0 
-            ? percentageChange > threshold.threshold
-            : percentageChange < threshold.threshold;
-        }
-        
-        default:
-          return false;
+      const alert = this.activeAlerts.get(alertId);
+      if (!alert) {
+        return false;
       }
+
+      alert.isResolved = true;
+      alert.resolvedAt = new Date();
+      alert.resolvedBy = resolvedBy;
+
+      await this.saveAlertsToStorage();
+
+      await this.auditLogService.logDataAccess({
+        userId: resolvedBy,
+        action: 'ANALYTICS_ALERT_RESOLVED',
+        resourceType: 'ANALYTICS_ALERT',
+        resourceId: alertId,
+        ipAddress: 'admin_panel',
+        userAgent: 'AdminPanel',
+        success: true,
+        details: {
+          alertType: alert.type,
+          severity: alert.severity
+        }
+      });
+
+      return true;
     } catch (error) {
-      console.error('Error evaluating threshold:', error);
+      console.error('Failed to resolve alert:', error);
       return false;
     }
   }
 
   /**
-   * Get historical metric value for comparison
+   * Update alert configuration
    */
-  private async getHistoricalMetricValue(metric: string, timeWindow: string): Promise<number> {
-    // This would typically query historical data
-    // For now, return a simulated historical value
-    const currentValue = await this.getCurrentMetricValue(metric, timeWindow);
-    return currentValue * (0.8 + Math.random() * 0.4); // ±20% variation
-  }
-
-  /**
-   * Create alert event
-   */
-  private async createAlertEvent(threshold: AlertThreshold, currentValue: number): Promise<AlertEvent> {
+  public async updateAlertConfig(
+    alertType: AlertType,
+    config: Partial<AlertConfig>
+  ): Promise<void> {
     try {
-      const alertEvent: AlertEvent = {
-        id: this.generateId('alert'),
-        thresholdId: threshold.id,
-        thresholdName: threshold.name,
-        metric: threshold.metric,
-        currentValue,
-        thresholdValue: threshold.threshold,
-        severity: threshold.severity,
-        message: this.generateAlertMessage(threshold, currentValue),
-        timestamp: new Date(),
-        acknowledged: false
-      };
-
-      // Store alert event
-      const alerts = await storage.getData('ALERT_EVENTS') || [];
-      alerts.push(alertEvent);
-      await storage.storeData('ALERT_EVENTS', alerts);
-
-      // Update threshold last triggered time
-      const thresholds = await this.getThresholds();
-      const thresholdIndex = thresholds.findIndex(t => t.id === threshold.id);
-      if (thresholdIndex !== -1) {
-        thresholds[thresholdIndex].lastTriggered = new Date();
-        await storage.storeData('ALERT_THRESHOLDS', thresholds);
+      const existingConfig = this.alertConfigs.get(alertType);
+      if (!existingConfig) {
+        throw new Error(`Alert configuration not found for type: ${alertType}`);
       }
 
-      return alertEvent;
+      const updatedConfig = { ...existingConfig, ...config };
+      this.alertConfigs.set(alertType, updatedConfig);
+
+      await this.saveConfigsToStorage();
+
+      console.log(`Alert configuration updated for ${alertType}:`, updatedConfig);
     } catch (error) {
-      console.error('Error creating alert event:', error);
+      console.error('Failed to update alert configuration:', error);
       throw error;
     }
   }
 
   /**
-   * Generate alert message
+   * Get alert configuration
    */
-  private generateAlertMessage(threshold: AlertThreshold, currentValue: number): string {
-    const formattedValue = typeof currentValue === 'number' && currentValue < 1 
-      ? `${(currentValue * 100).toFixed(1)}%`
-      : currentValue.toString();
+  public getAlertConfig(alertType: AlertType): AlertConfig | undefined {
+    return this.alertConfigs.get(alertType);
+  }
+
+  /**
+   * Get all alert configurations
+   */
+  public getAllAlertConfigs(): AlertConfig[] {
+    return Array.from(this.alertConfigs.values());
+  }
+
+  // Private helper methods
+
+  private scheduleNextCheck(): void {
+    if (!this.isMonitoring) return;
+
+    // Find the shortest check interval
+    const minInterval = Math.min(
+      ...Array.from(this.alertConfigs.values())
+        .filter(config => config.enabled)
+        .map(config => config.checkInterval)
+    );
+
+    this.checkTimer = setTimeout(async () => {
+      await this.checkMetrics();
+      this.scheduleNextCheck();
+    }, minInterval * 60 * 1000); // Convert minutes to milliseconds
+  }
+
+  private isInCooldown(alertType: AlertType): boolean {
+    const config = this.alertConfigs.get(alertType);
+    if (!config) return false;
+
+    const lastAlert = this.alertHistory
+      .filter(alert => alert.type === alertType)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
+
+    if (!lastAlert) return false;
+
+    const cooldownEnd = new Date(lastAlert.timestamp.getTime() + config.cooldownPeriod * 60 * 1000);
+    return new Date() < cooldownEnd;
+  }
+
+  private async checkEngagementAlert(
+    metrics: EngagementMetrics,
+    config: AlertConfig
+  ): Promise<AnalyticsAlert | null> {
+    const totalEngagements = metrics.tipLikes + metrics.tipBookmarks + 
+                            metrics.tipCompletions + metrics.tipShares;
+    const engagementRate = metrics.tipViews > 0 ? totalEngagements / metrics.tipViews : 0;
+
+    if (engagementRate < config.threshold) {
+      return {
+        id: this.generateAlertId(),
+        type: 'low_engagement',
+        severity: config.severity,
+        title: 'Low User Engagement Detected',
+        description: `User engagement rate (${(engagementRate * 100).toFixed(1)}%) has dropped below the threshold of ${(config.threshold * 100).toFixed(1)}%`,
+        timestamp: new Date(),
+        metrics: {
+          engagementRate,
+          tipViews: metrics.tipViews,
+          totalEngagements
+        },
+        threshold: config.threshold,
+        currentValue: engagementRate,
+        isResolved: false,
+        actions: [
+          {
+            id: 'investigate_engagement',
+            label: 'Investigate Engagement Drop',
+            type: 'investigate'
+          },
+          {
+            id: 'review_content',
+            label: 'Review Content Quality',
+            type: 'investigate'
+          }
+        ]
+      };
+    }
+
+    return null;
+  }
+
+  private async checkErrorRateAlert(config: AlertConfig): Promise<AnalyticsAlert | null> {
+    // This would typically get error metrics from the analytics service
+    // For now, we'll simulate error rate checking
+    const errorRate = 0.02; // 2% - would be calculated from actual error events
+
+    if (errorRate > config.threshold) {
+      return {
+        id: this.generateAlertId(),
+        type: 'high_error_rate',
+        severity: config.severity,
+        title: 'High Error Rate Detected',
+        description: `Application error rate (${(errorRate * 100).toFixed(1)}%) has exceeded the threshold of ${(config.threshold * 100).toFixed(1)}%`,
+        timestamp: new Date(),
+        metrics: { errorRate },
+        threshold: config.threshold,
+        currentValue: errorRate,
+        isResolved: false,
+        actions: [
+          {
+            id: 'investigate_errors',
+            label: 'Investigate Error Logs',
+            type: 'investigate'
+          },
+          {
+            id: 'escalate_to_dev',
+            label: 'Escalate to Development Team',
+            type: 'escalate'
+          }
+        ]
+      };
+    }
+
+    return null;
+  }
+
+  private async checkPerformanceAlert(config: AlertConfig): Promise<AnalyticsAlert | null> {
+    // This would typically get performance metrics from the analytics service
+    const avgResponseTime = 1500; // 1.5 seconds - would be calculated from actual performance events
+
+    if (avgResponseTime > config.threshold) {
+      return {
+        id: this.generateAlertId(),
+        type: 'performance_degradation',
+        severity: config.severity,
+        title: 'Performance Degradation Detected',
+        description: `Average response time (${avgResponseTime}ms) has exceeded the threshold of ${config.threshold}ms`,
+        timestamp: new Date(),
+        metrics: { avgResponseTime },
+        threshold: config.threshold,
+        currentValue: avgResponseTime,
+        isResolved: false,
+        actions: [
+          {
+            id: 'investigate_performance',
+            label: 'Investigate Performance Issues',
+            type: 'investigate'
+          },
+          {
+            id: 'optimize_queries',
+            label: 'Review Database Queries',
+            type: 'investigate'
+          }
+        ]
+      };
+    }
+
+    return null;
+  }
+
+  private async checkContentPerformanceAlert(
+    contentPerformance: ContentPerformance[],
+    config: AlertConfig
+  ): Promise<AnalyticsAlert | null> {
+    if (contentPerformance.length === 0) return null;
+
+    const avgEngagementRate = contentPerformance.reduce((sum, content) => 
+      sum + content.engagementRate, 0) / contentPerformance.length;
+
+    // Compare with historical average (simplified - would use actual historical data)
+    const historicalAverage = 0.25; // 25% - would be calculated from historical data
+    const performanceDrop = (historicalAverage - avgEngagementRate) / historicalAverage;
+
+    if (performanceDrop > config.threshold) {
+      return {
+        id: this.generateAlertId(),
+        type: 'content_performance_drop',
+        severity: config.severity,
+        title: 'Content Performance Drop Detected',
+        description: `Content engagement has dropped by ${(performanceDrop * 100).toFixed(1)}% compared to historical average`,
+        timestamp: new Date(),
+        metrics: {
+          currentEngagementRate: avgEngagementRate,
+          historicalAverage,
+          performanceDrop
+        },
+        threshold: config.threshold,
+        currentValue: performanceDrop,
+        isResolved: false,
+        actions: [
+          {
+            id: 'review_content_quality',
+            label: 'Review Content Quality',
+            type: 'investigate'
+          },
+          {
+            id: 'analyze_user_feedback',
+            label: 'Analyze User Feedback',
+            type: 'investigate'
+          }
+        ]
+      };
+    }
+
+    return null;
+  }
+
+  private async checkRetentionAlert(
+    userBehavior: any,
+    config: AlertConfig
+  ): Promise<AnalyticsAlert | null> {
+    if (!userBehavior) return null;
+
+    const currentRetention = userBehavior.retentionRates.day7;
+    const expectedRetention = 0.6; // 60% - would be based on historical data or industry benchmarks
+    const retentionDrop = (expectedRetention - currentRetention) / expectedRetention;
+
+    if (retentionDrop > config.threshold) {
+      return {
+        id: this.generateAlertId(),
+        type: 'user_retention_drop',
+        severity: config.severity,
+        title: 'User Retention Drop Detected',
+        description: `7-day user retention (${(currentRetention * 100).toFixed(1)}%) has dropped significantly`,
+        timestamp: new Date(),
+        metrics: {
+          currentRetention,
+          expectedRetention,
+          retentionDrop
+        },
+        threshold: config.threshold,
+        currentValue: retentionDrop,
+        isResolved: false,
+        actions: [
+          {
+            id: 'analyze_user_journey',
+            label: 'Analyze User Journey',
+            type: 'investigate'
+          },
+          {
+            id: 'improve_onboarding',
+            label: 'Review Onboarding Process',
+            type: 'investigate'
+          }
+        ]
+      };
+    }
+
+    return null;
+  }
+
+  private async checkUnusualActivityAlert(
+    metrics: EngagementMetrics,
+    config: AlertConfig
+  ): Promise<AnalyticsAlert | null> {
+    // Simplified anomaly detection - would use more sophisticated algorithms
+    const currentActivity = metrics.dailyActiveUsers;
+    const historicalAverage = 100; // Would be calculated from historical data
+    const standardDeviation = 20; // Would be calculated from historical data
     
-    const formattedThreshold = typeof threshold.threshold === 'number' && threshold.threshold < 1
-      ? `${(threshold.threshold * 100).toFixed(1)}%`
-      : threshold.threshold.toString();
+    const zScore = Math.abs(currentActivity - historicalAverage) / standardDeviation;
 
-    return `${threshold.name}: ${threshold.metric} is ${formattedValue} (threshold: ${formattedThreshold})`;
+    if (zScore > config.threshold) {
+      return {
+        id: this.generateAlertId(),
+        type: 'unusual_activity',
+        severity: config.severity,
+        title: 'Unusual Activity Pattern Detected',
+        description: `Daily active users (${currentActivity}) shows unusual deviation from normal patterns`,
+        timestamp: new Date(),
+        metrics: {
+          currentActivity,
+          historicalAverage,
+          zScore
+        },
+        threshold: config.threshold,
+        currentValue: zScore,
+        isResolved: false,
+        actions: [
+          {
+            id: 'investigate_activity',
+            label: 'Investigate Activity Patterns',
+            type: 'investigate'
+          },
+          {
+            id: 'check_external_factors',
+            label: 'Check External Factors',
+            type: 'investigate'
+          }
+        ]
+      };
+    }
+
+    return null;
   }
 
-  /**
-   * Send alert notifications
-   */
-  private async sendAlertNotifications(alertEvent: AlertEvent): Promise<void> {
-    try {
-      // In a real implementation, this would send notifications via:
-      // - Email (using a service like SendGrid)
-      // - SMS (using a service like Twilio)
-      // - Push notifications
-      // - Webhook to external systems (Slack, PagerDuty, etc.)
+  private async checkDataAnomalyAlert(
+    metrics: EngagementMetrics,
+    config: AlertConfig
+  ): Promise<AnalyticsAlert | null> {
+    // Check for data inconsistencies or anomalies
+    const totalEngagements = metrics.tipLikes + metrics.tipBookmarks + 
+                            metrics.tipCompletions + metrics.tipShares;
+    
+    // Anomaly: More engagements than views (impossible)
+    if (totalEngagements > metrics.tipViews && metrics.tipViews > 0) {
+      return {
+        id: this.generateAlertId(),
+        type: 'data_anomaly',
+        severity: 'high',
+        title: 'Data Anomaly Detected',
+        description: `Data inconsistency detected: ${totalEngagements} total engagements vs ${metrics.tipViews} views`,
+        timestamp: new Date(),
+        metrics: {
+          totalEngagements,
+          tipViews: metrics.tipViews
+        },
+        threshold: config.threshold,
+        currentValue: totalEngagements / metrics.tipViews,
+        isResolved: false,
+        actions: [
+          {
+            id: 'investigate_data_integrity',
+            label: 'Investigate Data Integrity',
+            type: 'investigate'
+          },
+          {
+            id: 'check_tracking_logic',
+            label: 'Review Tracking Logic',
+            type: 'investigate'
+          }
+        ]
+      };
+    }
 
-      console.log(`📧 Sending alert notifications for: ${alertEvent.message}`);
-      
-      // Simulate notification sending
-      const notifications: AlertNotification[] = [
-        {
-          id: this.generateId('notification'),
-          alertEventId: alertEvent.id,
-          channel: 'email',
-          recipient: 'admin@healthyapp.com',
-          status: 'sent',
-          sentAt: new Date()
-        }
-      ];
+    return null;
+  }
 
-      // Store notifications
-      const allNotifications = await storage.getData('ALERT_NOTIFICATIONS') || [];
-      allNotifications.push(...notifications);
-      await storage.storeData('ALERT_NOTIFICATIONS', allNotifications);
-
-      console.log(`✅ ${notifications.length} notifications sent for alert ${alertEvent.id}`);
-    } catch (error) {
-      console.error('Error sending alert notifications:', error);
+  private async notifyAlerts(alerts: AnalyticsAlert[]): Promise<void> {
+    // This would implement actual notification logic (email, push, webhook, etc.)
+    for (const alert of alerts) {
+      console.log(`🚨 ANALYTICS ALERT: ${alert.title}`);
+      console.log(`   Severity: ${alert.severity.toUpperCase()}`);
+      console.log(`   Description: ${alert.description}`);
+      console.log(`   Threshold: ${alert.threshold}, Current: ${alert.currentValue}`);
     }
   }
 
-  /**
-   * Simulate threshold breach for testing
-   */
-  async simulateThresholdBreach(thresholdId: string): Promise<AlertEvent | null> {
+  private generateAlertId(): string {
+    return `alert_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  }
+
+  private async loadAlertsFromStorage(): Promise<void> {
     try {
-      const thresholds = await this.getThresholds();
-      const threshold = thresholds.find(t => t.id === thresholdId);
-      
-      if (!threshold) {
-        throw new Error('Threshold not found');
+      const stored = await AsyncStorage.getItem('analytics_alerts');
+      if (stored) {
+        const alerts: AnalyticsAlert[] = JSON.parse(stored).map((alert: any) => ({
+          ...alert,
+          timestamp: new Date(alert.timestamp),
+          resolvedAt: alert.resolvedAt ? new Date(alert.resolvedAt) : undefined
+        }));
+        
+        this.alertHistory = alerts;
+        this.activeAlerts.clear();
+        
+        alerts.filter(alert => !alert.isResolved).forEach(alert => {
+          this.activeAlerts.set(alert.id, alert);
+        });
       }
-
-      // Generate a value that will trigger the threshold
-      let simulatedValue: number;
-      switch (threshold.condition) {
-        case 'greater_than':
-          simulatedValue = threshold.threshold + 10;
-          break;
-        case 'less_than':
-          simulatedValue = threshold.threshold - 10;
-          break;
-        case 'percentage_change':
-          simulatedValue = threshold.threshold < 0 ? -30 : 30; // Simulate 30% change
-          break;
-        default:
-          simulatedValue = threshold.threshold;
-      }
-
-      const alertEvent = await this.createAlertEvent(threshold, simulatedValue);
-      await this.sendAlertNotifications(alertEvent);
-
-      console.log(`🧪 Simulated threshold breach: ${threshold.name}`);
-      return alertEvent;
     } catch (error) {
-      console.error('Error simulating threshold breach:', error);
-      return null;
+      console.error('Failed to load alerts from storage:', error);
     }
   }
 
-  /**
-   * Generate unique ID
-   */
-  private generateId(prefix: string): string {
-    return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  private async saveAlertsToStorage(): Promise<void> {
+    try {
+      await AsyncStorage.setItem('analytics_alerts', JSON.stringify(this.alertHistory));
+    } catch (error) {
+      console.error('Failed to save alerts to storage:', error);
+    }
   }
 
-  /**
-   * Get monitoring status
-   */
-  getMonitoringStatus(): { isMonitoring: boolean; interval?: number } {
-    return {
-      isMonitoring: this.isMonitoring,
-      interval: this.monitoringInterval ? 15 : undefined // Default interval
-    };
+  private async loadConfigsFromStorage(): Promise<void> {
+    try {
+      const stored = await AsyncStorage.getItem('analytics_alert_configs');
+      if (stored) {
+        const configs: AlertConfig[] = JSON.parse(stored);
+        configs.forEach(config => {
+          this.alertConfigs.set(config.type, config);
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load alert configs from storage:', error);
+    }
+  }
+
+  private async saveConfigsToStorage(): Promise<void> {
+    try {
+      const configs = Array.from(this.alertConfigs.values());
+      await AsyncStorage.setItem('analytics_alert_configs', JSON.stringify(configs));
+    } catch (error) {
+      console.error('Failed to save alert configs to storage:', error);
+    }
   }
 }
-
-export const analyticsAlertsService = AnalyticsAlertsService.getInstance();

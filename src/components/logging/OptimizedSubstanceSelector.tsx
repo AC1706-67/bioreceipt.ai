@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import { Database } from '../../config/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import { useOptimizedSubstanceLoading } from '../../hooks/useOptimizedSubstanceLoading';
@@ -217,7 +217,7 @@ const OptimizedSubstanceSelector: React.FC<Props> = ({
           )}
           {isOptimistic && (
             <View style={styles.optimisticIndicator}>
-              <ActivityIndicator size="small" color={BioPulseTheme.colors.primary} />
+              <ActivityIndicator size="small" color={BioReceiptTheme.colors.primary} />
               <Text style={styles.optimisticText}>Adding...</Text>
             </View>
           )}
@@ -315,7 +315,7 @@ const OptimizedSubstanceSelector: React.FC<Props> = ({
                 <ActivityIndicator
                   style={styles.searchLoader}
                   size="small"
-                  color={BioPulseTheme.colors.primary}
+                  color={BioReceiptTheme.colors.primary}
                 />
               )}
             </View>
@@ -357,13 +357,13 @@ const OptimizedSubstanceSelector: React.FC<Props> = ({
                 <RefreshControl
                   refreshing={loadingState.isRefreshing}
                   onRefresh={handleRefresh}
-                  colors={[BioPulseTheme.colors.primary]}
+                  colors={[BioReceiptTheme.colors.primary]}
                 />
               }
               ListEmptyComponent={
                 loadingState.isLoading ? (
                   <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={BioPulseTheme.colors.primary} />
+                    <ActivityIndicator size="large" color={BioReceiptTheme.colors.primary} />
                     <Text style={styles.loadingText}>Loading substances...</Text>
                   </View>
                 ) : (
@@ -398,36 +398,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
     borderRadius: 8,
     padding: 16,
     minHeight: 56,
   },
   selectorButtonText: {
     fontSize: 16,
-    color: BioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     flex: 1,
   },
   selectorButtonArrow: {
     fontSize: 12,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     marginLeft: 8,
   },
   performanceMetrics: {
     marginTop: 4,
     padding: 8,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
     borderRadius: 4,
   },
   metricsText: {
     fontSize: 10,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -435,40 +435,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
+    borderBottomColor: BioReceiptTheme.colors.border,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: BioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   closeButton: {
     padding: 8,
   },
   closeButtonText: {
     fontSize: 18,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     margin: 16,
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
   },
   searchInput: {
     flex: 1,
     padding: 12,
     fontSize: 16,
-    color: BioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
   },
   searchLoader: {
     marginRight: 12,
   },
   addButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     marginHorizontal: 16,
     marginBottom: 16,
     padding: 12,
@@ -483,18 +483,18 @@ const styles = StyleSheet.create({
   errorContainer: {
     margin: 16,
     padding: 16,
-    backgroundColor: BioPulseTheme.colors.error + '20',
+    backgroundColor: BioReceiptTheme.colors.error + '20',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.error,
+    borderColor: BioReceiptTheme.colors.error,
   },
   errorText: {
-    color: BioPulseTheme.colors.error,
+    color: BioReceiptTheme.colors.error,
     fontSize: 14,
     marginBottom: 8,
   },
   retryButton: {
-    backgroundColor: BioPulseTheme.colors.error,
+    backgroundColor: BioReceiptTheme.colors.error,
     padding: 8,
     borderRadius: 4,
     alignSelf: 'flex-start',
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   categoryHeader: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: BioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginHorizontal: 16,
     marginBottom: 8,
     marginTop: 8,
@@ -524,18 +524,18 @@ const styles = StyleSheet.create({
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 2,
-    backgroundColor: BioPulseTheme.colors.surface,
+    backgroundColor: BioReceiptTheme.colors.surface,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
   },
   selectedSubstanceItem: {
-    backgroundColor: BioPulseTheme.colors.primary + '20',
-    borderColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary + '20',
+    borderColor: BioReceiptTheme.colors.primary,
   },
   optimisticSubstanceItem: {
-    backgroundColor: BioPulseTheme.colors.warning + '10',
-    borderColor: BioPulseTheme.colors.warning,
+    backgroundColor: BioReceiptTheme.colors.warning + '10',
+    borderColor: BioReceiptTheme.colors.warning,
   },
   substanceInfo: {
     flex: 1,
@@ -543,22 +543,22 @@ const styles = StyleSheet.create({
   substanceName: {
     fontSize: 16,
     fontWeight: '600',
-    color: BioPulseTheme.colors.text,
+    color: BioReceiptTheme.colors.text,
     marginBottom: 4,
   },
   selectedSubstanceName: {
-    color: BioPulseTheme.colors.primary,
+    color: BioReceiptTheme.colors.primary,
   },
   substanceCategory: {
     fontSize: 14,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   selectedSubstanceCategory: {
-    color: BioPulseTheme.colors.primary + 'CC',
+    color: BioReceiptTheme.colors.primary + 'CC',
   },
   customLabel: {
     fontSize: 12,
-    color: BioPulseTheme.colors.warning,
+    color: BioReceiptTheme.colors.warning,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -569,14 +569,14 @@ const styles = StyleSheet.create({
   },
   optimisticText: {
     fontSize: 12,
-    color: BioPulseTheme.colors.warning,
+    color: BioReceiptTheme.colors.warning,
     marginLeft: 4,
   },
   selectedIndicator: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   emptyContainer: {
     flex: 1,
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
   },
 });

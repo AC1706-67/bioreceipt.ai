@@ -17,7 +17,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import { PhotoMetadata } from '../../types/photo';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -131,8 +131,10 @@ const PhotoFullScreen: React.FC<PhotoFullScreenProps> = ({
                 style={styles.controlButton}
                 onPress={handleClose}
                 accessible={true}
-                accessibilityLabel="Close photo"
+                accessibilityLabel="Close full screen photo view"
                 accessibilityRole="button"
+                accessibilityHint="Returns to photo gallery"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 testID="photo-fullscreen-close"
               >
                 <Text style={styles.controlIcon}>✕</Text>
@@ -183,7 +185,7 @@ const PhotoFullScreen: React.FC<PhotoFullScreenProps> = ({
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator 
                     size="large" 
-                    color={BioPulseTheme.colors.primary}
+                    color={BioReceiptTheme.colors.primary}
                     testID="photo-fullscreen-loading"
                   />
                 </View>
@@ -275,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239, 68, 68, 0.8)',
   },
   controlIcon: {
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -314,19 +316,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryText: {
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   instructionText: {
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -359,16 +361,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
   },
   metadataTitle: {
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
   },
   metadataText: {
-    color: BioPulseTheme.colors.textSecondary,
+    color: BioReceiptTheme.colors.textSecondary,
     fontSize: 14,
     marginBottom: 4,
   },

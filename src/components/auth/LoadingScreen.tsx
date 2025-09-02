@@ -1,6 +1,6 @@
 /**
  * Loading Screen - MVP Authentication Loading UI
- * Accessible loading screen with BioPulse branding
+ * Accessible loading screen with BioReceipt branding
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -11,7 +11,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 
 const LoadingScreen: React.FC = () => {
   const pulseAnim = useRef(new Animated.Value(0.8)).current;
@@ -91,10 +91,10 @@ const LoadingScreen: React.FC = () => {
       <Text 
         style={styles.appName}
         accessible={true}
-        accessibilityLabel="BioPulse.AI"
+        accessibilityLabel="BioReceipt.AI"
         accessibilityRole="header"
       >
-        BioPulse.AI
+        BioReceipt.AI
       </Text>
 
       {/* Tagline */}
@@ -126,17 +126,17 @@ const LoadingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.xl,
+    paddingHorizontal: BioReceiptTheme.spacing.xl,
   },
   animationContainer: {
     width: 120,
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.xl * 2,
+    marginBottom: BioReceiptTheme.spacing.xl * 2,
     position: 'relative',
   },
   pulseCircle: {
@@ -144,9 +144,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: BioPulseTheme.colors.primary + '20', // 20% opacity
+    backgroundColor: BioReceiptTheme.colors.primary + '20', // 20% opacity
     borderWidth: 2,
-    borderColor: BioPulseTheme.colors.primary + '40', // 40% opacity
+    borderColor: BioReceiptTheme.colors.primary + '40', // 40% opacity
   },
   rotateCircle: {
     position: 'absolute',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 3,
     borderColor: 'transparent',
-    borderTopColor: BioPulseTheme.colors.primary,
+    borderTopColor: BioReceiptTheme.colors.primary,
   },
   rotateIndicator: {
     position: 'absolute',
@@ -165,18 +165,18 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
   },
   centerLogo: {
     position: 'absolute',
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: BioPulseTheme.colors.primary,
+    backgroundColor: BioReceiptTheme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
-    shadowColor: BioPulseTheme.colors.primary,
+    shadowColor: BioReceiptTheme.colors.primary,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -186,36 +186,36 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 20,
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
-    color: BioPulseTheme.colors.white,
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
+    color: BioReceiptTheme.colors.white,
     letterSpacing: 1,
   },
   appName: {
-    fontSize: BioPulseTheme.typography.fontSize['4xl'],
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
-    color: BioPulseTheme.colors.primary,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize['4xl'],
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
+    color: BioReceiptTheme.colors.primary,
+    marginBottom: BioReceiptTheme.spacing.sm,
     textAlign: 'center',
     letterSpacing: 1,
   },
   tagline: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    color: BioPulseTheme.colors.textSecondary,
-    marginBottom: BioPulseTheme.spacing.xl * 2,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginBottom: BioReceiptTheme.spacing.xl * 2,
     textAlign: 'center',
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
   },
   loadingText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textTertiary,
-    marginBottom: BioPulseTheme.spacing.xl,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textTertiary,
+    marginBottom: BioReceiptTheme.spacing.xl,
     textAlign: 'center',
   },
   version: {
     position: 'absolute',
-    bottom: BioPulseTheme.spacing.xl,
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textTertiary,
+    bottom: BioReceiptTheme.spacing.xl,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textTertiary,
     textAlign: 'center',
   },
 });

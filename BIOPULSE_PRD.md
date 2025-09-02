@@ -1,8 +1,8 @@
-# BioPulse.AI - Product Requirements Document
+# BioReceipt.AI - Product Requirements Document
 
 ## 1. Product Overview
 
-**BioPulse.AI** is an AI-powered biohacking platform that transforms personal health optimization through intelligent substance intake logging and analysis. Users can log anything they consume - alcohol, drugs, food, supplements, steroids, prescriptions, and more - to receive real-time impact insights, safety alerts, and personalized recovery recommendations.
+**BioReceipt.AI** is an AI-powered biohacking platform that transforms personal health optimization through intelligent substance intake logging and analysis. Users can log anything they consume - alcohol, drugs, food, supplements, steroids, prescriptions, and more - to receive real-time impact insights, safety alerts, and personalized recovery recommendations.
 
 ### Core Value Proposition
 - **Comprehensive Logging**: Track any substance with quantity, unit, and timing precision
@@ -11,8 +11,8 @@
 - **Personalized Recovery**: Tailored recommendations for optimization and harm reduction
 - **Future-Ready**: Built for seamless wearable integration and advanced biometric monitoring
 
-### Evolution from HealthyTipApp
-BioPulse.AI evolves the existing daily check-in system into a sophisticated substance intake logging and analysis engine while preserving all current authentication, user profiles, and data infrastructure.
+### Evolution from BioReceipt
+BioReceipt.AI evolves the existing daily check-in system into a sophisticated substance intake logging and analysis engine while preserving all current authentication, user profiles, and data infrastructure.
 
 ## 2. Goals
 
@@ -23,7 +23,7 @@ BioPulse.AI evolves the existing daily check-in system into a sophisticated subs
 4. **Future Scalability**: Build a robust platform ready for wearable integrations and advanced health monitoring
 
 ### Secondary Goals
-- Establish BioPulse.AI as the leading personal biohacking platform
+- Establish BioReceipt.AI as the leading personal biohacking platform
 - Create a comprehensive, community-driven substance database
 - Enable data-driven health decisions through pattern recognition
 - Build foundation for predictive health modeling
@@ -32,12 +32,12 @@ BioPulse.AI evolves the existing daily check-in system into a sophisticated subs
 
 ### Phase 1: MVP - Rebrand & Intake Logging System
 **Timeline**: 4-6 weeks  
-**Goal**: Transform existing app into BioPulse.AI with core logging functionality
+**Goal**: Transform existing app into BioReceipt.AI with core logging functionality
 
 #### 1.1 Complete Rebrand
-- [ ] **Visual Identity**: New logos, color scheme, typography aligned with BioPulse.AI brand
+- [ ] **Visual Identity**: New logos, color scheme, typography aligned with BioReceipt.AI brand
 - [ ] **UI/UX Overhaul**: Modern, biohacking-focused interface design
-- [ ] **Content Update**: Replace all copy with BioPulse.AI messaging and terminology
+- [ ] **Content Update**: Replace all copy with BioReceipt.AI messaging and terminology
 - [ ] **App Assets**: New icons, splash screens, and marketing materials
 
 #### 1.2 Substance Database Foundation

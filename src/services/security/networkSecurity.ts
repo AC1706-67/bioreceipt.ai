@@ -15,12 +15,12 @@ const NETWORK_CONFIG = {
   RETRY_DELAY: 1000, // 1 second
   CERTIFICATE_PINS: {
     // Production certificate pins (SHA-256 hashes)
-    'api.healthytipapp.com': [
+    'api.BioReceipt.com': [
       'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', // Primary cert
       'sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=', // Backup cert
     ],
     // Staging environment pins
-    'staging-api.healthytipapp.com': [
+    'staging-api.BioReceipt.com': [
       'sha256/CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC=',
     ],
   },
@@ -247,7 +247,7 @@ export class NetworkSecurityService {
     requestId: string
   ): Promise<RequestInit & { url: string }> {
     const headers: Record<string, string> = {
-      'User-Agent': `HealthyTipApp/${Platform.OS}`,
+      'User-Agent': `BioReceipt/${Platform.OS}`,
       'X-Request-ID': requestId,
       'X-Timestamp': Date.now().toString(),
       ...config.headers,

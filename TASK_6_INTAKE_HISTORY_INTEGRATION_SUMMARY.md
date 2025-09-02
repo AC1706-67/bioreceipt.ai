@@ -114,7 +114,7 @@ const photoColumns = useMemo(() => {
 - **Easy Dismissal**: Multiple ways to close modal (button, gesture)
 
 ### 2. Visual Design
-- **Consistent Theming**: Uses BioPulseTheme for consistent styling
+- **Consistent Theming**: Uses BioReceiptTheme for consistent styling
 - **Proper Spacing**: Appropriate margins and padding throughout
 - **Visual Hierarchy**: Clear information hierarchy and grouping
 

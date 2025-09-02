@@ -2,7 +2,7 @@
 
 ## Overview
 
-The substance validation system provides comprehensive client-side validation for custom substance creation in BioPulse. It ensures data integrity, user experience, and security through a robust set of validation rules and utilities.
+The substance validation system provides comprehensive client-side validation for custom substance creation in BioReceipt. It ensures data integrity, user experience, and security through a robust set of validation rules and utilities.
 
 ## 📁 File Structure
 

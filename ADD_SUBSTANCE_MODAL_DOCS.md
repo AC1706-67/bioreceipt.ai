@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AddSubstanceModal component provides a comprehensive interface for users to add custom substances to their BioPulse tracking catalog. It integrates with the validation utilities from Task 2 and the Supabase service functions from Task 3 to deliver a seamless user experience.
+The AddSubstanceModal component provides a comprehensive interface for users to add custom substances to their BioReceipt tracking catalog. It integrates with the validation utilities from Task 2 and the Supabase service functions from Task 3 to deliver a seamless user experience.
 
 ## 📁 File Structure
 

@@ -2,7 +2,7 @@
  * Tests for useOfflinePhotoQueue hook
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useOfflinePhotoQueue } from '../useOfflinePhotoQueue';
 import { offlinePhotoQueueService } from '../../services/photo/offlinePhotoQueueService';
 

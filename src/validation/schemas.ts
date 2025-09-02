@@ -16,8 +16,8 @@ import {
   COMMON_GOALS 
 } from '../types/userProfile';
 
-// BioPulse Tip Validation Schema
-export const bioPulseTipSchema = yup.object({
+// BioReceipt Tip Validation Schema
+export const BioReceiptTipSchema = yup.object({
   id: yup.string().required('ID is required'),
   title: yup
     .string()
@@ -474,7 +474,7 @@ export const userEngagementSchema = yup.object({
 
 // Export all schemas
 export const validationSchemas = {
-  bioPulseTip: bioPulseTipSchema,
+  BioReceiptTip: BioReceiptTipSchema,
   userProfile: userProfileSchema,
   profileUpdate: profileUpdateSchema,
   onboardingData: onboardingDataSchema,

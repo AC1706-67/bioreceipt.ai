@@ -13,7 +13,7 @@
 - ✅ **SignupScreen.tsx** - Comprehensive form with validation
 - ✅ **ForgotPasswordScreen.tsx** - Password reset flow
 - ✅ **AuthNavigator.tsx** - Seamless navigation between auth screens
-- ✅ **LoadingScreen.tsx** - BioPulse branded loading with animations
+- ✅ **LoadingScreen.tsx** - BioReceipt branded loading with animations
 - ✅ **AuthService Integration** - Full Supabase authentication
 
 ### 📱 **2. Core Logging Interface**
@@ -64,7 +64,7 @@
 
 ### **Step 1: Install Dependencies**
 ```bash
-cd HealthyTipApp
+cd BioReceipt
 npm install @supabase/supabase-js@^2.39.0 react-native-url-polyfill@^2.0.0 --legacy-peer-deps
 ```
 
@@ -104,12 +104,12 @@ export default function App() {
 // src/components/MainApp.tsx
 import React from 'react';
 import { View } from 'react-native';
-import BioPulseTabNavigator from './navigation/BioPulseTabNavigator';
+import BioReceiptTabNavigator from './navigation/BioReceiptTabNavigator';
 import LoggingScreen from './logging/LoggingScreen';
 
 const MainApp: React.FC = () => {
   return (
-    <BioPulseTabNavigator
+    <BioReceiptTabNavigator
       tabs={[
         {
           id: 'logging',
@@ -220,7 +220,7 @@ npm start
 - ✅ **Error Resilience** - Handles edge cases gracefully
 
 ### **Ready for Users:**
-The core BioPulse.AI experience is **complete and functional**. Users can:
+The core BioReceipt.AI experience is **complete and functional**. Users can:
 1. **Sign up and log in** securely
 2. **Log substance intake** with full details
 3. **View their history** with rich information

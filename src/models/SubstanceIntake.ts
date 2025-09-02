@@ -1,6 +1,6 @@
 /**
  * Substance Intake Model
- * Represents a logged substance intake entry in BioPulse.AI
+ * Represents a logged substance intake entry in BioReceipt.AI
  */
 
 import { SubstanceCategory } from './Substance';

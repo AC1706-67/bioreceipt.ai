@@ -1,6 +1,6 @@
 /**
  * Security Services Index
- * HIPAA-compliant security services for the Healthy Tip App
+ * HIPAA-compliant security services for the BioReceipt
  */
 
 // Core security services

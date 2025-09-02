@@ -1,22 +1,31 @@
 /**
  * Supabase Configuration
- * Production database setup for BioPulse.AI
+ * Production database setup for BioReceipt.AI
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@env';
 
-// Environment variables - replace with your actual Supabase credentials
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://vpbdmeauwzoyvllvhbjc.supabase.co';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwYmRtZWF1d3pveXZsbHZoYmpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMTQ2MDksImV4cCI6MjA2OTY5MDYwOX0.taOdn6KLVswfxqnsns8j1fdrRS7M0oVnS7R4-XQa9HU';
+// Environment variables - loaded from @env (react-native-dotenv)
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Environment variables:', {
+    SUPABASE_URL: SUPABASE_URL ? 'SET' : 'MISSING',
+    SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
+    allEnvVars: Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC_'))
+  });
+  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+}
 
 // Supabase client configuration
 const supabaseConfig = {
   auth: {
-    storage: Platform.OS === 'web' ? undefined : require('@react-native-async-storage/async-storage').default,
+    storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: Platform.OS === 'web',
+    detectSessionInUrl: false,
   },
 };
 

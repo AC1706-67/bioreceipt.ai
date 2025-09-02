@@ -17,7 +17,8 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { signIn, clearError } from '../../store/authSlice';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
+import { authService } from '../../services/auth/authService';
 
 interface Props {
   onNavigateToSignup: () => void;
@@ -32,6 +33,8 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [emailExists, setEmailExists] = useState<boolean | null>(null);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -83,11 +86,37 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
     }
   };
 
+  const checkEmailExists = async (email: string) => {
+    if (!email || !email.includes('@')) return;
+    
+    setIsCheckingEmail(true);
+    try {
+      const { exists } = await authService.checkEmailExists(email);
+      setEmailExists(exists);
+    } catch (error) {
+      console.error('Error checking email:', error);
+      setEmailExists(null);
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
   const handleEmailChange = (text: string) => {
     setEmail(text);
+    setEmailExists(null); // Reset email check status
+    
     if (emailError) {
       validateEmail(text);
     }
+    
+    // Debounced email check
+    const timeoutId = setTimeout(() => {
+      if (text && text.includes('@') && !emailError) {
+        checkEmailExists(text);
+      }
+    }, 1000);
+    
+    return () => clearTimeout(timeoutId);
   };
 
   const handlePasswordChange = (text: string) => {
@@ -106,7 +135,7 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to BioPulse.AI</Text>
+          <Text style={styles.subtitle}>Sign in to BioReceipt.AI</Text>
         </View>
 
         {/* Form */}
@@ -119,7 +148,7 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
               value={email}
               onChangeText={handleEmailChange}
               placeholder="Enter your email"
-              placeholderTextColor={BioPulseTheme.colors.textTertiary}
+              placeholderTextColor={BioReceiptTheme.colors.textTertiary}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -137,6 +166,30 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
                 {emailError}
               </Text>
             ) : null}
+            
+            {/* Email Status Indicator */}
+            {!emailError && email && email.includes('@') && (
+              <View style={styles.emailStatusContainer}>
+                {isCheckingEmail ? (
+                  <Text style={styles.emailCheckingText}>Checking email...</Text>
+                ) : emailExists === true ? (
+                  <Text style={styles.emailFoundText}>✓ Email found</Text>
+                ) : emailExists === false ? (
+                  <View style={styles.emailNotFoundContainer}>
+                    <Text style={styles.emailNotFoundText}>Email not found</Text>
+                    <TouchableOpacity
+                      onPress={onNavigateToSignup}
+                      style={styles.createAccountLink}
+                      accessible={true}
+                      accessibilityLabel="Create account"
+                      accessibilityHint="Navigate to signup screen"
+                    >
+                      <Text style={styles.createAccountText}>Create account?</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+              </View>
+            )}
           </View>
 
           {/* Password Input */}
@@ -147,7 +200,7 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
               value={password}
               onChangeText={handlePasswordChange}
               placeholder="Enter your password"
-              placeholderTextColor={BioPulseTheme.colors.textTertiary}
+              placeholderTextColor={BioReceiptTheme.colors.textTertiary}
               secureTextEntry
               accessible={true}
               accessibilityLabel="Password input"
@@ -165,17 +218,43 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
             ) : null}
           </View>
 
-          {/* Forgot Password Link */}
-          <TouchableOpacity
-            style={styles.forgotPasswordContainer}
-            onPress={onNavigateToForgotPassword}
-            accessible={true}
-            accessibilityLabel="Forgot password"
-            accessibilityHint="Navigate to password reset screen"
-            accessibilityRole="button"
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
+          {/* Forgot Links */}
+          <View style={styles.forgotLinksContainer}>
+            <TouchableOpacity
+              style={styles.forgotLink}
+              onPress={onNavigateToForgotPassword}
+              accessible={true}
+              accessibilityLabel="Forgot password"
+              accessibilityHint="Navigate to password reset screen"
+              accessibilityRole="button"
+            >
+              <Text style={styles.forgotLinkText}>Forgot Password?</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.forgotLink}
+              onPress={() => {
+                // Show help modal or navigate to email recovery
+                Alert.alert(
+                  'Forgot Your Email?',
+                  'If you forgot your email address, please contact support or try common email addresses you use.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Contact Support', onPress: () => {
+                      // In a real app, this would open email client or support chat
+                      Alert.alert('Support', 'Please email support@BioReceipt.ai for assistance.');
+                    }}
+                  ]
+                );
+              }}
+              accessible={true}
+              accessibilityLabel="Forgot email"
+              accessibilityHint="Get help recovering your email address"
+              accessibilityRole="button"
+            >
+              <Text style={styles.forgotLinkText}>Forgot Email?</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Error Message */}
           {error ? (
@@ -197,7 +276,7 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
             disabled={isLoading}
             accessible={true}
             accessibilityLabel={isLoading ? "Signing in..." : "Sign in"}
-            accessibilityHint="Sign in to your BioPulse account"
+            accessibilityHint="Sign in to your BioReceipt account"
             accessibilityRole="button"
             testID="login-submit-button"
           >
@@ -228,114 +307,154 @@ const LoginScreen: React.FC<Props> = ({ onNavigateToSignup, onNavigateToForgotPa
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+    backgroundColor: BioReceiptTheme.colors.background,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: BioPulseTheme.spacing.xl,
-    paddingVertical: BioPulseTheme.spacing.xl,
+    paddingHorizontal: BioReceiptTheme.spacing.xl,
+    paddingVertical: BioReceiptTheme.spacing.xl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.xl * 2,
+    marginBottom: BioReceiptTheme.spacing.xl * 2,
   },
   title: {
-    fontSize: BioPulseTheme.typography.fontSize['3xl'],
-    fontWeight: BioPulseTheme.typography.fontWeight.bold,
-    color: BioPulseTheme.colors.primary,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize['3xl'],
+    fontWeight: BioReceiptTheme.typography.fontWeight.bold,
+    color: BioReceiptTheme.colors.primary,
+    marginBottom: BioReceiptTheme.spacing.sm,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    color: BioReceiptTheme.colors.textSecondary,
     textAlign: 'center',
   },
   form: {
-    marginBottom: BioPulseTheme.spacing.xl,
+    marginBottom: BioReceiptTheme.spacing.xl,
   },
   inputContainer: {
-    marginBottom: BioPulseTheme.spacing.lg,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   label: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
-    color: BioPulseTheme.colors.text,
-    marginBottom: BioPulseTheme.spacing.sm,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    color: BioReceiptTheme.colors.text,
+    marginBottom: BioReceiptTheme.spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.text,
-    backgroundColor: BioPulseTheme.colors.surface,
+    borderColor: BioReceiptTheme.colors.border,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.text,
+    backgroundColor: BioReceiptTheme.colors.surface,
     minHeight: 48, // Accessibility: minimum touch target
   },
   inputError: {
-    borderColor: BioPulseTheme.colors.error,
+    borderColor: BioReceiptTheme.colors.error,
   },
   errorText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.error,
-    marginTop: BioPulseTheme.spacing.xs,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.error,
+    marginTop: BioReceiptTheme.spacing.xs,
   },
-  forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginBottom: BioPulseTheme.spacing.lg,
-    minHeight: 44, // Accessibility: minimum touch target
+  emailStatusContainer: {
+    marginTop: BioReceiptTheme.spacing.xs,
+    marginBottom: BioReceiptTheme.spacing.sm,
+  },
+  emailCheckingText: {
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  emailFoundText: {
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.success,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+  },
+  emailNotFoundContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  emailNotFoundText: {
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.warning,
+    marginRight: BioReceiptTheme.spacing.sm,
+  },
+  createAccountLink: {
+    minHeight: 32,
     justifyContent: 'center',
   },
-  forgotPasswordText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.primary,
-    fontWeight: BioPulseTheme.typography.fontWeight.medium,
+  createAccountText: {
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.primary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
+    textDecorationLine: 'underline',
+  },
+  forgotLinksContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: BioReceiptTheme.spacing.lg,
+    flexWrap: 'wrap',
+  },
+  forgotLink: {
+    minHeight: 44, // Accessibility: minimum touch target
+    justifyContent: 'center',
+    paddingVertical: BioReceiptTheme.spacing.xs,
+  },
+  forgotLinkText: {
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.primary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.medium,
   },
   errorContainer: {
-    backgroundColor: BioPulseTheme.colors.errorLight,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    padding: BioPulseTheme.spacing.md,
-    marginBottom: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.errorLight,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    padding: BioReceiptTheme.spacing.md,
+    marginBottom: BioReceiptTheme.spacing.lg,
   },
   errorMessage: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.error,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.error,
     textAlign: 'center',
   },
   loginButton: {
-    backgroundColor: BioPulseTheme.colors.primary,
-    borderRadius: BioPulseTheme.borderRadius.md,
-    paddingVertical: BioPulseTheme.spacing.md,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    backgroundColor: BioReceiptTheme.colors.primary,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    paddingVertical: BioReceiptTheme.spacing.md,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
     alignItems: 'center',
     minHeight: 48, // Accessibility: minimum touch target
     justifyContent: 'center',
   },
   loginButtonDisabled: {
-    backgroundColor: BioPulseTheme.colors.disabled,
+    backgroundColor: BioReceiptTheme.colors.disabled,
   },
   loginButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
-    color: BioPulseTheme.colors.white,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
+    color: BioReceiptTheme.colors.white,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: BioPulseTheme.spacing.xl,
+    marginTop: BioReceiptTheme.spacing.xl,
   },
   footerText: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   signupLink: {
-    fontSize: BioPulseTheme.typography.fontSize.md,
-    color: BioPulseTheme.colors.primary,
-    fontWeight: BioPulseTheme.typography.fontWeight.semibold,
+    fontSize: BioReceiptTheme.typography.fontSize.md,
+    color: BioReceiptTheme.colors.primary,
+    fontWeight: BioReceiptTheme.typography.fontWeight.semibold,
   },
 });
 

@@ -1,6 +1,39 @@
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
-plugins { id("com.facebook.react.settings") }
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
-rootProject.name = 'HealthyTipApp'
-include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
+pluginManagement {
+  repositories {
+    gradlePluginPortal()
+    google()
+    mavenCentral()
+  }
+  // Make the RN gradle plugin available to the settings/build scripts
+  includeBuild("../node_modules/@react-native/gradle-plugin")
+
+  // Supply versions for Android + Kotlin plugins (also needed by RN libs)
+  plugins {
+    id 'com.android.application' version '8.7.2'
+    id 'com.android.library'     version '8.7.2'   // <-- important for RN libraries
+    id 'org.jetbrains.kotlin.android' version '1.9.24'
+  }
+}
+
+plugins {
+  id 'com.facebook.react.settings'
+}
+
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+  ex.autolinkLibrariesFromCommand()
+}
+
+dependencyResolutionManagement {
+  // Allow plugins to add repositories without failing the build
+  repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+  repositories {
+    google()
+    mavenCentral()
+    // RN’s own Android artifacts
+    maven { url("$rootDir/../node_modules/react-native/android") }
+  }
+}
+
+rootProject.name = "BioReceipt"
+include(":app")
+includeBuild("../node_modules/@react-native/gradle-plugin")

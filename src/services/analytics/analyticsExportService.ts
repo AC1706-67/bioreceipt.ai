@@ -178,7 +178,7 @@ export class AnalyticsExportService {
         metadata: {
           exportVersion: '1.0',
           dataRetentionPolicy: 'Data is retained for 90 days by default',
-          contactInfo: 'privacy@healthytipapp.com',
+          contactInfo: 'privacy@BioReceipt.com',
         },
       };
 
@@ -300,7 +300,7 @@ export class AnalyticsExportService {
     const exportId = `export_${dataExport.userId}_${Date.now()}`;
     await storeData(`DATA_EXPORT_${exportId}`, dataExport);
     
-    return `https://secure.healthytipapp.com/exports/${exportId}`;
+    return `https://secure.BioReceipt.com/exports/${exportId}`;
   }
 
   private async storeExportRequest(request: DataExportRequest): Promise<void> {

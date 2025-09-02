@@ -1,4 +1,4 @@
-# BioPulse.AI Supabase Setup Guide
+# BioReceipt.AI Supabase Setup Guide
 
 ## ✅ Database Schema Complete
 Your database is now set up with all tables and 21 substances ready to go!
@@ -35,7 +35,7 @@ In Supabase dashboard, check:
 
 ## 🚀 Ready to Go!
 
-Your BioPulse.AI database is production-ready with:
+Your BioReceipt.AI database is production-ready with:
 - ✅ User authentication & profiles
 - ✅ 21 pre-loaded substances
 - ✅ Custom substance addition capability

@@ -1,6 +1,6 @@
-# 🎯 BioPulse.AI Internal Testing - Quick Start
+# 🎯 BioReceipt.AI Internal Testing - Quick Start
 
-**Ready to get BioPulse.AI in users' hands!** Here's your fastest path to internal testing.
+**Ready to get BioReceipt.AI in users' hands!** Here's your fastest path to internal testing.
 
 ---
 
@@ -9,7 +9,7 @@
 ### **Option 1: Android APK (Recommended - Fastest)**
 ```bash
 # 1. Setup (5 minutes)
-cd HealthyTipApp
+cd BioReceipt
 npm install --legacy-peer-deps
 cp .env.example .env
 # Edit .env with your Supabase credentials
@@ -25,10 +25,10 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 ### **Option 2: iOS TestFlight (Requires Apple Developer Account)**
 ```bash
 # 1. Setup
-cd HealthyTipApp/ios && pod install && cd ..
+cd BioReceipt/ios && pod install && cd ..
 
 # 2. Open in Xcode
-open ios/HealthyTipApp.xcworkspace
+open ios/BioReceipt.xcworkspace
 
 # 3. Archive and upload to TestFlight
 # (See full guide for detailed steps)
@@ -67,7 +67,7 @@ open ios/HealthyTipApp.xcworkspace
 - Substance logging with 20+ pre-loaded substances
 - Real-time database synchronization
 - WCAG 2.1 AA accessibility compliance
-- Professional BioPulse.AI branding
+- Professional BioReceipt.AI branding
 - Error handling and recovery
 
 ---
@@ -113,7 +113,7 @@ open ios/HealthyTipApp.xcworkspace
 
 ## 🎉 **READY TO LAUNCH**
 
-**BioPulse.AI is 85% MVP complete and ready for internal testing!**
+**BioReceipt.AI is 85% MVP complete and ready for internal testing!**
 
 The core user experience is polished, accessible, and production-ready. Start with Android APK testing for fastest results, then expand to iOS TestFlight.
 

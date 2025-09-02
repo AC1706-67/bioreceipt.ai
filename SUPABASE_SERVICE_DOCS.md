@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Supabase service functions provide a robust interface for custom substance addition in BioPulse. These functions handle database operations, error management, and data validation with comprehensive error handling and type safety.
+The Supabase service functions provide a robust interface for custom substance addition in BioReceipt. These functions handle database operations, error management, and data validation with comprehensive error handling and type safety.
 
 ## 📁 File Structure
 

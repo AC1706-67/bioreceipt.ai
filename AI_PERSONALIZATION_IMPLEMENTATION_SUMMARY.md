@@ -1,7 +1,7 @@
 # AI Personalization Implementation Summary
 
 ## Overview
-Successfully implemented a comprehensive AI personalization service for the HealthyTipApp that integrates with KIRO AI to provide personalized health recommendations based on user preferences and substance intake history.
+Successfully implemented a comprehensive AI personalization service for the BioReceipt that integrates with KIRO AI to provide personalized health recommendations based on user preferences and substance intake history.
 
 ## Components Implemented
 

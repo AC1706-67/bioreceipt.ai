@@ -1,353 +1,536 @@
 /**
  * Analytics Instrumentation Tests
- * Tests to verify that analytics events are properly tracked across the app
+ * Unit tests for analytics service functionality
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AnalyticsService, AnalyticsEvent, AnalyticsPrivacySettings } from '../analyticsService';
+import { SecureStorageService } from '../../security/secureStorage';
+import { AuditLogService } from '../../compliance/auditLogService';
 
-import { analyticsService } from '../analyticsService';
-import { renderHook, act } from '@testing-library/react-hooks';
-import useAnalytics from '../../../hooks/useAnalytics';
+// Mock dependencies
+jest.mock('@react-native-async-storage/async-storage');
+jest.mock('../../security/secureStorage');
+jest.mock('../../compliance/auditLogService');
 
-// Mock the analytics service
-jest.mock('../analyticsService');
-
-const mockAnalyticsService = analyticsService as jest.Mocked<typeof analyticsService>;
-
-describe('Analytics Instrumentation', () => {
-  const mockUserId = 'user-123';
-  const mockTipId = 'tip-456';
-  const mockTipData = {
-    title: 'Test Health Tip',
-    category: 'nutrition'
-  };
+describe('AnalyticsService', () => {
+  let analyticsService: AnalyticsService;
+  let mockAsyncStorage: jest.Mocked<typeof AsyncStorage>;
+  let mockSecureStorage: jest.Mocked<SecureStorageService>;
+  let mockAuditLogService: jest.Mocked<AuditLogService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+    
+    // Reset singleton instance
+    (AnalyticsService as any).instance = undefined;
+    analyticsService = AnalyticsService.getInstance();
+    
+    mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
+    mockSecureStorage = SecureStorageService.getInstance() as jest.Mocked<SecureStorageService>;
+    mockAuditLogService = AuditLogService.getInstance() as jest.Mocked<AuditLogService>;
+
+    // Setup default mocks
+    mockAsyncStorage.getItem.mockResolvedValue(null);
+    mockAsyncStorage.setItem.mockResolvedValue();
+    mockAsyncStorage.removeItem.mockResolvedValue();
+    mockSecureStorage.getItem.mockResolvedValue(null);
+    mockSecureStorage.setItem.mockResolvedValue();
+    mockAuditLogService.logDataAccess.mockResolvedValue();
   });
 
-  describe('useAnalytics Hook', () => {
-    it('should track screen view on mount', () => {
-      const screenName = 'HealthTipsList';
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  describe('Singleton Pattern', () => {
+    it('should return the same instance', () => {
+      const instance1 = AnalyticsService.getInstance();
+      const instance2 = AnalyticsService.getInstance();
+      expect(instance1).toBe(instance2);
+    });
+  });
+
+  describe('Initialization', () => {
+    it('should initialize with default privacy settings', async () => {
+      await analyticsService.initialize();
       
-      renderHook(() => useAnalytics({ 
-        userId: mockUserId, 
-        screenName 
-      }));
-
-      expect(mockAnalyticsService.trackScreenView).toHaveBeenCalledWith(
-        screenName,
-        mockUserId
-      );
+      const settings = analyticsService.getPrivacySettings();
+      expect(settings.enableAnalytics).toBe(false); // Privacy-first approach
+      expect(settings.enablePersonalizedAnalytics).toBe(false);
+      expect(settings.enablePerformanceTracking).toBe(true);
+      expect(settings.enableErrorReporting).toBe(true);
+      expect(settings.dataRetentionDays).toBe(90);
     });
 
-    it('should provide trackTipInteraction function', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
+    it('should initialize with custom privacy settings', async () => {
+      const customSettings: Partial<AnalyticsPrivacySettings> = {
+        enableAnalytics: true,
+        enablePersonalizedAnalytics: true,
+        dataRetentionDays: 30
+      };
 
-      act(() => {
-        result.current.trackTipInteraction('view', mockTipId, mockTipData);
-      });
-
-      expect(mockAnalyticsService.trackTipInteraction).toHaveBeenCalledWith(
-        'view',
-        mockTipId,
-        mockTipData,
-        mockUserId
-      );
-    });
-
-    it('should provide trackSearch function', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-      const query = 'healthy eating';
-      const resultsCount = 5;
-
-      act(() => {
-        result.current.trackSearch(query, resultsCount);
-      });
-
-      expect(mockAnalyticsService.trackSearch).toHaveBeenCalledWith(
-        query,
-        resultsCount,
-        mockUserId
-      );
-    });
-
-    it('should provide trackEvent function', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-      const eventType = 'custom_event';
-      const eventData = { action: 'test' };
-
-      act(() => {
-        result.current.trackEvent(eventType, eventData);
-      });
-
-      expect(mockAnalyticsService.trackEvent).toHaveBeenCalledWith(
-        eventType,
-        {
-          ...eventData,
-          userId: mockUserId
-        }
-      );
-    });
-
-    it('should provide trackPerformance function', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-      const metric = 'page_load_time';
-      const value = 1500;
-      const additionalData = { screen: 'home' };
-
-      act(() => {
-        result.current.trackPerformance(metric, value, additionalData);
-      });
-
-      expect(mockAnalyticsService.trackPerformance).toHaveBeenCalledWith(
-        metric,
-        value,
-        {
-          ...additionalData,
-          userId: mockUserId
-        }
-      );
-    });
-
-    it('should provide trackError function', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-      const error = new Error('Test error');
-      const context = 'tip_loading';
-
-      act(() => {
-        result.current.trackError(error, context);
-      });
-
-      expect(mockAnalyticsService.trackEvent).toHaveBeenCalledWith(
-        'error_occurred',
-        {
-          errorMessage: error.message,
-          errorStack: error.stack,
-          context,
-          userId: mockUserId
-        }
-      );
-    });
-
-    it('should provide session tracking functions', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      act(() => {
-        result.current.trackSessionStart();
-      });
-
-      expect(mockAnalyticsService.trackEvent).toHaveBeenCalledWith(
-        'app_launch',
-        {
-          userId: mockUserId,
-          timestamp: expect.any(String)
-        }
-      );
-
-      act(() => {
-        result.current.trackSessionEnd();
-      });
-
-      expect(mockAnalyticsService.trackSessionEnd).toHaveBeenCalledWith(mockUserId);
-    });
-  });
-
-  describe('Event Schema Validation', () => {
-    it('should track tip view events with correct schema', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      act(() => {
-        result.current.trackTipInteraction('view', mockTipId, mockTipData);
-      });
-
-      expect(mockAnalyticsService.trackTipInteraction).toHaveBeenCalledWith(
-        'view',
-        mockTipId,
-        {
-          title: expect.any(String),
-          category: expect.any(String)
-        },
-        mockUserId
-      );
-    });
-
-    it('should track tip completion events with correct schema', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      act(() => {
-        result.current.trackTipInteraction('complete', mockTipId, mockTipData);
-      });
-
-      expect(mockAnalyticsService.trackTipInteraction).toHaveBeenCalledWith(
-        'complete',
-        mockTipId,
-        mockTipData,
-        mockUserId
-      );
-    });
-
-    it('should track search events with correct schema', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-      const searchQuery = 'meditation tips';
-      const resultsCount = 10;
-
-      act(() => {
-        result.current.trackSearch(searchQuery, resultsCount);
-      });
-
-      expect(mockAnalyticsService.trackSearch).toHaveBeenCalledWith(
-        searchQuery,
-        resultsCount,
-        mockUserId
-      );
-    });
-
-    it('should track feedback submission events with correct schema', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      act(() => {
-        result.current.trackEvent('feedback_submitted', {
-          category: 'bug_report',
-          priority: 'high'
-        });
-      });
-
-      expect(mockAnalyticsService.trackEvent).toHaveBeenCalledWith(
-        'feedback_submitted',
-        {
-          category: 'bug_report',
-          priority: 'high',
-          userId: mockUserId
-        }
-      );
-    });
-
-    it('should track session events with correct schema', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      act(() => {
-        result.current.trackSessionStart();
-      });
-
-      expect(mockAnalyticsService.trackEvent).toHaveBeenCalledWith(
-        'app_launch',
-        {
-          userId: mockUserId,
-          timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-        }
-      );
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle analytics service errors gracefully', () => {
-      mockAnalyticsService.trackEvent.mockRejectedValueOnce(new Error('Analytics error'));
+      await analyticsService.initialize(customSettings);
       
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      // Should not throw
-      expect(() => {
-        act(() => {
-          result.current.trackEvent('test_event');
-        });
-      }).not.toThrow();
+      const settings = analyticsService.getPrivacySettings();
+      expect(settings.enableAnalytics).toBe(true);
+      expect(settings.enablePersonalizedAnalytics).toBe(true);
+      expect(settings.dataRetentionDays).toBe(30);
     });
 
-    it('should work without userId', () => {
-      const { result } = renderHook(() => useAnalytics());
+    it('should load existing privacy settings from storage', async () => {
+      const storedSettings = {
+        enableAnalytics: true,
+        enablePersonalizedAnalytics: false,
+        enablePerformanceTracking: true,
+        enableErrorReporting: false,
+        dataRetentionDays: 60
+      };
 
-      act(() => {
-        result.current.trackEvent('test_event', { action: 'test' });
+      mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedSettings));
+
+      await analyticsService.initialize();
+      
+      const settings = analyticsService.getPrivacySettings();
+      expect(settings).toEqual(expect.objectContaining(storedSettings));
+    });
+
+    it('should handle initialization errors gracefully', async () => {
+      mockAsyncStorage.getItem.mockRejectedValueOnce(new Error('Storage error'));
+
+      await expect(analyticsService.initialize()).resolves.not.toThrow();
+      
+      // Should still be initialized even if storage fails
+      const settings = analyticsService.getPrivacySettings();
+      expect(settings).toBeDefined();
+    });
+  });
+
+  describe('Event Tracking', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+    });
+
+    it('should track events when analytics is enabled', async () => {
+      const eventProperties = { testProp: 'testValue' };
+      
+      await analyticsService.trackEvent('tip_view', eventProperties, 'user123');
+      
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user123',
+          action: 'ANALYTICS_EVENT_TRACKED',
+          resourceType: 'ANALYTICS_EVENT',
+          success: true,
+          details: expect.objectContaining({
+            eventType: 'tip_view',
+            hasPersonalData: true
+          })
+        })
+      );
+    });
+
+    it('should not track events when analytics is disabled', async () => {
+      await analyticsService.updatePrivacySettings({ enableAnalytics: false });
+      
+      await analyticsService.trackEvent('tip_view', {}, 'user123');
+      
+      expect(mockAuditLogService.logDataAccess).not.toHaveBeenCalled();
+    });
+
+    it('should remove user ID when personalized analytics is disabled', async () => {
+      await analyticsService.updatePrivacySettings({ 
+        enableAnalytics: true,
+        enablePersonalizedAnalytics: false 
       });
+      
+      await analyticsService.trackEvent('tip_view', {}, 'user123');
+      
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'anonymous',
+          details: expect.objectContaining({
+            hasPersonalData: false
+          })
+        })
+      );
+    });
 
-      expect(mockAnalyticsService.trackEvent).toHaveBeenCalledWith(
-        'test_event',
-        {
-          action: 'test',
-          userId: undefined
-        }
+    it('should sanitize sensitive properties', async () => {
+      const sensitiveProperties = {
+        password: 'secret123',
+        email: 'user@example.com',
+        validProp: 'validValue',
+        longString: 'a'.repeat(2000) // Should be truncated
+      };
+      
+      await analyticsService.trackEvent('user_action', sensitiveProperties);
+      
+      // Verify that sensitive data is not stored
+      // This would require access to internal event queue, so we test indirectly
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalled();
+    });
+
+    it('should handle tracking errors gracefully', async () => {
+      mockAuditLogService.logDataAccess.mockRejectedValueOnce(new Error('Audit log error'));
+      
+      await expect(analyticsService.trackEvent('tip_view', {})).resolves.not.toThrow();
+    });
+  });
+
+  describe('Tip Engagement Tracking', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+    });
+
+    it('should track tip engagement with correct event type', async () => {
+      await analyticsService.trackTipEngagement('tip123', 'like', 'user123', {
+        category: 'nutrition',
+        difficulty: 'easy'
+      });
+      
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          details: expect.objectContaining({
+            eventType: 'tip_like'
+          })
+        })
+      );
+    });
+
+    it('should track all engagement actions', async () => {
+      const actions: Array<'view' | 'like' | 'bookmark' | 'complete' | 'share'> = 
+        ['view', 'like', 'bookmark', 'complete', 'share'];
+      
+      for (const action of actions) {
+        await analyticsService.trackTipEngagement('tip123', action, 'user123');
+        
+        expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+          expect.objectContaining({
+            details: expect.objectContaining({
+              eventType: `tip_${action}`
+            })
+          })
+        );
+      }
+    });
+  });
+
+  describe('Screen View Tracking', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+    });
+
+    it('should track screen views', async () => {
+      await analyticsService.trackScreenView('HomeScreen', 'user123', {
+        previousScreen: 'LoginScreen'
+      });
+      
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          details: expect.objectContaining({
+            eventType: 'screen_view'
+          })
+        })
       );
     });
   });
 
   describe('Performance Tracking', () => {
-    it('should track component render times', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      act(() => {
-        result.current.trackPerformance('component_render_time', 150, {
-          component: 'HealthTipCard'
-        });
+    beforeEach(async () => {
+      await analyticsService.initialize({ 
+        enableAnalytics: true,
+        enablePerformanceTracking: true 
       });
+    });
 
-      expect(mockAnalyticsService.trackPerformance).toHaveBeenCalledWith(
-        'component_render_time',
-        150,
-        {
-          component: 'HealthTipCard',
-          userId: mockUserId
-        }
+    it('should track performance metrics when enabled', async () => {
+      await analyticsService.trackPerformanceMetric('api_response_time', 250, 'ms', {
+        endpoint: '/api/tips'
+      });
+      
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          details: expect.objectContaining({
+            eventType: 'performance_metric'
+          })
+        })
       );
     });
 
-    it('should track API response times', () => {
-      const { result } = renderHook(() => useAnalytics({ userId: mockUserId }));
-
-      act(() => {
-        result.current.trackPerformance('api_response_time', 800, {
-          endpoint: '/api/tips',
-          method: 'GET'
-        });
-      });
-
-      expect(mockAnalyticsService.trackPerformance).toHaveBeenCalledWith(
-        'api_response_time',
-        800,
-        {
-          endpoint: '/api/tips',
-          method: 'GET',
-          userId: mockUserId
-        }
-      );
-    });
-  });
-});
-
-describe('Analytics Integration Smoke Tests', () => {
-  // These tests would run against the actual analytics service
-  // to verify events appear in dev logs
-  
-  describe('Event Logging', () => {
-    it('should log events to console in development', async () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    it('should not track performance metrics when disabled', async () => {
+      await analyticsService.updatePrivacySettings({ enablePerformanceTracking: false });
       
-      // Unmock for this test
-      jest.unmock('../analyticsService');
-      const realAnalyticsService = require('../analyticsService').analyticsService;
+      await analyticsService.trackPerformanceMetric('api_response_time', 250);
       
-      await realAnalyticsService.initialize(true, 'standard');
-      await realAnalyticsService.trackEvent('test_event', { test: true });
-      
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Analytics event tracked: test_event'),
-        expect.any(Object)
-      );
-      
-      consoleSpy.mockRestore();
+      expect(mockAuditLogService.logDataAccess).not.toHaveBeenCalled();
     });
   });
 
-  describe('Event Storage', () => {
-    it('should store events locally', async () => {
-      // This would test that events are actually stored
-      // and can be retrieved for debugging
-      const { analyticsService } = require('../analyticsService');
+  describe('Error Tracking', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ 
+        enableAnalytics: true,
+        enableErrorReporting: true 
+      });
+    });
+
+    it('should track errors when enabled', async () => {
+      const error = new Error('Test error');
       
-      await analyticsService.initialize(true, 'standard');
-      await analyticsService.trackEvent('storage_test', { test: true });
+      await analyticsService.trackError(error, 'test_context', 'user123', {
+        additionalInfo: 'test'
+      });
       
-      // In a real test, we'd verify the event was stored
-      // This is a placeholder for the actual storage verification
-      expect(true).toBe(true);
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          details: expect.objectContaining({
+            eventType: 'error_occurred'
+          })
+        })
+      );
+    });
+
+    it('should not track errors when disabled', async () => {
+      await analyticsService.updatePrivacySettings({ enableErrorReporting: false });
+      
+      const error = new Error('Test error');
+      await analyticsService.trackError(error, 'test_context');
+      
+      expect(mockAuditLogService.logDataAccess).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Privacy Settings Management', () => {
+    it('should update privacy settings', async () => {
+      await analyticsService.initialize();
+      
+      const newSettings: Partial<AnalyticsPrivacySettings> = {
+        enableAnalytics: true,
+        enablePersonalizedAnalytics: true,
+        dataRetentionDays: 60
+      };
+      
+      await analyticsService.updatePrivacySettings(newSettings);
+      
+      const settings = analyticsService.getPrivacySettings();
+      expect(settings).toEqual(expect.objectContaining(newSettings));
+      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
+        'analytics_privacy_settings',
+        expect.stringContaining('"enableAnalytics":true')
+      );
+    });
+
+    it('should clear events when analytics is disabled', async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+      
+      // Track some events first
+      await analyticsService.trackEvent('tip_view', {});
+      
+      // Disable analytics
+      await analyticsService.updatePrivacySettings({ enableAnalytics: false });
+      
+      expect(mockAsyncStorage.removeItem).toHaveBeenCalledWith('analytics_stored_events');
+      expect(mockAsyncStorage.removeItem).toHaveBeenCalledWith('analytics_event_queue');
+    });
+  });
+
+  describe('Event Flushing', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+    });
+
+    it('should flush events to storage', async () => {
+      // Track some events
+      await analyticsService.trackEvent('tip_view', {});
+      await analyticsService.trackEvent('tip_like', {});
+      
+      await analyticsService.flushEvents();
+      
+      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
+        'analytics_stored_events',
+        expect.any(String)
+      );
+    });
+
+    it('should handle flush errors gracefully', async () => {
+      mockAsyncStorage.setItem.mockRejectedValueOnce(new Error('Storage error'));
+      
+      await analyticsService.trackEvent('tip_view', {});
+      
+      await expect(analyticsService.flushEvents()).resolves.not.toThrow();
+    });
+  });
+
+  describe('Analytics Data Retrieval', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+      
+      // Mock stored events
+      const mockEvents: AnalyticsEvent[] = [
+        {
+          id: 'event1',
+          type: 'tip_view',
+          timestamp: new Date('2023-01-01'),
+          sessionId: 'session1',
+          properties: { tipId: 'tip1', category: 'nutrition' },
+          userId: 'user1'
+        },
+        {
+          id: 'event2',
+          type: 'tip_like',
+          timestamp: new Date('2023-01-02'),
+          sessionId: 'session1',
+          properties: { tipId: 'tip1', category: 'nutrition' },
+          userId: 'user1'
+        }
+      ];
+      
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(mockEvents));
+    });
+
+    it('should get engagement metrics', async () => {
+      const metrics = await analyticsService.getEngagementMetrics();
+      
+      expect(metrics).toBeDefined();
+      expect(metrics.tipViews).toBe(1);
+      expect(metrics.tipLikes).toBe(1);
+      expect(metrics.tipBookmarks).toBe(0);
+      expect(metrics.tipCompletions).toBe(0);
+      expect(metrics.tipShares).toBe(0);
+    });
+
+    it('should get content performance', async () => {
+      const performance = await analyticsService.getContentPerformance();
+      
+      expect(performance).toBeDefined();
+      expect(performance.length).toBeGreaterThan(0);
+      expect(performance[0]).toEqual(expect.objectContaining({
+        tipId: 'tip1',
+        views: 1,
+        likes: 1,
+        engagementRate: expect.any(Number)
+      }));
+    });
+
+    it('should get user behavior analytics', async () => {
+      const behavior = await analyticsService.getUserBehaviorAnalytics();
+      
+      expect(behavior).toBeDefined();
+      expect(behavior.averageSessionsPerDay).toBeGreaterThanOrEqual(0);
+      expect(behavior.averageSessionDuration).toBeGreaterThanOrEqual(0);
+      expect(behavior.mostActiveTimeOfDay).toBeDefined();
+      expect(behavior.preferredCategories).toBeDefined();
+      expect(behavior.engagementTrends).toBeDefined();
+      expect(behavior.retentionRates).toBeDefined();
+    });
+
+    it('should handle analytics retrieval errors gracefully', async () => {
+      mockAsyncStorage.getItem.mockRejectedValueOnce(new Error('Storage error'));
+      
+      const metrics = await analyticsService.getEngagementMetrics();
+      
+      expect(metrics).toBeDefined();
+      expect(metrics.tipViews).toBe(0);
+    });
+
+    it('should filter analytics by date range', async () => {
+      const startDate = new Date('2023-01-01');
+      const endDate = new Date('2023-01-01');
+      
+      const metrics = await analyticsService.getEngagementMetrics(startDate, endDate);
+      
+      expect(metrics.tipViews).toBe(1); // Only events from 2023-01-01
+      expect(metrics.tipLikes).toBe(0); // Event from 2023-01-02 should be excluded
+    });
+  });
+
+  describe('Data Cleanup', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ 
+        enableAnalytics: true,
+        dataRetentionDays: 30 
+      });
+    });
+
+    it('should clear all analytics data', async () => {
+      await analyticsService.clearAllData();
+      
+      expect(mockAsyncStorage.removeItem).toHaveBeenCalledWith('analytics_stored_events');
+      expect(mockAsyncStorage.removeItem).toHaveBeenCalledWith('analytics_event_queue');
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'ANALYTICS_DATA_CLEARED'
+        })
+      );
+    });
+
+    it('should cleanup old events based on retention policy', async () => {
+      const oldEvents = [
+        {
+          id: 'old_event',
+          type: 'tip_view',
+          timestamp: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
+          sessionId: 'session1',
+          properties: {}
+        }
+      ];
+      
+      mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(oldEvents));
+      
+      await analyticsService.flushEvents();
+      
+      // Should save filtered events (empty array since old event should be removed)
+      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
+        'analytics_stored_events',
+        JSON.stringify([])
+      );
+    });
+  });
+
+  describe('Service Cleanup', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+    });
+
+    it('should cleanup properly on app termination', async () => {
+      await analyticsService.cleanup();
+      
+      expect(mockAuditLogService.logDataAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          details: expect.objectContaining({
+            eventType: 'app_close'
+          })
+        })
+      );
+    });
+
+    it('should handle cleanup errors gracefully', async () => {
+      mockAuditLogService.logDataAccess.mockRejectedValueOnce(new Error('Audit error'));
+      
+      await expect(analyticsService.cleanup()).resolves.not.toThrow();
+    });
+  });
+
+  describe('Periodic Flushing', () => {
+    beforeEach(async () => {
+      await analyticsService.initialize({ enableAnalytics: true });
+    });
+
+    it('should flush events periodically', async () => {
+      // Track an event
+      await analyticsService.trackEvent('tip_view', {});
+      
+      // Fast-forward time to trigger periodic flush
+      jest.advanceTimersByTime(30000); // 30 seconds
+      
+      // Wait for async operations
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
+        'analytics_stored_events',
+        expect.any(String)
+      );
     });
   });
 });

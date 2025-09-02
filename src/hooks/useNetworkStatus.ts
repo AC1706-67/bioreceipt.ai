@@ -130,30 +130,31 @@ export const useNetworkStatus = (): NetworkStatusHook => {
     }
   }, [updateNetworkStatus]);
 
-  const waitForConnection = useCallback(async (timeout: number = 30000): Promise<boolean> => {
+  const waitForConnection = useCallback((timeoutMs: number = 5000): Promise<boolean> => {
     return new Promise((resolve) => {
-      const startTime = Date.now();
-      
-      const checkConnection = async () => {
-        const isConnected = await checkConnectivity();
-        
-        if (isConnected && networkStatus.canPerformOperations) {
-          resolve(true);
-          return;
-        }
-        
-        if (Date.now() - startTime >= timeout) {
-          resolve(false);
-          return;
-        }
-        
-        // Check again in 1 second
-        setTimeout(checkConnection, 1000);
+      let done = false;
+      const finish = (ok: boolean) => { 
+        if (!done) { 
+          done = true; 
+          unsub(); 
+          resolve(ok); 
+        } 
       };
-      
-      checkConnection();
+
+      // Check current state first
+      NetInfo.fetch().then(s => {
+        if (s.isConnected && s.isInternetReachable !== false) finish(true);
+      });
+
+      // Listen for network changes
+      const unsub = NetInfo.addEventListener(s => {
+        if (s.isConnected && s.isInternetReachable !== false) finish(true);
+      });
+
+      // Set timeout
+      setTimeout(() => finish(false), timeoutMs);
     });
-  }, [checkConnectivity, networkStatus.canPerformOperations]);
+  }, []);
 
   const showNetworkStatus = useCallback(() => {
     const status = networkStatus;

@@ -1,9 +1,9 @@
 /**
  * Intake History - MVP Intake History Component
- * Accessible history display with edit/delete functionality
+ * Accessible history display with edit/delete functionality and photo integration
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,23 +13,15 @@ import {
   Alert,
   RefreshControl,
   Dimensions,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
-import { BioPulseTheme } from '../../constants/bioPulseTheme';
+import { BioReceiptTheme } from '../../constants/BioReceiptTheme';
 import { supabaseHelpers } from '../../config/supabase';
-import PhotoGallery, { Photo } from '../photo/PhotoGallery';
+import { getPhotosByIntakes, IntakePhoto } from '../../features/photos/selectors';
+import PhotoGalleryModal from '../../features/photos/PhotoGalleryModal';
 
-interface IntakePhoto {
-  id: string;
-  intake_id: string;
-  url: string;
-  thumbnail_url?: string;
-  created_at: string;
-  file_size?: number;
-  dimensions?: {
-    width: number;
-    height: number;
-  };
-}
+// IntakePhoto interface is now imported from selectors
 
 interface IntakeHistoryItem {
   id: string;
@@ -62,7 +54,8 @@ const IntakeHistory: React.FC<Props> = ({
   const [history, setHistory] = useState<IntakeHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedIntakeForPhotos, setSelectedIntakeForPhotos] = useState<IntakeHistoryItem | null>(null);
+  const [selectedIntakeId, setSelectedIntakeId] = useState<string | null>(null);
+  const [photosByIntake, setPhotosByIntake] = useState<Record<string, IntakePhoto[]>>({});
   const [photoLoadingStates, setPhotoLoadingStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -70,6 +63,13 @@ const IntakeHistory: React.FC<Props> = ({
       loadHistory();
     }
   }, [userId, refreshTrigger]);
+
+  // Load photos when history changes
+  useEffect(() => {
+    if (history.length > 0) {
+      loadPhotosForIntakes();
+    }
+  }, [history]);
 
   const loadHistory = async (isRefresh = false) => {
     if (!userId) return;
@@ -91,6 +91,18 @@ const IntakeHistory: React.FC<Props> = ({
       setIsRefreshing(false);
     }
   };
+
+  const loadPhotosForIntakes = useCallback(async () => {
+    if (history.length === 0) return;
+
+    try {
+      const intakeIds = history.map(item => item.id);
+      const photos = await getPhotosByIntakes(intakeIds);
+      setPhotosByIntake(photos);
+    } catch (error) {
+      console.error('Error loading photos for intakes:', error);
+    }
+  }, [history]);
 
   const handleRefresh = () => {
     loadHistory(true);
@@ -119,11 +131,6 @@ const IntakeHistory: React.FC<Props> = ({
     );
   };
 
-  const handlePhotoSelect = (photo: Photo) => {
-    // Photo selection is handled by PhotoGallery's full-screen modal
-    console.log('Photo selected:', photo.id);
-  };
-
   const handlePhotoDelete = async (photoId: string) => {
     try {
       // Set loading state
@@ -132,19 +139,14 @@ const IntakeHistory: React.FC<Props> = ({
       // Delete photo from storage and database
       await supabaseHelpers.deleteIntakeMedia(photoId);
       
-      // Update local state
-      setHistory(prev => prev.map(item => ({
-        ...item,
-        photos: item.photos?.filter(photo => photo.id !== photoId) || []
-      })));
-
-      // Update selected intake for photos modal if open
-      if (selectedIntakeForPhotos) {
-        setSelectedIntakeForPhotos(prev => prev ? {
-          ...prev,
-          photos: prev.photos?.filter(photo => photo.id !== photoId) || []
-        } : null);
-      }
+      // Update local photo state
+      setPhotosByIntake(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(intakeId => {
+          updated[intakeId] = updated[intakeId].filter(photo => photo.id !== photoId);
+        });
+        return updated;
+      });
 
       // Clear loading state
       setPhotoLoadingStates(prev => {
@@ -165,28 +167,17 @@ const IntakeHistory: React.FC<Props> = ({
     }
   };
 
-  const handleViewAllPhotos = (intake: IntakeHistoryItem) => {
-    setSelectedIntakeForPhotos(intake);
-  };
-
-  const handleClosePhotoModal = () => {
-    setSelectedIntakeForPhotos(null);
-  };
-
-  // Calculate responsive columns based on screen size
-  const photoColumns = useMemo(() => {
-    const screenWidth = Dimensions.get('window').width;
-    if (screenWidth < 400) return 3; // Small screens
-    if (screenWidth < 600) return 4; // Medium screens
-    return 5; // Large screens
+  const handleOpenPhotoGallery = useCallback((intakeId: string) => {
+    setSelectedIntakeId(intakeId);
   }, []);
 
-  const modalPhotoColumns = useMemo(() => {
-    const screenWidth = Dimensions.get('window').width;
-    if (screenWidth < 400) return 2; // Small screens
-    if (screenWidth < 600) return 3; // Medium screens
-    return 4; // Large screens
+  const handleClosePhotoModal = useCallback(() => {
+    setSelectedIntakeId(null);
   }, []);
+
+  // Calculate thumbnail size and max photos to show
+  const thumbnailSize = 64; // 64dp as specified
+  const maxPhotosInStrip = 3; // Show max 3 thumbnails as specified
 
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
@@ -208,16 +199,100 @@ const IntakeHistory: React.FC<Props> = ({
 
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
-      alcohol: BioPulseTheme.colors.warning,
-      caffeine: BioPulseTheme.colors.info,
-      supplements: BioPulseTheme.colors.success,
-      medications: BioPulseTheme.colors.error,
-      food: BioPulseTheme.colors.primary,
-      recreational: BioPulseTheme.colors.secondary,
-      other: BioPulseTheme.colors.textTertiary,
+      alcohol: BioReceiptTheme.colors.warning,
+      caffeine: BioReceiptTheme.colors.info,
+      supplements: BioReceiptTheme.colors.success,
+      medications: BioReceiptTheme.colors.error,
+      food: BioReceiptTheme.colors.primary,
+      recreational: BioReceiptTheme.colors.secondary,
+      other: BioReceiptTheme.colors.textTertiary,
     };
-    return colors[category] || BioPulseTheme.colors.textTertiary;
+    return colors[category] || BioReceiptTheme.colors.textTertiary;
   };
+
+  // Memoized photo thumbnail component for performance
+  const PhotoThumbnail = React.memo<{
+    photo: IntakePhoto;
+    index: number;
+    totalPhotos: number;
+    intakeId: string;
+    isLast: boolean;
+  }>(({ photo, index, totalPhotos, intakeId, isLast }) => (
+    <TouchableOpacity
+      style={[
+        styles.photoThumbnail,
+        { marginRight: isLast ? 0 : 8 }
+      ]}
+      onPress={() => handleOpenPhotoGallery(intakeId)}
+      accessibilityRole="button"
+      accessibilityLabel={`Photo ${index + 1} of ${totalPhotos} for intake`}
+      accessibilityHint="Opens full photo gallery"
+    >
+      <Image
+        source={{ uri: photo.thumbnail_url || photo.url }}
+        style={styles.thumbnailImage}
+        resizeMode="cover"
+      />
+      {photoLoadingStates[photo.id] && (
+        <View style={styles.thumbnailLoading}>
+          <ActivityIndicator size="small" color="white" />
+        </View>
+      )}
+    </TouchableOpacity>
+  ));
+
+  // Render photo strip with thumbnails and count badge
+  const renderPhotoStrip = useCallback((intakeId: string) => {
+    const photos = photosByIntake[intakeId] || [];
+    
+    if (photos.length === 0) {
+      return (
+        <TouchableOpacity
+          style={styles.addPhotosChip}
+          onPress={() => {/* TODO: Add photo functionality */}}
+          accessibilityRole="button"
+          accessibilityLabel="Add photos to this intake"
+        >
+          <Text style={styles.addPhotosText}>Add photos</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    const displayPhotos = photos.slice(0, maxPhotosInStrip);
+    const remainingCount = photos.length - maxPhotosInStrip;
+
+    return (
+      <View style={styles.photoStripContainer}>
+        <FlatList
+          data={displayPhotos}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(photo) => photo.id}
+          removeClippedSubviews={true}
+          windowSize={5}
+          renderItem={({ item: photo, index }) => (
+            <PhotoThumbnail
+              photo={photo}
+              index={index}
+              totalPhotos={photos.length}
+              intakeId={intakeId}
+              isLast={index === displayPhotos.length - 1}
+            />
+          )}
+        />
+        {remainingCount > 0 && (
+          <TouchableOpacity
+            style={styles.morePhotosButton}
+            onPress={() => handleOpenPhotoGallery(intakeId)}
+            accessibilityRole="button"
+            accessibilityLabel={`View all ${photos.length} photos for this intake`}
+          >
+            <Text style={styles.morePhotosButtonText}>+{remainingCount}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  }, [photosByIntake, photoLoadingStates, handleOpenPhotoGallery]);
 
   const renderHistoryItem = ({ item }: { item: IntakeHistoryItem }) => (
     <View style={styles.historyItem}>
@@ -250,48 +325,10 @@ const IntakeHistory: React.FC<Props> = ({
         </View>
       )}
 
-      {/* Photo Gallery Section */}
-      {item.photos && item.photos.length > 0 && (
-        <View style={styles.photosContainer}>
-          <View style={styles.photoHeader}>
-            <Text style={styles.photoCountText}>
-              {item.photos.length} photo{item.photos.length !== 1 ? 's' : ''}
-            </Text>
-            {item.photos.length > photoColumns && (
-              <TouchableOpacity
-                style={styles.viewAllButton}
-                onPress={() => handleViewAllPhotos(item)}
-                accessibilityRole="button"
-                accessibilityLabel={`View all ${item.photos.length} photos for ${item.substances.name} intake`}
-                accessibilityHint="Opens full photo gallery"
-              >
-                <Text style={styles.viewAllText}>+{item.photos.length - photoColumns}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <PhotoGallery
-            photos={item.photos.map(photo => ({
-              id: photo.id,
-              url: photo.url,
-              thumbnailUrl: photo.thumbnail_url,
-              metadata: {
-                captureDate: photo.created_at,
-                fileSize: photo.file_size ? `${(photo.file_size / 1024 / 1024).toFixed(1)} MB` : undefined,
-                dimensions: photo.dimensions ? `${photo.dimensions.width}x${photo.dimensions.height}` : undefined,
-                fileName: `intake_photo_${photo.id}.jpg`,
-              },
-            }))}
-            onPhotoSelect={handlePhotoSelect}
-            onPhotoDelete={showActions ? handlePhotoDelete : undefined}
-            columns={photoColumns}
-            showControls={showActions}
-            emptyMessage="No photos for this intake"
-            maxPhotosToShow={photoColumns} // Show max photos based on screen size
-            enableLazyLoading={false} // Disable lazy loading for history cards
-            loading={Object.values(photoLoadingStates).some(loading => loading)}
-          />
-        </View>
-      )}
+      {/* Photo Strip Section */}
+      <View style={styles.photosContainer}>
+        {renderPhotoStrip(item.id)}
+      </View>
 
       {showActions && (
         <View style={styles.actionsContainer}>
@@ -338,8 +375,8 @@ const IntakeHistory: React.FC<Props> = ({
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={BioPulseTheme.colors.primary}
-            colors={[BioPulseTheme.colors.primary]}
+            tintColor={BioReceiptTheme.colors.primary}
+            colors={[BioReceiptTheme.colors.primary]}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -353,53 +390,14 @@ const IntakeHistory: React.FC<Props> = ({
         testID="intake-history-list"
       />
 
-      {/* Full Photo Gallery Modal */}
-      {selectedIntakeForPhotos && selectedIntakeForPhotos.photos && (
-        <View style={styles.photoModalOverlay}>
-          <View style={styles.photoModalContainer}>
-            <View style={styles.photoModalHeader}>
-              <View style={styles.photoModalTitleContainer}>
-                <Text style={styles.photoModalTitle}>
-                  {selectedIntakeForPhotos.substances.name} Photos
-                </Text>
-                <Text style={styles.photoModalSubtitle}>
-                  {formatTimestamp(selectedIntakeForPhotos.timestamp)}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.photoModalCloseButton}
-                onPress={handleClosePhotoModal}
-                accessibilityRole="button"
-                accessibilityLabel="Close photo gallery"
-              >
-                <Text style={styles.photoModalCloseText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.photoModalContent}>
-              <PhotoGallery
-                photos={selectedIntakeForPhotos.photos.map(photo => ({
-                  id: photo.id,
-                  url: photo.url,
-                  thumbnailUrl: photo.thumbnail_url,
-                  metadata: {
-                    captureDate: photo.created_at,
-                    fileSize: photo.file_size ? `${(photo.file_size / 1024 / 1024).toFixed(1)} MB` : undefined,
-                    dimensions: photo.dimensions ? `${photo.dimensions.width}x${photo.dimensions.height}` : undefined,
-                    fileName: `intake_photo_${photo.id}.jpg`,
-                  },
-                }))}
-                onPhotoSelect={handlePhotoSelect}
-                onPhotoDelete={showActions ? handlePhotoDelete : undefined}
-                columns={modalPhotoColumns}
-                showControls={showActions}
-                emptyMessage="No photos for this intake"
-                enableLazyLoading={true}
-                enableSwipeNavigation={true}
-                loading={Object.values(photoLoadingStates).some(loading => loading)}
-              />
-            </View>
-          </View>
-        </View>
+      {/* Photo Gallery Modal */}
+      {selectedIntakeId && (
+        <PhotoGalleryModal
+          intakeId={selectedIntakeId}
+          visible={true}
+          onClose={handleClosePhotoModal}
+          onPhotoDelete={showActions ? handlePhotoDelete : undefined}
+        />
       )}
     </View>
   );
@@ -410,7 +408,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingBottom: BioPulseTheme.spacing.lg,
+    paddingBottom: BioReceiptTheme.spacing.lg,
   },
   listContentEmpty: {
     flexGrow: 1,
@@ -420,19 +418,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: BioPulseTheme.spacing.xl,
+    paddingVertical: BioReceiptTheme.spacing.xl,
   },
   loadingText: {
-    fontSize: BioPulseTheme.typography.fontSize.base,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.base,
+    color: BioReceiptTheme.colors.textSecondary,
   },
   historyItem: {
-    backgroundColor: BioPulseTheme.colors.surface,
-    borderRadius: BioPulseTheme.borderRadius.lg,
-    padding: BioPulseTheme.spacing.md,
-    marginBottom: BioPulseTheme.spacing.md,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.lg,
+    padding: BioReceiptTheme.spacing.md,
+    marginBottom: BioReceiptTheme.spacing.md,
     borderWidth: 1,
-    borderColor: BioPulseTheme.colors.border,
+    borderColor: BioReceiptTheme.colors.border,
   },
   itemHeader: {
     flexDirection: 'row',
@@ -441,191 +439,154 @@ const styles = StyleSheet.create({
   },
   substanceInfo: {
     flex: 1,
-    marginRight: BioPulseTheme.spacing.md,
+    marginRight: BioReceiptTheme.spacing.md,
   },
   substanceNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.xs,
+    marginBottom: BioReceiptTheme.spacing.xs,
   },
   categoryIndicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: BioPulseTheme.spacing.sm,
+    marginRight: BioReceiptTheme.spacing.sm,
   },
   substanceName: {
-    fontSize: BioPulseTheme.typography.fontSize.base,
+    fontSize: BioReceiptTheme.typography.fontSize.base,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
+    color: BioReceiptTheme.colors.textPrimary,
     flex: 1,
   },
   categoryText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textSecondary,
-    marginLeft: BioPulseTheme.spacing.lg, // Align with substance name
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginLeft: BioReceiptTheme.spacing.lg, // Align with substance name
   },
   quantityInfo: {
     alignItems: 'flex-end',
   },
   quantityText: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
+    fontSize: BioReceiptTheme.typography.fontSize.lg,
     fontWeight: '600',
-    color: BioPulseTheme.colors.primary,
-    marginBottom: BioPulseTheme.spacing.xs,
+    color: BioReceiptTheme.colors.primary,
+    marginBottom: BioReceiptTheme.spacing.xs,
   },
   timestampText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textTertiary,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textTertiary,
   },
   notesContainer: {
-    marginTop: BioPulseTheme.spacing.sm,
-    paddingTop: BioPulseTheme.spacing.sm,
+    marginTop: BioReceiptTheme.spacing.sm,
+    paddingTop: BioReceiptTheme.spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: BioPulseTheme.colors.border,
+    borderTopColor: BioReceiptTheme.colors.border,
   },
   notesText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textSecondary,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textSecondary,
     fontStyle: 'italic',
     lineHeight: 18,
   },
   actionsContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: BioPulseTheme.spacing.sm,
-    paddingTop: BioPulseTheme.spacing.sm,
+    marginTop: BioReceiptTheme.spacing.sm,
+    paddingTop: BioReceiptTheme.spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: BioPulseTheme.colors.border,
+    borderTopColor: BioReceiptTheme.colors.border,
   },
   deleteButton: {
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.sm,
-    borderRadius: BioPulseTheme.borderRadius.md,
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    borderRadius: BioReceiptTheme.borderRadius.md,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     minHeight: 32,
     justifyContent: 'center',
   },
   deleteButtonText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.error,
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.error,
     fontWeight: '500',
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: BioPulseTheme.spacing.xl * 2,
-    paddingHorizontal: BioPulseTheme.spacing.lg,
+    paddingVertical: BioReceiptTheme.spacing.xl * 2,
+    paddingHorizontal: BioReceiptTheme.spacing.lg,
   },
   emptyStateTitle: {
-    fontSize: BioPulseTheme.typography.fontSize.xl,
+    fontSize: BioReceiptTheme.typography.fontSize.xl,
     fontWeight: '600',
-    color: BioPulseTheme.colors.textSecondary,
-    marginBottom: BioPulseTheme.spacing.sm,
+    color: BioReceiptTheme.colors.textSecondary,
+    marginBottom: BioReceiptTheme.spacing.sm,
     textAlign: 'center',
   },
   emptyStateText: {
-    fontSize: BioPulseTheme.typography.fontSize.base,
-    color: BioPulseTheme.colors.textTertiary,
+    fontSize: BioReceiptTheme.typography.fontSize.base,
+    color: BioReceiptTheme.colors.textTertiary,
     textAlign: 'center',
     lineHeight: 22,
   },
   photosContainer: {
-    marginTop: BioPulseTheme.spacing.sm,
-    paddingTop: BioPulseTheme.spacing.sm,
+    marginTop: BioReceiptTheme.spacing.sm,
+    paddingTop: BioReceiptTheme.spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: BioPulseTheme.colors.border,
+    borderTopColor: BioReceiptTheme.colors.border,
   },
-  photoHeader: {
+  photoStripContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: BioPulseTheme.spacing.sm,
   },
-  photoCountText: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textSecondary,
-    fontWeight: '500',
+  photoThumbnail: {
+    width: 64,
+    height: 64,
+    borderRadius: BioReceiptTheme.borderRadius.xl,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  viewAllButton: {
-    paddingHorizontal: BioPulseTheme.spacing.sm,
-    paddingVertical: BioPulseTheme.spacing.xs,
-    backgroundColor: BioPulseTheme.colors.primary,
-    borderRadius: BioPulseTheme.borderRadius.sm,
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
   },
-  viewAllText: {
-    fontSize: BioPulseTheme.typography.fontSize.xs,
-    color: 'white',
-    fontWeight: '500',
-  },
-  photoModalOverlay: {
+  thumbnailLoading: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
-    paddingHorizontal: BioPulseTheme.spacing.md,
-    paddingVertical: BioPulseTheme.spacing.lg,
   },
-  photoModalContainer: {
-    width: '100%',
-    height: '100%',
-    maxWidth: 600, // Limit width on larger screens
-    backgroundColor: BioPulseTheme.colors.background,
-    borderRadius: BioPulseTheme.borderRadius.lg,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  photoModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: BioPulseTheme.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: BioPulseTheme.colors.border,
-    backgroundColor: BioPulseTheme.colors.surface,
-  },
-  photoModalTitleContainer: {
-    flex: 1,
-  },
-  photoModalTitle: {
-    fontSize: BioPulseTheme.typography.fontSize.lg,
-    fontWeight: '600',
-    color: BioPulseTheme.colors.textPrimary,
-    marginBottom: BioPulseTheme.spacing.xs,
-  },
-  photoModalSubtitle: {
-    fontSize: BioPulseTheme.typography.fontSize.sm,
-    color: BioPulseTheme.colors.textSecondary,
-  },
-  photoModalCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: BioPulseTheme.colors.error,
+  morePhotosButton: {
+    width: 64,
+    height: 64,
+    borderRadius: BioReceiptTheme.borderRadius.xl,
+    backgroundColor: BioReceiptTheme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: BioPulseTheme.spacing.md,
+    marginLeft: 8,
   },
-  photoModalCloseText: {
-    fontSize: 18,
+  morePhotosButtonText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    fontWeight: '600',
   },
-  photoModalContent: {
-    flex: 1,
-    backgroundColor: BioPulseTheme.colors.background,
+  addPhotosChip: {
+    paddingHorizontal: BioReceiptTheme.spacing.md,
+    paddingVertical: BioReceiptTheme.spacing.sm,
+    backgroundColor: BioReceiptTheme.colors.surface,
+    borderRadius: BioReceiptTheme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: BioReceiptTheme.colors.border,
+    borderStyle: 'dashed',
   },
+  addPhotosText: {
+    fontSize: BioReceiptTheme.typography.fontSize.sm,
+    color: BioReceiptTheme.colors.textSecondary,
+    fontWeight: '500',
+  },
+
 });
 
 export default IntakeHistory;

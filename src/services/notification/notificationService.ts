@@ -95,7 +95,7 @@ export class NotificationService {
     },
     general: {
       type: 'general',
-      title: 'Healthy Tip App',
+      title: 'BioReceipt',
       body: 'Check out what\'s new in your wellness journey!',
       variables: [],
       priority: 'normal',
@@ -594,7 +594,7 @@ export class NotificationService {
         id: `test_${userId}_${Date.now()}`,
         type: 'general',
         title: '🧪 Test Notification',
-        body: 'This is a test notification from Healthy Tip App!',
+        body: 'This is a test notification from BioReceipt!',
         data: { test: true },
         priority: 'normal',
         userId,

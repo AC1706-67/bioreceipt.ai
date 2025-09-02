@@ -1,15 +1,15 @@
 /**
- * BioPulse.AI Service
+ * BioReceipt.AI Service
  * AI-powered natural language generation for personalized insights
  */
 
 import {
-  BioPulseAnalysis,
+  BioReceiptAnalysis,
   ImpactScore,
   InteractionRisk,
   RecoveryTimeline,
   PersonalizedInsight
-} from '../analysis/bioPulseAnalysisEngine';
+} from '../analysis/BioReceiptAnalysisEngine';
 import { SubstanceIntake } from '../../models/SubstanceIntake';
 import { Substance } from '../../models/Substance';
 import { substanceDatabase } from '../substance/substanceDatabase';
@@ -64,8 +64,8 @@ interface PromptTemplate {
   category: 'analysis' | 'recommendation' | 'warning' | 'summary';
 }
 
-class BioPulseAIService {
-  private static instance: BioPulseAIService;
+class BioReceiptAIService {
+  private static instance: BioReceiptAIService;
   private promptTemplates: Map<string, PromptTemplate> = new Map();
   private isInitialized = false;
 
@@ -73,18 +73,18 @@ class BioPulseAIService {
     this.initializePromptTemplates();
   }
 
-  static getInstance(): BioPulseAIService {
-    if (!BioPulseAIService.instance) {
-      BioPulseAIService.instance = new BioPulseAIService();
+  static getInstance(): BioReceiptAIService {
+    if (!BioReceiptAIService.instance) {
+      BioReceiptAIService.instance = new BioReceiptAIService();
     }
-    return BioPulseAIService.instance;
+    return BioReceiptAIService.instance;
   }
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
-      await loggingService.info('BioPulse AI Service initialized');
+      await loggingService.info('BioReceipt AI Service initialized');
       this.isInitialized = true;
     } catch (error) {
       console.error('Failed to initialize AI service:', error);
@@ -96,7 +96,7 @@ class BioPulseAIService {
    * Generate comprehensive AI insights from analysis data
    */
   async generateInsights(
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     recentIntakes: SubstanceIntake[]
   ): Promise<AIInsightResponse> {
     const startTime = Date.now();
@@ -146,7 +146,7 @@ class BioPulseAIService {
    * Generate executive summary
    */
   private async generateSummary(
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     recentIntakes: SubstanceIntake[]
   ): Promise<string> {
     const impactLevel = this.categorizeImpactLevel(analysis.impactScore.overall);
@@ -177,7 +177,7 @@ class BioPulseAIService {
    * Generate detailed analysis
    */
   private async generateDetailedAnalysis(
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     recentIntakes: SubstanceIntake[]
   ): Promise<string> {
     let detailedAnalysis = '';
@@ -240,7 +240,7 @@ class BioPulseAIService {
    * Generate AI recommendations
    */
   private async generateRecommendations(
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     recentIntakes: SubstanceIntake[]
   ): Promise<AIRecommendation[]> {
     const recommendations: AIRecommendation[] = [];
@@ -304,7 +304,7 @@ class BioPulseAIService {
    * Generate AI warnings
    */
   private async generateWarnings(
-    analysis: BioPulseAnalysis,
+    analysis: BioReceiptAnalysis,
     recentIntakes: SubstanceIntake[]
   ): Promise<AIWarning[]> {
     const warnings: AIWarning[] = [];
@@ -411,7 +411,7 @@ class BioPulseAIService {
     return recommendations;
   }
 
-  private generatePatternRecommendations(analysis: BioPulseAnalysis): AIRecommendation[] {
+  private generatePatternRecommendations(analysis: BioReceiptAnalysis): AIRecommendation[] {
     const recommendations: AIRecommendation[] = [];
 
     // Check for concerning patterns
@@ -526,4 +526,4 @@ class BioPulseAIService {
   }
 }
 
-export const bioPulseAIService = BioPulseAIService.getInstance();
+export const BioReceiptAIService = BioReceiptAIService.getInstance();

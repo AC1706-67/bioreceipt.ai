@@ -1,6 +1,6 @@
 /**
  * Substance Database Service
- * Manages the comprehensive database of substances for BioPulse.AI
+ * Manages the comprehensive database of substances for BioReceipt.AI
  */
 
 import {

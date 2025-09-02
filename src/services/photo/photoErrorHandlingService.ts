@@ -263,7 +263,7 @@ class PhotoErrorHandlingService {
    * Open email support
    */
   private async openEmailSupport(): Promise<void> {
-    const emailUrl = 'mailto:support@biopulse.app?subject=Photo%20Issue%20Report';
+    const emailUrl = 'mailto:support@BioReceipt.app?subject=Photo%20Issue%20Report';
     try {
       const canOpen = await Linking.canOpenURL(emailUrl);
       if (canOpen) {
@@ -271,7 +271,7 @@ class PhotoErrorHandlingService {
       } else {
         Alert.alert(
           'Email Unavailable',
-          'Please contact us at support@biopulse.app',
+          'Please contact us at support@BioReceipt.app',
           [{ text: 'OK' }]
         );
       }
@@ -286,11 +286,11 @@ class PhotoErrorHandlingService {
   private async openInAppHelp(): Promise<void> {
     Alert.alert(
       'Help Center',
-      'Visit our help center at help.biopulse.app for troubleshooting guides and FAQs.',
+      'Visit our help center at help.BioReceipt.app for troubleshooting guides and FAQs.',
       [
         {
           text: 'Open Help Center',
-          onPress: () => Linking.openURL('https://help.biopulse.app'),
+          onPress: () => Linking.openURL('https://help.BioReceipt.app'),
         },
         {
           text: 'Cancel',
