@@ -22,6 +22,10 @@ class AuthService {
    */
   async signUp(email: string, password: string, name?: string): Promise<AuthResponse> {
     try {
+      if (!supabase) {
+        return { user: null, error: 'Supabase client not initialized. Please configure your .env file.' };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -70,6 +74,10 @@ class AuthService {
    */
   async signIn(email: string, password: string): Promise<AuthResponse> {
     try {
+      if (!supabase) {
+        return { user: null, error: 'Supabase client not initialized. Please configure your .env file.' };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -101,6 +109,10 @@ class AuthService {
    */
   async signOut(): Promise<{ error: string | null }> {
     try {
+      if (!supabase) {
+        return { error: 'Supabase client not initialized' };
+      }
+
       const { error } = await supabase.auth.signOut();
       return { error: error?.message || null };
     } catch (error) {
@@ -113,6 +125,11 @@ class AuthService {
    */
   async getCurrentUser(): Promise<User | null> {
     try {
+      if (!supabase) {
+        console.warn('[Auth] Supabase client not initialized');
+        return null;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
@@ -142,6 +159,11 @@ class AuthService {
    * Listen for auth state changes
    */
   onAuthStateChange(callback: (user: User | null) => void) {
+    if (!supabase) {
+      console.warn('[Auth] Supabase not ready for auth state changes');
+      return { data: { subscription: { unsubscribe: () => {} } } };
+    }
+
     return supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         callback({

@@ -1,12 +1,13 @@
 /**
- * BioReceipt - Smart receipt tracking and analysis platform
+ * BioReceipt.AI - AI-Powered Biohacking platform
  * JESUS IS KING – Yeshua Baruch Atah Adonai
  * 
  * @format
  */
 
-// MUST be first import - fixes Hermes URL.protocol error
-import 'react-native-url-polyfill/auto';
+// MUST be first imports - fixes Hermes compatibility issues
+import 'react-native-get-random-values'; // Must be first for crypto operations
+import 'react-native-url-polyfill/auto'; // Fixes Hermes URL.protocol error
 
 import React, { useEffect } from 'react';
 import { StatusBar, StyleSheet, useColorScheme, SafeAreaView, ActivityIndicator, View } from 'react-native';

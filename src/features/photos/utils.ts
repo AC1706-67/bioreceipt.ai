@@ -3,7 +3,7 @@
  * File operations, upload management, and photo processing
  */
 
-import RNFS from 'react-native-fs';
+import * as RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
 import { supabase } from '../../config/supabase';
 import { usePhotoStore } from './store';
@@ -12,6 +12,23 @@ import { mapPhotoError, logPhotoError, PhotoError } from '../../lib/errors/photo
 
 // Photo storage directory
 const PHOTO_DIR = `${RNFS.DocumentDirectoryPath}/photos`;
+
+/**
+ * Get safe photo save path
+ */
+export async function getPhotoSavePath(fileName: string): Promise<string> {
+  const base = RNFS.DocumentDirectoryPath;
+  return `${base}/${fileName}`;
+}
+
+/**
+ * Save base64 data to file
+ */
+export async function saveBase64ToFile(base64Data: string, fileName: string): Promise<string> {
+  const path = await getPhotoSavePath(fileName);
+  await RNFS.writeFile(path, base64Data, 'base64');
+  return path;
+}
 
 /**
  * Initialize photo storage directory
@@ -202,7 +219,7 @@ export const uploadPhoto = async (photoId: string): Promise<string> => {
       operation: 'upload',
     });
     logPhotoError(photoError);
-    store.setError(photoId, photoError.userMessage, error);
+    store.setError(photoId, photoError.userMessage);
     console.error('Photo upload failed:', photoId, photoError.message);
     throw photoError;
   }

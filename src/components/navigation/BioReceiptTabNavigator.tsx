@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { BioReceiptTheme, NavigationIcons } from '../../constants/bioReceiptTheme';
+import { BioReceiptTheme, NavigationIcons } from '../../constants/BioReceiptTheme';
 
 interface TabItem {
   id: string;
@@ -50,7 +50,7 @@ const BioReceiptTabNavigator: React.FC<Props> = ({ tabs, activeTab, onTabChange,
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.appName}>BioReceipt</Text>
-          <Text style={styles.appTagline}>Smart Receipt Tracking</Text>
+          <Text style={styles.appTagline}>AI-Powered Biohacking</Text>
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerButton}>

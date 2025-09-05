@@ -1,11 +1,11 @@
 /**
- * BioReceipt Main Application Component
+ * BioReceipt.AI Main Application Component
  * Root component that sets up navigation, theme, and global providers
  */
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar } from 'react-native';
-import { BioReceiptTheme, NavigationIcons } from '../constants/bioReceiptTheme';
+import { BioReceiptTheme, NavigationIcons } from '../constants/BioReceiptTheme';
 import BioReceiptTabNavigator from './navigation/BioReceiptTabNavigator';
 import MyDayScreen from './intake/MyDayScreen';
 import { SocialScreenContainer } from './social/SocialScreenContainer';
@@ -87,7 +87,7 @@ const BioReceiptApp: React.FC<Props> = ({ userId }) => {
       
       setIsInitialized(true);
     } catch (error) {
-      console.error('Failed to initialize BioReceipt:', error);
+      console.error('Failed to initialize BioReceipt.AI:', error);
       // Handle initialization error
     }
   };
@@ -128,8 +128,8 @@ const BioReceiptApp: React.FC<Props> = ({ userId }) => {
   if (!isInitialized) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingLogo}>BioReceipt</Text>
-        <Text style={styles.loadingText}>Initializing receipt tracking platform...</Text>
+        <Text style={styles.loadingLogo}>BioReceipt.AI</Text>
+        <Text style={styles.loadingText}>Initializing AI-powered biohacking platform...</Text>
       </View>
     );
   }

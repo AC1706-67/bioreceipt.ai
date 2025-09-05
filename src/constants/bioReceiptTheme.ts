@@ -1,6 +1,6 @@
 /**
- * BioReceipt Theme Configuration
- * Centralized theme and styling constants for the BioReceipt application
+ * BioReceipt.AI Theme Configuration
+ * Centralized theme and styling constants for the BioReceipt.AI application
  */
 
 export const BioReceiptTheme = {
@@ -28,6 +28,7 @@ export const BioReceiptTheme = {
     warning: '#F59E0B',        // Amber for warnings
     error: '#EF4444',          // Red for errors
     info: '#3B82F6',           // Blue for info
+    danger: '#EF4444',         // Red for danger (alias for error)
     
     // Substance Category Colors
     alcohol: '#FF6B6B',        // Red for alcohol
@@ -45,6 +46,33 @@ export const BioReceiptTheme = {
     white: '#FFFFFF',          // Pure white
     disabled: '#6B7280',       // Disabled state color
     errorLight: 'rgba(239, 68, 68, 0.1)', // Light error background
+    muted: '#6B7280',          // Muted text color
+  },
+  
+  // Spacing
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    '2xl': 48,
+    '3xl': 64,
+  },
+  
+  // Border Radius
+  borderRadius: {
+    sm: 4,
+    md: 8,
+    lg: 12,
+    xl: 16,
+    '2xl': 24,
+    full: 9999,
+  },
+  radii: {
+    sm: 8,
+    md: 12,
+    lg: 16,
   },
   
   // Typography
@@ -86,27 +114,12 @@ export const BioReceiptTheme = {
       normal: 1.5,
       relaxed: 1.75,
     },
-  },
-  
-  // Spacing
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    '2xl': 48,
-    '3xl': 64,
-  },
-  
-  // Border Radius
-  borderRadius: {
-    sm: 4,
-    md: 8,
-    lg: 12,
-    xl: 16,
-    '2xl': 24,
-    full: 9999,
+    
+    // Predefined Typography Styles
+    h1: { fontSize: 28, fontWeight: '700' },
+    h2: { fontSize: 22, fontWeight: '600' },
+    body: { fontSize: 16, fontWeight: '400' },
+    caption: { fontSize: 12, fontWeight: '400' }
   },
   
   // Shadows
@@ -115,7 +128,7 @@ export const BioReceiptTheme = {
     md: '0 4px 6px rgba(0, 0, 0, 0.1)',
     lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
     xl: '0 20px 25px rgba(0, 0, 0, 0.1)',
-    glow: '0 0 20px rgba(0, 212, 255, 0.3)', // BioReceipt glow effect
+    glow: '0 0 20px rgba(0, 212, 255, 0.3)', // BioReceipt.AI glow effect
   },
   
   // Animation Durations
@@ -128,8 +141,8 @@ export const BioReceiptTheme = {
 
 // App Constants
 export const BioReceiptConstants = {
-  appName: 'BioReceipt',
-  appTagline: 'Smart Receipt Tracking',
+  appName: 'BioReceipt.AI',
+  appTagline: 'AI-Powered Biohacking',
   appDescription: 'Track, analyze, and optimize your substance intake with intelligent insights',
   
   // Version Info
@@ -259,4 +272,5 @@ export const ComponentVariants = {
   },
 };
 
+export type BioReceiptThemeType = typeof BioReceiptTheme;
 export default BioReceiptTheme;

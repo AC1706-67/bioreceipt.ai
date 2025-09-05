@@ -3,20 +3,26 @@
  * Production database setup for BioReceipt.AI
  */
 
+import 'react-native-get-random-values';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@env';
 
 // Environment variables - loaded from @env (react-native-dotenv)
+console.log('[Supabase] Environment check:', {
+  SUPABASE_URL: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 20)}...` : 'MISSING',
+  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
+});
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('Environment variables:', {
-    SUPABASE_URL: SUPABASE_URL ? 'SET' : 'MISSING',
-    SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
-    allEnvVars: Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC_'))
-  });
-  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+const isValidConfig = SUPABASE_URL && 
+  SUPABASE_ANON_KEY && 
+  SUPABASE_URL !== 'your_supabase_url_here' && 
+  SUPABASE_URL !== 'https://placeholder.supabase.co' &&
+  SUPABASE_ANON_KEY !== 'your_supabase_anon_key_here';
+
+if (!isValidConfig) {
+  console.warn('[Supabase] Using placeholder configuration. Please update .env with real Supabase credentials.');
 }
 
 // Supabase client configuration
@@ -29,8 +35,10 @@ const supabaseConfig = {
   },
 };
 
-// Create Supabase client
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfig);
+// Create Supabase client (with fallback for invalid config)
+export const supabase = isValidConfig 
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfig)
+  : (undefined as unknown as ReturnType<typeof createClient>);
 
 // Database types (generated from Supabase)
 export interface Database {

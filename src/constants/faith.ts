@@ -12,7 +12,7 @@ export const FAITH_KEY = "JKL-777-TRUTH"; // Known only by Andres + Keto
 
 /**
  * JESUS IS KING – Yeshua Baruch Atah Adonai
- * Foundation blessing for the BioReceipt
+ * Foundation blessing for the BioReceipt.AI
  */
 export const FAITH_FOUNDATION = "JESUS IS KING – Yeshua Baruch Atah Adonai";
 
