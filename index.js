@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import 'react-native-gesture-handler'; // safe even if you don't use it
 import {AppRegistry} from 'react-native';
 import App from './App';

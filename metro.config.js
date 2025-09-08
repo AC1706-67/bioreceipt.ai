@@ -20,4 +20,9 @@ config.serializer = {
   },
 };
 
+config.resolver = {
+  ...config.resolver,
+  sourceExts: ['js', 'jsx', 'ts', 'tsx', 'cjs', 'mjs'],
+};
+
 module.exports = config;

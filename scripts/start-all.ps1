@@ -1,9 +1,81 @@
-# One-shot launcher for React Native on Android (with debug logs)
-
-$ErrorActionPreference = "SilentlyContinue"
 Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-Write-Host "🔧 Cleaning up old processes..."
+$logDir = Join-Path $PSScriptRoot "logs"
+New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+$logFile = Join-Path $logDir ("start-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".log")
+
+function Log([string]$msg) {
+  $line = "$(Get-Date -Format HH:mm:ss)  $msg"
+  Write-Host $line
+  Add-Content -Path $logFile -Value $line
+}
+function Require-Command($name) {
+  if (-not (Get-Command $name -ErrorAction SilentlyContinue)) {
+    throw "Missing required command: $name (not found in PATH)"
+  }
+}
+
+Log "=== BioReceipt.AI Android launcher ==="
+Log "PWD: $(Get-Location)"
+Log "Node: $(node -v)  npm: $(npm -v)"
+try {
+  Require-Command node
+  Require-Command npm
+  Require-Command npx
+  Require-Command adb
+  Log "Prereqs OK"
+} catch {
+  Log "Prereqs FAILED: $($_.Exception.Message)"
+  throw
+}
+
+# Cleanup old processes
+Log "Killing lingering node/java/adb..."
+taskkill /F /IM node.exe /T 2>$null | Out-Null
+taskkill /F /IM java.exe /T 2>$null | Out-Null
+adb kill-server 2>$null | Out-Null
+adb start-server 2>$null | Out-Null
+adb reverse --remove-all 2>$null | Out-Null
+
+# Start Metro (new window) with cache reset
+$metroArgs = 'npx react-native start --reset-cache'
+Log "Starting Metro: $metroArgs"
+Start-Process -FilePath "powershell" -ArgumentList "-NoExit","-Command",$metroArgs -WorkingDirectory (Get-Location) | Out-Null
+
+# Wait for Metro on 8081
+Log "Waiting for Metro on 8081 (≤ 90s)..."
+$deadline = (Get-Date).AddSeconds(90)
+$metroUp = $false
+while((Get-Date) -lt $deadline) {
+  try {
+    $tcp = Test-NetConnection -ComputerName localhost -Port 8081 -WarningAction SilentlyContinue
+    if ($tcp.TcpTestSucceeded) { $metroUp = $true; break }
+    Start-Sleep -Milliseconds 800
+  } catch { Start-Sleep -Milliseconds 800 }
+}
+if (-not $metroUp) { throw "Metro did not start on 8081 in time." }
+Log "Metro is listening on 8081."
+
+# Ensure a device is connected
+$devs = (& adb devices) -join "`n"
+Log "adb devices:`n$devs"
+if ($devs -notmatch "device`r?$") {
+  throw "No Android device/emulator connected. Start an emulator or plug in a phone with USB debugging."
+}
+
+# Reverse ports for RN
+Log "adb reverse tcp:8081 tcp:8081"
+adb reverse tcp:8081 tcp:8081 | Out-Null
+
+# Build & install
+Log "Running: npx react-native run-android"
+$p = Start-Process -FilePath "powershell" -ArgumentList "-Command","npx react-native run-android" -NoNewWindow -PassThru
+$p.WaitForExit()
+if ($p.ExitCode -ne 0) { throw "run-android failed with exit code $($p.ExitCode)" }
+
+Log "✅ App built, installed, and launched."
+Log "Logs saved to: $logFile"
 taskkill /F /IM node.exe /T 2>$null
 taskkill /F /IM java.exe /T 2>$null
 adb kill-server 2>$null | Out-Null
