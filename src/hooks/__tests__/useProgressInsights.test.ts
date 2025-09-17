@@ -11,12 +11,22 @@ import {
 } from '../useProgressInsights';
 import { ProgressInsightsService, ProgressInsight, ProgressMetrics } from '../../services/insights/progressInsightsService';
 import { UserProfile } from '../../models/UserProfile';
+import { advance, runAll, flushMicrotasks } from '../../test-utils/timers';
 
 // Mock the service
 jest.mock('../../services/insights/progressInsightsService');
 
 describe('useProgressInsights', () => {
   let mockService: jest.Mocked<ProgressInsightsService>;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(async () => {
+    await runAll();
+    jest.useRealTimers();
+  });
   
   const mockUserProfile: UserProfile = {
     id: 'user123',

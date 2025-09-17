@@ -6,12 +6,9 @@
 import { renderHook, act } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { useNetworkStatus } from '../useNetworkStatus';
+import { advance, runAll, flushMicrotasks } from '../../test-utils/timers';
 
-// Mock NetInfo
-jest.mock('@react-native-community/netinfo', () => ({
-  fetch: jest.fn(),
-  addEventListener: jest.fn(),
-}));
+const setNet = (partial: any) => (NetInfo as any).__setState(partial);
 
 // Mock ToastContext
 const mockToast = {
@@ -27,31 +24,23 @@ jest.mock('../../contexts/ToastContext', () => ({
 }));
 
 describe('useNetworkStatus', () => {
-  const mockNetInfo = NetInfo as jest.Mocked<typeof NetInfo>;
-
-  beforeAll(() => {
+  beforeEach(() => {
     jest.useFakeTimers();
+    jest.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterEach(async () => {
+    await runAll();
     jest.useRealTimers();
   });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockNetInfo.addEventListener.mockReturnValue(() => {});
-  });
-
   describe('Initial State', () => {
-    it('should initialize with default network status', () => {
-      mockNetInfo.fetch.mockResolvedValue({
-        isConnected: true,
-        isInternetReachable: true,
-        type: 'wifi',
-        details: { strength: 80 }
-      } as any);
+    it('should initialize with default network status', async () => {
+      setNet({ isConnected: true, type: 'wifi' });
 
       const { result } = renderHook(() => useNetworkStatus());
+      expect(result).toBeDefined();
+      await flushMicrotasks();
 
       expect(result.current.networkStatus).toBeDefined();
       expect(result.current.isOnline).toBeDefined();
@@ -61,23 +50,12 @@ describe('useNetworkStatus', () => {
 
   describe('Network Status Updates', () => {
     it('should update status when network changes', async () => {
-      const mockState = {
-        isConnected: true,
-        isInternetReachable: true,
-        type: 'wifi',
-        details: { strength: 90 }
-      };
-
-      mockNetInfo.fetch.mockResolvedValue(mockState as any);
-
       const { result } = renderHook(() => useNetworkStatus());
+      expect(result).toBeDefined();
+      await flushMicrotasks();
 
-      await act(async () => {
-        // Simulate network status update
-        const listener = mockNetInfo.addEventListener.mock.calls[0][0];
-        listener(mockState as any);
-        jest.advanceTimersByTime(100);
-      });
+      setNet({ isConnected: true, type: 'wifi', details: { strength: 90 } });
+      await advance(100);
 
       expect(result.current.networkStatus.isConnected).toBe(true);
       expect(result.current.networkStatus.type).toBe('wifi');
@@ -86,22 +64,12 @@ describe('useNetworkStatus', () => {
     });
 
     it('should detect cellular connections', async () => {
-      const mockState = {
-        isConnected: true,
-        isInternetReachable: true,
-        type: 'cellular',
-        details: { cellularGeneration: '4g' }
-      };
-
-      mockNetInfo.fetch.mockResolvedValue(mockState as any);
-
       const { result } = renderHook(() => useNetworkStatus());
+      expect(result).toBeDefined();
+      await flushMicrotasks();
 
-      await act(async () => {
-        const listener = mockNetInfo.addEventListener.mock.calls[0][0];
-        listener(mockState as any);
-        jest.advanceTimersByTime(100);
-      });
+      setNet({ isConnected: true, type: 'cellular', details: { cellularGeneration: '4g' } });
+      await advance(100);
 
       expect(result.current.networkStatus.isCellular).toBe(true);
       expect(result.current.networkStatus.isWifi).toBe(false);
@@ -109,37 +77,18 @@ describe('useNetworkStatus', () => {
     });
 
     it('should detect connection loss', async () => {
-      const connectedState = {
-        isConnected: true,
-        isInternetReachable: true,
-        type: 'wifi'
-      };
-
-      const disconnectedState = {
-        isConnected: false,
-        isInternetReachable: false,
-        type: 'none'
-      };
-
-      mockNetInfo.fetch.mockResolvedValue(connectedState as any);
-
       const { result } = renderHook(() => useNetworkStatus());
+      expect(result).toBeDefined();
+      await flushMicrotasks();
 
       // First update - connected
-      await act(async () => {
-        const listener = mockNetInfo.addEventListener.mock.calls[0][0];
-        listener(connectedState as any);
-        jest.advanceTimersByTime(100);
-      });
-
+      setNet({ isConnected: true, isInternetReachable: true, type: 'wifi' });
+      await advance(100);
       expect(result.current.isOnline).toBe(true);
 
       // Second update - disconnected
-      await act(async () => {
-        const listener = mockNetInfo.addEventListener.mock.calls[0][0];
-        listener(disconnectedState as any);
-        jest.advanceTimersByTime(100);
-      });
+      setNet({ isConnected: false, isInternetReachable: false, type: 'none' });
+      await advance(100);
 
       expect(result.current.isOffline).toBe(true);
       expect(mockToast.showError).toHaveBeenCalledWith(

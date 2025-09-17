@@ -3,7 +3,7 @@
  * React hook for consistent error handling across components
  */
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { globalErrorHandler } from '../services/error/globalErrorHandler';
 import { errorClassificationService, ClassifiedError } from '../services/error/errorClassificationService';
 
@@ -13,6 +13,25 @@ interface UseErrorHandlerOptions {
   enableAutoRecovery?: boolean;
   onError?: (error: ClassifiedError) => void;
   onRecovery?: (error: ClassifiedError) => void;
+  context?: Record<string, any>;
+  showUserErrors?: boolean;
+  autoRetry?: boolean;
+  maxRetries?: number;
+}
+
+interface ErrorContext {
+  feature?: string;
+  component?: string;
+  action?: string;
+  currentScreen?: string;
+  previousScreen?: string;
+  navigationStack?: string[];
+  metadata?: Record<string, any>;
+}
+
+interface EnhancedError extends Error {
+  context?: ErrorContext;
+  severity?: string;
 }
 
 interface ErrorHandlerState {
@@ -385,7 +404,7 @@ export const useBackgroundErrorHandler = () => {
 // Utility function to wrap async operations with error handling
 export const withErrorHandling = async <T>(
   operation: () => Promise<T>,
-  errorHandler: (error: Error) => Promise<EnhancedError>,
+  errorHandler: (error: Error, context?: Partial<ErrorContext>) => Promise<EnhancedError>,
   context?: Partial<ErrorContext>
 ): Promise<T | null> => {
   try {

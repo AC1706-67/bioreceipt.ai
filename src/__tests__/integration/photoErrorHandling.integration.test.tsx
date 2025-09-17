@@ -11,6 +11,7 @@ import CameraPermissionHandler from '../../components/photo/CameraPermissionHand
 import { photoErrorHandlingService } from '../../services/photo/photoErrorHandlingService';
 import { photoErrorClassificationService, PhotoErrorType } from '../../services/photo/photoErrorClassificationService';
 import { photoToastService } from '../../services/photo/photoToastService';
+import { advance, runAll, flushMicrotasks } from '../../test-utils/timers';
 
 // Mock dependencies
 jest.mock('../../services/photo/photoErrorHandlingService');
@@ -23,13 +24,25 @@ const mockPhotoErrorClassificationService = photoErrorClassificationService as j
 const mockPhotoToastService = photoToastService as jest.Mocked<typeof photoToastService>;
 const mockLinking = Linking as jest.Mocked<typeof Linking>;
 
+// Mock retry service to run immediately
+jest.mock('../../services/retry/retryService', () => ({
+  retryWithBackoff: jest.fn(async (fn, { retries = 3 } = {}) => {
+    let lastErr;
+    for (let i = 0; i < retries; i++) {
+      try { return await fn(); } catch (e) { lastErr = e; }
+    }
+    throw lastErr;
+  }),
+}));
+
 describe('Photo Error Handling Integration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     jest.useFakeTimers();
+    jest.clearAllMocks();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await runAll();
     jest.useRealTimers();
   });
 

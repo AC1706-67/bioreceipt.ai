@@ -137,4 +137,10 @@ app.*.symbols
 app.*.map.json
 
 # Exceptions to above rules.
-!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packagesandroid/.gradle/
+android/app/build/
+**/*.lock
+coverage/
+.expo/
+.DS_Store
+Thumbs.db

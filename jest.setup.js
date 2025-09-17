@@ -3,63 +3,128 @@
  * Global test setup and mocks
  */
 
-// Mock React Native Platform
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
+const fs = require('fs');
+const childProcess = require('child_process');
+
+// If you were writing to `global.something`, do it via globalThis safely:
+const g = globalThis;
+
+/**
+ * Fix 1: fs.symlink mock signature
+ * TS was complaining because the third param can be `fs.symlink.Type | undefined`,
+ * and some mocks were passing `null`. We normalize & invoke the callback correctly.
+ */
+if (jest.isMockFunction(fs.symlink) || fs.symlink) {
+  // If you already mocked it elsewhere, reset and reapply a safe impl.
+  try { 
+    if (fs.symlink && fs.symlink.mockReset) {
+      fs.symlink.mockReset(); 
+    }
+  } catch (e) {
+    // Ignore reset errors
+  }
+}
+
+jest.spyOn(fs, 'symlink').mockImplementation((target, path, typeOrCb, maybeCb) => {
+  // Support both overloads: (target, path, cb) and (target, path, type, cb)
+  const cb = (typeof typeOrCb === 'function' ? typeOrCb : maybeCb);
   
-  return Object.setPrototypeOf(
-    {
-      Platform: {
-        OS: 'ios',
-        select: jest.fn((obj) => obj.ios || obj.default),
-      },
-      Dimensions: {
-        get: jest.fn(() => ({ width: 375, height: 812 })),
-      },
-      Alert: {
-        alert: jest.fn(),
-      },
-      StatusBar: {
-        currentHeight: 44,
-        setBarStyle: jest.fn(),
-        setBackgroundColor: jest.fn(),
-      },
-      KeyboardAvoidingView: 'KeyboardAvoidingView',
-      ScrollView: 'ScrollView',
-      View: 'View',
-      Text: 'Text',
-      TextInput: 'TextInput',
-      TouchableOpacity: 'TouchableOpacity',
-      Image: 'Image',
-      ActivityIndicator: 'ActivityIndicator',
-      FlatList: 'FlatList',
-      RefreshControl: 'RefreshControl',
-      Animated: {
-        ...RN.Animated,
-        timing: jest.fn(() => ({
-          start: jest.fn(),
-        })),
-        Value: jest.fn(() => ({
-          setValue: jest.fn(),
-          addListener: jest.fn(),
-          removeListener: jest.fn(),
-        })),
-      },
-      StyleSheet: {
-        create: jest.fn((styles) => styles),
-      },
-      NativeModules: {
-        ...RN.NativeModules,
-        RNKeychainManager: {},
-        RNEncryptedStorage: {},
-        BlobModule: {},
-      },
-      TurboModuleRegistry: {
-        getEnforcing: jest.fn(() => ({})),
-      },
+  // Never pass `null` as the "type" — use `undefined` instead.
+  // We just call back success asynchronously to mimic Node.
+  queueMicrotask(() => {
+    if (cb) cb(null);
+  });
+  return undefined;
+});
+
+/**
+ * Fix 2: child_process.execSync type & "Cannot find name 'execSync'"
+ * Import from child_process and re-export to wherever your setup expects it.
+ * If your code referenced a global `execSync`, define it on globalThis.
+ */
+g.execSync = function(...args) {
+  return childProcess.execSync(args[0], args[1]);
+};
+
+/**
+ * Fix 3: Generic Jest "(...args: unknown[]) => any" signature errors
+ * If you mock functions like exec/spawn/etc, prefer a rest-args signature.
+ * Example helpers you can use in this file:
+ */
+const anyFn = jest.fn((..._args) => undefined);
+
+/**
+ * Fix 4: "Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature."
+ * Always use `globalThis` (alias `g` above) when you need ad-hoc globals:
+ *   g.__MY_TEST_FLAG__ = true
+ */
+
+// --- RN DevMenu / TurboModuleRegistry ---
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
+  getEnforcing: () => ({}),
+}));
+
+// --- React Native core (StyleSheet.flatten + NativeModules.DevMenu) ---
+jest.mock('react-native', () => {
+  // Create a safe flatten function without accessing real RN
+  const safeFlatten = (input) => {
+    if (Array.isArray(input)) {
+      return input.reduce((acc, s) => ({ ...acc, ...(typeof s === 'object' ? s : {}) }), {});
+    }
+    return typeof input === 'object' ? input : {};
+  };
+  
+  return {
+    Platform: {
+      OS: 'ios',
+      select: jest.fn((obj) => obj.ios || obj.default),
     },
-    RN
-  );
+    Dimensions: {
+      get: jest.fn(() => ({ width: 375, height: 812 })),
+    },
+    Alert: {
+      alert: jest.fn(),
+    },
+    StatusBar: {
+      currentHeight: 44,
+      setBarStyle: jest.fn(),
+      setBackgroundColor: jest.fn(),
+    },
+    KeyboardAvoidingView: 'KeyboardAvoidingView',
+    ScrollView: 'ScrollView',
+    View: 'View',
+    Text: 'Text',
+    TextInput: 'TextInput',
+    TouchableOpacity: 'TouchableOpacity',
+    Image: 'Image',
+    ActivityIndicator: 'ActivityIndicator',
+    FlatList: 'FlatList',
+    RefreshControl: 'RefreshControl',
+    Animated: {
+      timing: jest.fn(() => ({
+        start: jest.fn(),
+      })),
+      Value: jest.fn(() => ({
+        setValue: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      })),
+    },
+    StyleSheet: {
+      create: jest.fn((styles) => styles),
+      flatten: safeFlatten,
+    },
+    NativeModules: {
+      DevMenu: {}, // silence DevMenu invariant
+      RNKeychainManager: {},
+      RNEncryptedStorage: {},
+      BlobModule: {},
+    },
+    TurboModuleRegistry: {
+      getEnforcing: jest.fn(() => ({})),
+      get: jest.fn(() => ({})),
+    },
+  };
 });
 
 // Mock crypto-js
@@ -125,8 +190,30 @@ jest.mock('./src/services/analytics/analyticsService', () => ({
   },
 }));
 
-// Mock NetInfo
-jest.mock('@react-native-community/netinfo', () => require('./src/__mocks__/netinfo').default);
+// --- NetInfo mock (stable, event-driven) ---
+jest.mock('@react-native-community/netinfo', () => {
+  const listeners = new Set();
+  let state = {
+    type: 'wifi',
+    isConnected: true,
+    isInternetReachable: true,
+    details: { isConnectionExpensive: false },
+  };
+  return {
+    fetch: jest.fn(async () => state),
+    addEventListener: jest.fn((handler) => {
+      listeners.add(handler);
+      // fire immediately like real NetInfo
+      handler(state);
+      return () => listeners.delete(handler);
+    }),
+    // test-only helper your tests can call:
+    __setState: (next) => {
+      state = { ...state, ...next };
+      listeners.forEach((cb) => cb(state));
+    },
+  };
+});
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -191,8 +278,89 @@ jest.mock('react-native-gesture-handler', () => ({
   },
 }));
 
+// --- Expo modules used in tests ---
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: false, assets: [{ uri: 'test://photo.jpg' }] }),
+  launchCameraAsync: jest.fn().mockResolvedValue({ canceled: false, assets: [{ uri: 'test://photo.jpg' }] }),
+  requestMediaLibraryPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+  requestCameraPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+}));
+
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn().mockResolvedValue({ uri: 'test://manipulated.jpg', width: 100, height: 100 }),
+}));
+
+// --- Fix USER_PROFILE_CONSTRAINTS undefined ---
+// Mock the constants directly in global scope
+g.USER_PROFILE_CONSTRAINTS = {
+  name: {
+    minLength: 2,
+    maxLength: 50,
+    required: true,
+  },
+  email: {
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    required: true,
+  },
+  phoneNumber: {
+    pattern: /^\+?[\d\s\-\(\)]+$/,
+    required: false,
+  },
+  age: {
+    min: 13,
+    max: 120,
+    required: false,
+  },
+  healthInterests: {
+    minItems: 1,
+    maxItems: 6,
+    required: true,
+  },
+  goals: {
+    minItems: 1,
+    maxItems: 5,
+    required: true,
+  },
+  timezone: {
+    required: true,
+    default: 'UTC',
+  },
+  language: {
+    required: true,
+    default: 'en',
+  },
+};
+
 // Global test timeout
-jest.setTimeout(10000);
+// Ensure DOM globals are available (jsdom should provide these)
+if (typeof global.window === 'undefined') {
+  global.window = {
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    location: { href: 'http://localhost' },
+    navigator: { userAgent: 'test' },
+  };
+}
+
+if (typeof global.document === 'undefined') {
+  global.document = {
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  };
+}
+
+// Don't override global timers - let Jest handle them
+// The testing library needs real timers to work properly
+
+// Mock fetch globally
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+  })
+);
 
 // Suppress console warnings in tests
 global.console = {
@@ -200,3 +368,29 @@ global.console = {
   warn: jest.fn(),
   error: jest.fn(),
 };
+
+// Additional mocks for test stability
+jest.mock('expo-modules-core', () => ({
+  CodedError: class extends Error { constructor(name, msg){ super(msg); this.name=name; } },
+  UnavailabilityError: class extends Error {},
+  EventEmitter: class { addListener(){return {remove(){}}} removeAllListeners(){} },
+}));
+
+// Mock React Native Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn().mockResolvedValue(true),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  openSettings: jest.fn().mockResolvedValue(true),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+
+// Mock requestAnimationFrame and setImmediate for better timer control
+if (typeof global.requestAnimationFrame === 'undefined') {
+  global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
+}
+if (typeof global.setImmediate === 'undefined') {
+  global.setImmediate = (cb, ...args) => setTimeout(cb, 0, ...args);
+}
+
+// Global test timeout
+jest.setTimeout(10000);
