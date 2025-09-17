@@ -26,6 +26,9 @@ module.exports = {
     '^expo-image-picker$': '<rootDir>/__mocks__/expo-image-picker.js',
     '^expo-image-manipulator$': '<rootDir>/__mocks__/expo-image-manipulator.js',
     '^expo-modules-core$': '<rootDir>/__mocks__/expo-modules-core.js',
+    // Image processing
+    '^react-native-image-resizer$': '<rootDir>/__mocks__/react-native-image-resizer.js',
+    '^react-native-share$': '<rootDir>/__mocks__/react-native-share.js',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],

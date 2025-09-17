@@ -47,12 +47,19 @@ export * from './api';
 export const USER_PROFILE_CONSTRAINTS = {
   name: { minLength: 2, maxLength: 50 },
   age: { min: 13, max: 120 },
-  bio: { maxLength: 500 }
+  bio: { maxLength: 500 },
+  healthInterests: { minItems: 1, maxItems: 6 },
+  goals: { minItems: 1, maxItems: 5 },
+  phoneNumber: { pattern: /^[\+]?[1-9][\d]{0,15}$/ },
+  timezone: { default: 'UTC' },
+  language: { default: 'en' },
+  preferences: { maxCaloriesPerTip: 1500 }
 };
 
 export const CHECK_IN_CONSTRAINTS = {
   mood: { min: 1, max: 10 },
   energy: { min: 1, max: 10 },
+  energyLevel: { min: 1, max: 5 },
   notes: { maxLength: 1000 }
 };
 
