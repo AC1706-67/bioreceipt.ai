@@ -84,7 +84,9 @@ describe('HIPAA Compliance Integration', () => {
 
   describe('Security Services Initialization', () => {
     it('should initialize all security services', async () => {
-      await expect(initializeSecurityServices(masterPassword)).resolves.not.toThrow();
+      await expect(
+        initializeSecurityServices(masterPassword),
+      ).resolves.not.toThrow();
     });
 
     it('should have all services available', () => {
@@ -106,8 +108,11 @@ describe('HIPAA Compliance Integration', () => {
       };
 
       // 1. Check consent before processing PHI
-      const hasConsent = await hasUserConsent(testUserId, 'health_data_processing');
-      
+      const hasConsent = await hasUserConsent(
+        testUserId,
+        'health_data_processing',
+      );
+
       if (!hasConsent) {
         // Grant consent first
         await grantUserConsent(testUserId, 'health_data_processing', {
@@ -127,32 +132,57 @@ describe('HIPAA Compliance Integration', () => {
       });
 
       // 3. Audit PHI access
-      await auditPHIAccess('create', 'medical_history', `phi_${testUserId}_medical`, testUserId);
+      await auditPHIAccess(
+        'create',
+        'medical_history',
+        `phi_${testUserId}_medical`,
+        testUserId,
+      );
 
       // 4. Retrieve PHI data
-      const retrievedData = await secureStorage.getItem(`phi_${testUserId}_medical`, {
-        userId: testUserId,
-        dataType: 'health_data',
-      });
+      const retrievedData = await secureStorage.getItem(
+        `phi_${testUserId}_medical`,
+        {
+          userId: testUserId,
+          dataType: 'health_data',
+        },
+      );
 
       // 5. Audit PHI read access
-      await auditPHIAccess('read', 'medical_history', `phi_${testUserId}_medical`, testUserId);
+      await auditPHIAccess(
+        'read',
+        'medical_history',
+        `phi_${testUserId}_medical`,
+        testUserId,
+      );
 
       expect(retrievedData).toBeDefined();
     });
 
     it('should prevent PHI access without consent', async () => {
       const consentService = ConsentService.getInstance();
-      
+
       // Ensure no consent exists
-      await consentService.withdrawConsent(testUserId, 'health_data_processing', 'test_scenario');
-      
-      const hasConsent = await hasUserConsent(testUserId, 'health_data_processing');
+      await consentService.withdrawConsent(
+        testUserId,
+        'health_data_processing',
+        'test_scenario',
+      );
+
+      const hasConsent = await hasUserConsent(
+        testUserId,
+        'health_data_processing',
+      );
       expect(hasConsent).toBe(false);
 
       // Attempting to access PHI without consent should be audited
-      await auditPHIAccess('read', 'medical_history', 'test-record', testUserId);
-      
+      await auditPHIAccess(
+        'read',
+        'medical_history',
+        'test-record',
+        testUserId,
+      );
+
       // In a real implementation, this would prevent access
       // For testing, we just verify the audit occurred
     });
@@ -161,38 +191,55 @@ describe('HIPAA Compliance Integration', () => {
   describe('Consent Management Compliance', () => {
     it('should manage consent lifecycle with proper auditing', async () => {
       const consentService = ConsentService.getInstance();
-      
+
       // 1. Grant consent
-      const consentId = await consentService.grantConsent(testUserId, 'data_collection', {
-        method: 'explicit',
-        source: 'privacy_settings',
-        deviceId: 'device-123',
-        appVersion: '1.0.0',
-        ipAddress: '192.168.1.1',
-      });
+      const consentId = await consentService.grantConsent(
+        testUserId,
+        'data_collection',
+        {
+          method: 'explicit',
+          source: 'privacy_settings',
+          deviceId: 'device-123',
+          appVersion: '1.0.0',
+          ipAddress: '192.168.1.1',
+        },
+      );
 
       expect(consentId).toBeDefined();
 
       // 2. Verify consent exists
-      const hasConsent = await consentService.hasConsent(testUserId, 'data_collection');
+      const hasConsent = await consentService.hasConsent(
+        testUserId,
+        'data_collection',
+      );
       expect(hasConsent).toBe(true);
 
       // 3. Get consent record
-      const consentRecord = await consentService.getConsent(testUserId, 'data_collection');
+      const consentRecord = await consentService.getConsent(
+        testUserId,
+        'data_collection',
+      );
       expect(consentRecord).toBeDefined();
       expect(consentRecord?.status).toBe('granted');
 
       // 4. Withdraw consent
-      await consentService.withdrawConsent(testUserId, 'data_collection', 'user_request');
+      await consentService.withdrawConsent(
+        testUserId,
+        'data_collection',
+        'user_request',
+      );
 
       // 5. Verify consent is withdrawn
-      const hasConsentAfterWithdrawal = await consentService.hasConsent(testUserId, 'data_collection');
+      const hasConsentAfterWithdrawal = await consentService.hasConsent(
+        testUserId,
+        'data_collection',
+      );
       expect(hasConsentAfterWithdrawal).toBe(false);
     });
 
     it('should generate consent summary for compliance reporting', async () => {
       const consentService = ConsentService.getInstance();
-      
+
       // Grant multiple consents
       await grantUserConsent(testUserId, 'data_processing', {
         method: 'explicit',
@@ -209,7 +256,7 @@ describe('HIPAA Compliance Integration', () => {
       });
 
       const summary = await consentService.getConsentSummary(testUserId);
-      
+
       expect(summary).toHaveProperty('userId', testUserId);
       expect(summary).toHaveProperty('totalConsents');
       expect(summary).toHaveProperty('grantedConsents');
@@ -225,9 +272,21 @@ describe('HIPAA Compliance Integration', () => {
       // Simulate user session with multiple actions
       const sessionActions = [
         { type: 'user_login', action: 'LOGIN', outcome: 'success' as const },
-        { type: 'data_access', action: 'VIEW_HEALTH_TIPS', outcome: 'success' as const },
-        { type: 'data_create', action: 'CREATE_PROGRESS_ENTRY', outcome: 'success' as const },
-        { type: 'consent_given', action: 'GRANT_ANALYTICS_CONSENT', outcome: 'success' as const },
+        {
+          type: 'data_access',
+          action: 'VIEW_HEALTH_TIPS',
+          outcome: 'success' as const,
+        },
+        {
+          type: 'data_create',
+          action: 'CREATE_PROGRESS_ENTRY',
+          outcome: 'success' as const,
+        },
+        {
+          type: 'consent_given',
+          action: 'GRANT_ANALYTICS_CONSENT',
+          outcome: 'success' as const,
+        },
         { type: 'user_logout', action: 'LOGOUT', outcome: 'success' as const },
       ];
 
@@ -239,7 +298,7 @@ describe('HIPAA Compliance Integration', () => {
           sessionAction.action,
           sessionAction.outcome,
           { sessionId: 'session-123' },
-          { userId: testUserId, severity: 'medium' }
+          { userId: testUserId, severity: 'medium' },
         );
         eventIds.push(eventId);
       }
@@ -252,7 +311,9 @@ describe('HIPAA Compliance Integration', () => {
       expect(Array.isArray(userEvents)).toBe(true);
 
       // Generate audit summary
-      const auditSummary = await auditService.getAuditSummary({ userId: testUserId });
+      const auditSummary = await auditService.getAuditSummary({
+        userId: testUserId,
+      });
       expect(auditSummary).toHaveProperty('totalEvents');
       expect(auditSummary).toHaveProperty('eventsByType');
     });
@@ -261,7 +322,12 @@ describe('HIPAA Compliance Integration', () => {
       const auditService = AuditService.getInstance();
 
       // Log some test events
-      await auditService.logPHIAccess('read', 'health_data', 'record-123', testUserId);
+      await auditService.logPHIAccess(
+        'read',
+        'health_data',
+        'record-123',
+        testUserId,
+      );
       await auditService.logAuthEvent('login', testUserId, 'success');
 
       // Export as JSON
@@ -274,9 +340,12 @@ describe('HIPAA Compliance Integration', () => {
       expect(() => JSON.parse(jsonExport)).not.toThrow();
 
       // Export as CSV
-      const csvExport = await auditService.exportAuditLogs({
-        userId: testUserId,
-      }, 'csv');
+      const csvExport = await auditService.exportAuditLogs(
+        {
+          userId: testUserId,
+        },
+        'csv',
+      );
 
       expect(typeof csvExport).toBe('string');
     });
@@ -304,25 +373,33 @@ describe('HIPAA Compliance Integration', () => {
       const secureStorage = SecureStorageService.getInstance();
 
       // Create some user data
-      await secureStorage.setItem(`user_${testUserId}_profile`, {
-        name: 'Test User',
-        email: 'test@example.com',
-      }, {
-        userId: testUserId,
-        dataType: 'user_profile',
-      });
+      await secureStorage.setItem(
+        `user_${testUserId}_profile`,
+        {
+          name: 'Test User',
+          email: 'test@example.com',
+        },
+        {
+          userId: testUserId,
+          dataType: 'user_profile',
+        },
+      );
 
-      await secureStorage.setItem(`user_${testUserId}_health`, {
-        bloodPressure: '120/80',
-        weight: '70kg',
-      }, {
-        userId: testUserId,
-        dataType: 'health_data',
-      });
+      await secureStorage.setItem(
+        `user_${testUserId}_health`,
+        {
+          bloodPressure: '120/80',
+          weight: '70kg',
+        },
+        {
+          userId: testUserId,
+          dataType: 'health_data',
+        },
+      );
 
       // Delete all user data
       const deletionResult = await retentionService.deleteUserData(testUserId);
-      
+
       expect(deletionResult).toHaveProperty('deletedRecords');
       expect(deletionResult).toHaveProperty('totalSize');
       expect(deletionResult).toHaveProperty('categories');
@@ -336,17 +413,23 @@ describe('HIPAA Compliance Integration', () => {
       const secureStorage = SecureStorageService.getInstance();
 
       // Create user data
-      await secureStorage.setItem(`export_test_${testUserId}`, {
-        userId: testUserId,
-        data: 'test export data',
-        timestamp: Date.now(),
-      }, {
-        userId: testUserId,
-        dataType: 'user_profile',
-      });
+      await secureStorage.setItem(
+        `export_test_${testUserId}`,
+        {
+          userId: testUserId,
+          data: 'test export data',
+          timestamp: Date.now(),
+        },
+        {
+          userId: testUserId,
+          dataType: 'user_profile',
+        },
+      );
 
       // Export consent data
-      const consentExport = await consentService.exportUserConsentData(testUserId);
+      const consentExport = await consentService.exportUserConsentData(
+        testUserId,
+      );
       expect(consentExport).toHaveProperty('consents');
       expect(consentExport).toHaveProperty('summary');
       expect(consentExport).toHaveProperty('exportedAt');
@@ -359,15 +442,17 @@ describe('HIPAA Compliance Integration', () => {
 
   describe('Security Health Checks', () => {
     it('should perform comprehensive security health check', async () => {
-      const { performSecurityHealthCheck } = await import('../../src/services/security');
-      
+      const { performSecurityHealthCheck } = await import(
+        '../../src/services/security'
+      );
+
       const healthCheck = await performSecurityHealthCheck();
-      
+
       expect(healthCheck).toHaveProperty('status');
       expect(healthCheck).toHaveProperty('checks');
       expect(['healthy', 'warning', 'critical']).toContain(healthCheck.status);
       expect(Array.isArray(healthCheck.checks)).toBe(true);
-      
+
       healthCheck.checks.forEach(check => {
         expect(check).toHaveProperty('name');
         expect(check).toHaveProperty('status');
@@ -391,7 +476,7 @@ describe('HIPAA Compliance Integration', () => {
           detectionTime: Date.now(),
           sourceIP: '192.168.1.100',
         },
-        testUserId
+        testUserId,
       );
 
       expect(typeof incidentId).toBe('string');
@@ -404,9 +489,13 @@ describe('HIPAA Compliance Integration', () => {
         {
           incidentId,
           responseTeam: 'security_team',
-          actions: ['isolate_systems', 'notify_stakeholders', 'begin_investigation'],
+          actions: [
+            'isolate_systems',
+            'notify_stakeholders',
+            'begin_investigation',
+          ],
         },
-        { severity: 'critical' }
+        { severity: 'critical' },
       );
 
       // Query critical events

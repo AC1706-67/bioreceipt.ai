@@ -74,7 +74,7 @@ describe('Component Accessibility', () => {
           isLiked={false}
           isBookmarked={false}
           isCompleted={false}
-        />
+        />,
       );
 
       // Should have accessible buttons
@@ -84,10 +84,7 @@ describe('Component Accessibility', () => {
 
     it('should have accessible image when imageUrl is provided', () => {
       const { getByRole } = render(
-        <TipCard
-          tip={mockTip}
-          onAction={mockOnAction}
-        />
+        <TipCard tip={mockTip} onAction={mockOnAction} />,
       );
 
       // Should have accessible image
@@ -97,10 +94,7 @@ describe('Component Accessibility', () => {
 
     it('should have accessible header for title', () => {
       const { getByRole } = render(
-        <TipCard
-          tip={mockTip}
-          onAction={mockOnAction}
-        />
+        <TipCard tip={mockTip} onAction={mockOnAction} />,
       );
 
       // Should have accessible header
@@ -116,32 +110,32 @@ describe('Component Accessibility', () => {
           isLiked={true}
           isBookmarked={false}
           isCompleted={false}
-        />
+        />,
       );
 
       // Check if accessibility utils were called with proper parameters
-      const { createButtonAccessibility } = require('../../src/utils/accessibility');
+      const {
+        createButtonAccessibility,
+      } = require('../../src/utils/accessibility');
       expect(createButtonAccessibility).toHaveBeenCalledWith(
         'Unlike this tip',
         'Double tap to remove like',
-        { selected: true }
+        { selected: true },
       );
     });
 
     it('should handle completed state accessibility', () => {
       render(
-        <TipCard
-          tip={mockTip}
-          onAction={mockOnAction}
-          isCompleted={true}
-        />
+        <TipCard tip={mockTip} onAction={mockOnAction} isCompleted={true} />,
       );
 
-      const { createButtonAccessibility } = require('../../src/utils/accessibility');
+      const {
+        createButtonAccessibility,
+      } = require('../../src/utils/accessibility');
       expect(createButtonAccessibility).toHaveBeenCalledWith(
         'Tip completed',
         'This tip has been completed',
-        { disabled: true, selected: true }
+        { disabled: true, selected: true },
       );
     });
   });
@@ -197,11 +191,11 @@ describe('Component Accessibility', () => {
       );
 
       const { getByLabelText, queryByLabelText } = render(<TestComponent />);
-      
+
       // Content image should be accessible
       const contentImage = getByLabelText('Content illustration');
       expect(contentImage).toBeTruthy();
-      
+
       // Decorative image should not be accessible
       const decorativeImage = queryByLabelText('decoration');
       expect(decorativeImage).toBeNull();
@@ -228,10 +222,10 @@ describe('Component Accessibility', () => {
       );
 
       const { getByLabelText } = render(<TestComponent />);
-      
+
       const mainHeader = getByLabelText('Main title, heading level 1');
       const sectionHeader = getByLabelText('Section title, heading level 2');
-      
+
       expect(mainHeader).toBeTruthy();
       expect(sectionHeader).toBeTruthy();
     });
@@ -252,7 +246,9 @@ describe('Component Accessibility', () => {
         </TouchableOpacity>
       );
 
-      const { rerender, getByRole } = render(<TestComponent disabled={false} />);
+      const { rerender, getByRole } = render(
+        <TestComponent disabled={false} />,
+      );
       let button = getByRole('button');
       expect(button.props.accessibilityState.disabled).toBe(false);
 
@@ -274,7 +270,9 @@ describe('Component Accessibility', () => {
         </TouchableOpacity>
       );
 
-      const { rerender, getByRole } = render(<TestComponent selected={false} />);
+      const { rerender, getByRole } = render(
+        <TestComponent selected={false} />,
+      );
       let button = getByRole('button');
       expect(button.props.accessibilityState.selected).toBe(false);
 
@@ -299,7 +297,7 @@ describe('Component Accessibility', () => {
 
       const { getByRole } = render(<TestComponent />);
       const button = getByRole('button');
-      
+
       // Should be accessible (focusable)
       expect(button.props.accessible).toBe(true);
     });
@@ -327,10 +325,10 @@ describe('Component Accessibility', () => {
       );
 
       const { getByLabelText } = render(<TestComponent />);
-      
+
       const firstButton = getByLabelText('First Button');
       const secondButton = getByLabelText('Second Button');
-      
+
       expect(firstButton).toBeTruthy();
       expect(secondButton).toBeTruthy();
     });
@@ -350,7 +348,7 @@ describe('Component Accessibility', () => {
 
       const { getByRole } = render(<TestComponent message="Error occurred" />);
       const alert = getByRole('alert');
-      
+
       expect(alert.props.accessibilityLiveRegion).toBe('assertive');
     });
   });
@@ -371,7 +369,7 @@ describe('Component Accessibility', () => {
 
       const { getByLabelText } = render(<TestComponent />);
       const group = getByLabelText('User profile card');
-      
+
       expect(group.props.accessibilityRole).toBe('group');
     });
   });

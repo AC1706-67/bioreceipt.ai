@@ -18,7 +18,7 @@ describe('FeedbackService', () => {
         category: 'bug',
         title: 'Test Bug Report',
         description: 'This is a test bug report',
-        priority: 'medium'
+        priority: 'medium',
       };
       expect(mockFeedback).toBeDefined();
     });
@@ -26,37 +26,6 @@ describe('FeedbackService', () => {
     it('should handle validation', () => {
       const mockValidation = { isValid: true };
       expect(mockValidation.isValid).toBe(true);
-    });
-  });
-});
-        userId: '',
-        category: 'bug' as const,
-        title: '',
-        description: '',
-        priority: 'medium' as const
-      };
-
-      // Test would verify validation
-      expect(true).toBe(true); // Placeholder
-    });
-  });
-
-  describe('getFeedback', () => {
-    it('should retrieve user feedback', async () => {
-      const userId = 'test-user-123';
-      
-      // Test would verify feedback retrieval
-      expect(true).toBe(true); // Placeholder
-    });
-  });
-
-  describe('updateFeedbackStatus', () => {
-    it('should update feedback status', async () => {
-      const feedbackId = 'feedback-123';
-      const newStatus = 'resolved';
-
-      // Test would verify status update
-      expect(true).toBe(true); // Placeholder
     });
   });
 });

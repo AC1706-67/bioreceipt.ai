@@ -33,7 +33,7 @@ describe('AuthService', () => {
 
       const result = await authService.signIn('email', {
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(result.success).toBe(true);
@@ -44,7 +44,7 @@ describe('AuthService', () => {
 
     it('should fail with missing email credentials', async () => {
       const result = await authService.signIn('email', {
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(result.success).toBe(false);
@@ -56,7 +56,7 @@ describe('AuthService', () => {
 
       const result = await authService.signIn('phone', {
         phone: '+1234567890',
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(result.success).toBe(true);
@@ -65,7 +65,7 @@ describe('AuthService', () => {
 
     it('should fail with missing phone credentials', async () => {
       const result = await authService.signIn('phone', {
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(result.success).toBe(false);
@@ -76,7 +76,7 @@ describe('AuthService', () => {
       mockTokenManager.storeTokens.mockResolvedValue();
 
       const result = await authService.signIn('google', {
-        token: 'oauth_token_123'
+        token: 'oauth_token_123',
       });
 
       expect(result.success).toBe(true);
@@ -100,8 +100,8 @@ describe('AuthService', () => {
       authMethod: 'email',
       credentials: {
         email: 'john@example.com',
-        password: 'password123'
-      }
+        password: 'password123',
+      },
     };
 
     it('should sign up successfully', async () => {
@@ -118,7 +118,7 @@ describe('AuthService', () => {
     it('should fail with invalid user data', async () => {
       const invalidUserData = {
         ...validUserData,
-        age: 12 // Below minimum age
+        age: 12, // Below minimum age
       };
 
       const result = await authService.signUp('email', invalidUserData);
@@ -149,7 +149,7 @@ describe('AuthService', () => {
         accessToken: 'valid_token',
         refreshToken: 'refresh_token',
         expiresAt: new Date(Date.now() + 3600000),
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
       });
       mockTokenManager.isTokenExpired.mockReturnValue(false);
 
@@ -171,12 +171,14 @@ describe('AuthService', () => {
         accessToken: 'expired_token',
         refreshToken: 'refresh_token',
         expiresAt: new Date(Date.now() - 3600000),
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
       });
       mockTokenManager.isTokenExpired.mockReturnValue(true);
 
       // Mock successful refresh
-      const refreshSpy = jest.spyOn(authService, 'refreshToken').mockResolvedValue('new_token');
+      const refreshSpy = jest
+        .spyOn(authService, 'refreshToken')
+        .mockResolvedValue('new_token');
 
       const result = await authService.isAuthenticated();
 

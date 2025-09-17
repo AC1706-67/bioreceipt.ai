@@ -103,7 +103,7 @@ describe('HIPAA Compliance Test Suite', () => {
       const encrypted = await encryptionService.encryptPHI(
         phiData,
         testUserId,
-        'medical_history'
+        'medical_history',
       );
 
       expect(encrypted).toHaveProperty('encryptedData');
@@ -117,11 +117,11 @@ describe('HIPAA Compliance Test Suite', () => {
 
     it('should decrypt PHI data correctly', async () => {
       const phiData = { patientId: 'test', condition: 'diabetes' };
-      
+
       const encrypted = await encryptionService.encryptPHI(
         phiData,
         testUserId,
-        'health_data'
+        'health_data',
       );
 
       // Mock successful decryption
@@ -133,7 +133,7 @@ describe('HIPAA Compliance Test Suite', () => {
       const decrypted = await encryptionService.decryptPHI(
         encrypted,
         testUserId,
-        'health_data'
+        'health_data',
       );
 
       expect(decrypted).toEqual({ data: phiData });
@@ -155,9 +155,9 @@ describe('HIPAA Compliance Test Suite', () => {
         toString: () => 'different-hmac',
       });
 
-      await expect(
-        encryptionService.decryptData(tamperedData)
-      ).rejects.toThrow('Data integrity verification failed');
+      await expect(encryptionService.decryptData(tamperedData)).rejects.toThrow(
+        'Data integrity verification failed',
+      );
     });
 
     it('should throw on unsupported version', async () => {
@@ -171,7 +171,7 @@ describe('HIPAA Compliance Test Suite', () => {
       };
 
       await expect(
-        encryptionService.decryptData(invalidVersionData)
+        encryptionService.decryptData(invalidVersionData),
       ).rejects.toThrow('Unsupported encryption version: 2.0');
     });
   });
@@ -188,7 +188,7 @@ describe('HIPAA Compliance Test Suite', () => {
 
     it('should store data with encryption', async () => {
       const testData = { patientId: 'test', vitals: '120/80' };
-      
+
       await secureStorage.setItem('test-key', testData, {
         encrypt: true,
         userId: testUserId,
@@ -197,13 +197,13 @@ describe('HIPAA Compliance Test Suite', () => {
 
       expect(mockEncryptedStorage.setItem).toHaveBeenCalledWith(
         'test-key',
-        expect.stringContaining('encrypted')
+        expect.stringContaining('encrypted'),
       );
     });
 
     it('should retrieve encrypted data correctly', async () => {
       const testData = { patientId: 'test', condition: 'diabetes' };
-      
+
       // Mock encrypted storage return
       mockEncryptedStorage.getItem.mockResolvedValueOnce(
         JSON.stringify({
@@ -214,7 +214,7 @@ describe('HIPAA Compliance Test Suite', () => {
           hmac: 'mock-hmac',
           version: '1.0',
           timestamp: Date.now(),
-        })
+        }),
       );
 
       const retrieved = await secureStorage.getItem('test-key', {
@@ -229,7 +229,7 @@ describe('HIPAA Compliance Test Suite', () => {
 
     it('should auto-purge expired entries', async () => {
       const expiredTime = Date.now() - 1000; // 1 second ago
-      
+
       // Mock expired data
       mockEncryptedStorage.getItem.mockResolvedValueOnce(
         JSON.stringify({
@@ -239,20 +239,24 @@ describe('HIPAA Compliance Test Suite', () => {
             expiresAt: expiredTime,
             encrypted: false,
           },
-        })
+        }),
       );
 
       const result = await secureStorage.getItem('expired-key');
 
       expect(result).toBeNull();
-      expect(mockEncryptedStorage.removeItem).toHaveBeenCalledWith('expired-key');
+      expect(mockEncryptedStorage.removeItem).toHaveBeenCalledWith(
+        'expired-key',
+      );
     });
 
     it('should handle storage errors gracefully', async () => {
-      mockEncryptedStorage.setItem.mockRejectedValueOnce(new Error('Storage full'));
+      mockEncryptedStorage.setItem.mockRejectedValueOnce(
+        new Error('Storage full'),
+      );
 
       await expect(
-        secureStorage.setItem('test-key', { data: 'test' })
+        secureStorage.setItem('test-key', { data: 'test' }),
       ).rejects.toThrow();
     });
   });
@@ -272,7 +276,7 @@ describe('HIPAA Compliance Test Suite', () => {
         networkSecurity.secureRequest({
           url: httpUrl,
           method: 'GET',
-        })
+        }),
       ).rejects.toThrow('Only HTTPS requests are allowed for PHI data');
     });
 
@@ -281,8 +285,12 @@ describe('HIPAA Compliance Test Suite', () => {
       const validCert = 'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
       const invalidCert = 'sha256/INVALID_CERT_HASH';
 
-      expect(networkSecurity.validateCertificate(hostname, validCert)).toBe(true);
-      expect(networkSecurity.validateCertificate(hostname, invalidCert)).toBe(false);
+      expect(networkSecurity.validateCertificate(hostname, validCert)).toBe(
+        true,
+      );
+      expect(networkSecurity.validateCertificate(hostname, invalidCert)).toBe(
+        false,
+      );
     });
 
     it('should reject requests with invalid certificates', () => {
@@ -294,10 +302,11 @@ describe('HIPAA Compliance Test Suite', () => {
 
     it('should handle network timeouts', async () => {
       const mockFetch = global.fetch as jest.Mock;
-      mockFetch.mockImplementationOnce(() => 
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 35000)
-        )
+      mockFetch.mockImplementationOnce(
+        () =>
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 35000),
+          ),
       );
 
       await expect(
@@ -305,7 +314,7 @@ describe('HIPAA Compliance Test Suite', () => {
           url: 'https://api.example.com/data',
           method: 'GET',
           options: { timeout: 1000 },
-        })
+        }),
       ).rejects.toThrow();
     });
   });
@@ -320,7 +329,11 @@ describe('HIPAA Compliance Test Suite', () => {
     it('should log events in correct order', async () => {
       const events = [
         { type: 'user_login', action: 'LOGIN', outcome: 'success' as const },
-        { type: 'data_access', action: 'READ_PHI', outcome: 'success' as const },
+        {
+          type: 'data_access',
+          action: 'READ_PHI',
+          outcome: 'success' as const,
+        },
         { type: 'user_logout', action: 'LOGOUT', outcome: 'success' as const },
       ];
 
@@ -332,7 +345,7 @@ describe('HIPAA Compliance Test Suite', () => {
           event.action,
           event.outcome,
           { timestamp: Date.now() },
-          { userId: testUserId }
+          { userId: testUserId },
         );
         eventIds.push(eventId);
       }
@@ -350,12 +363,9 @@ describe('HIPAA Compliance Test Suite', () => {
       mockStorage.setItem.mockRejectedValueOnce(new Error('DB down'));
 
       await expect(
-        auditService.logEvent(
-          'data_access',
-          'TEST_ERROR',
-          'failure',
-          { test: 'data' }
-        )
+        auditService.logEvent('data_access', 'TEST_ERROR', 'failure', {
+          test: 'data',
+        }),
       ).rejects.toThrow();
     });
 
@@ -365,7 +375,7 @@ describe('HIPAA Compliance Test Suite', () => {
         'CRITICAL_BREACH',
         'failure',
         { severity: 'critical' },
-        { severity: 'critical' }
+        { severity: 'critical' },
       );
 
       expect(eventId).toBeDefined();
@@ -377,7 +387,7 @@ describe('HIPAA Compliance Test Suite', () => {
         'read',
         'medical_history',
         'record-123',
-        testUserId
+        testUserId,
       );
 
       expect(eventId).toBeDefined();
@@ -402,7 +412,7 @@ describe('HIPAA Compliance Test Suite', () => {
           deviceId: 'device-123',
           appVersion: '1.0.0',
           ipAddress: '192.168.1.1',
-        }
+        },
       );
 
       expect(consentId).toBeDefined();
@@ -427,7 +437,7 @@ describe('HIPAA Compliance Test Suite', () => {
           source: 'settings_update',
           deviceId: 'device-123',
           appVersion: '1.1.0',
-        }
+        },
       );
 
       expect(updatedConsentId).toBeDefined();
@@ -442,7 +452,7 @@ describe('HIPAA Compliance Test Suite', () => {
       });
 
       const consent = await consentService.getConsent(testUserId, 'marketing');
-      
+
       expect(consent).toBeDefined();
       expect(consent?.history).toBeDefined();
       expect(consent?.history.length).toBeGreaterThan(0);
@@ -462,10 +472,13 @@ describe('HIPAA Compliance Test Suite', () => {
       await consentService.withdrawConsent(
         testUserId,
         'data_sharing',
-        'user_request'
+        'user_request',
       );
 
-      const hasConsent = await consentService.hasConsent(testUserId, 'data_sharing');
+      const hasConsent = await consentService.hasConsent(
+        testUserId,
+        'data_sharing',
+      );
       expect(hasConsent).toBe(false);
     });
 
@@ -504,7 +517,7 @@ describe('HIPAA Compliance Test Suite', () => {
 
     it('should enforce 7-year retention policy for health data', () => {
       const policies = retentionService.getRetentionPolicies();
-      
+
       expect(policies.health_data.retentionPeriodDays).toBe(2555); // 7 years
       expect(policies.medical_history.retentionPeriodDays).toBe(2555);
       expect(policies.audit_logs.retentionPeriodDays).toBe(2555);
@@ -516,7 +529,7 @@ describe('HIPAA Compliance Test Suite', () => {
       expect(jobId).toMatch(/^retention_/);
 
       const job = await retentionService.executeRetentionJob(jobId);
-      
+
       expect(job.status).toBe('completed');
       expect(typeof job.recordsProcessed).toBe('number');
       expect(typeof job.recordsDeleted).toBe('number');
@@ -529,7 +542,9 @@ describe('HIPAA Compliance Test Suite', () => {
       expect(report).toHaveProperty('recordsByCategory');
       expect(report).toHaveProperty('expiredRecords');
       expect(report).toHaveProperty('complianceStatus');
-      expect(['compliant', 'non_compliant', 'warning']).toContain(report.complianceStatus);
+      expect(['compliant', 'non_compliant', 'warning']).toContain(
+        report.complianceStatus,
+      );
     });
 
     it('should handle user data deletion', async () => {
@@ -544,7 +559,7 @@ describe('HIPAA Compliance Test Suite', () => {
 
     it('should respect retention exceptions', async () => {
       const policy = retentionService.getRetentionPolicy('health_data');
-      
+
       expect(policy).toBeDefined();
       expect(policy?.exceptions).toContain('ongoing_treatment');
       expect(policy?.exceptions).toContain('legal_hold');
@@ -581,11 +596,15 @@ describe('HIPAA Compliance Test Suite', () => {
       });
 
       // Store PHI data (audited)
-      await secureStorage.setItem('test-phi', { data: 'sensitive' }, {
-        encrypt: true,
-        userId: testUserId,
-        dataType: 'health_data',
-      });
+      await secureStorage.setItem(
+        'test-phi',
+        { data: 'sensitive' },
+        {
+          encrypt: true,
+          userId: testUserId,
+          dataType: 'health_data',
+        },
+      );
 
       // Access PHI data (audited)
       await secureStorage.getItem('test-phi', {
@@ -604,13 +623,15 @@ describe('HIPAA Compliance Test Suite', () => {
 
     it('should handle service failures gracefully', async () => {
       const mockStorage = require('react-native-encrypted-storage');
-      mockStorage.setItem.mockRejectedValueOnce(new Error('Service unavailable'));
+      mockStorage.setItem.mockRejectedValueOnce(
+        new Error('Service unavailable'),
+      );
 
       const secureStorage = SecureStorageService.getInstance();
       await secureStorage.initialize(masterPassword);
 
       await expect(
-        secureStorage.setItem('test-key', { data: 'test' })
+        secureStorage.setItem('test-key', { data: 'test' }),
       ).rejects.toThrow('Service unavailable');
     });
 
@@ -622,7 +643,9 @@ describe('HIPAA Compliance Test Suite', () => {
 
       // Encrypt data
       const testData = { sensitive: 'phi-data' };
-      const encrypted = await encryptionService.encryptData(JSON.stringify(testData));
+      const encrypted = await encryptionService.encryptData(
+        JSON.stringify(testData),
+      );
 
       // Decrypt data
       const decrypted = await encryptionService.decryptData(encrypted);

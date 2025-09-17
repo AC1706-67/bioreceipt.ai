@@ -14,7 +14,9 @@ import authReducer, {
 } from '../../src/store/authSlice';
 import { AuthService } from '../../src/services/auth/authService';
 
-type TestStore = ReturnType<typeof configureStore<{ auth: ReturnType<typeof authReducer> }>>;
+type TestStore = ReturnType<
+  typeof configureStore<{ auth: ReturnType<typeof authReducer> }>
+>;
 
 // Mock AuthService
 jest.mock('../../src/services/auth/authService');
@@ -34,7 +36,7 @@ describe('Auth Slice', () => {
   describe('initial state', () => {
     it('should have correct initial state', () => {
       const state = store.getState().auth;
-      
+
       expect(state).toEqual({
         user: null,
         isAuthenticated: false,
@@ -49,10 +51,10 @@ describe('Auth Slice', () => {
     it('should clear error', () => {
       // First set an error
       store.dispatch({ type: 'auth/signIn/rejected', payload: 'Test error' });
-      
+
       // Then clear it
       store.dispatch(clearError());
-      
+
       const state = store.getState().auth;
       expect(state.error).toBeNull();
     });
@@ -71,18 +73,18 @@ describe('Auth Slice', () => {
           dailyTipTime: '09:00',
           streakReminders: true,
           encouragementMessages: true,
-          timezone: 'UTC'
+          timezone: 'UTC',
         },
         createdAt: new Date(),
         updatedAt: new Date(),
-        isActive: true
+        isActive: true,
       };
 
       store.dispatch({ type: 'auth/signIn/fulfilled', payload: mockUser });
-      
+
       // Then update user
       store.dispatch(updateUser({ name: 'Jane Doe' }));
-      
+
       const state = store.getState().auth;
       expect(state.user?.name).toBe('Jane Doe');
       expect(state.user?.email).toBe('john@example.com'); // Other fields unchanged
@@ -90,12 +92,12 @@ describe('Auth Slice', () => {
 
     it('should set loading state', () => {
       store.dispatch(setLoading(true));
-      
+
       let state = store.getState().auth;
       expect(state.isLoading).toBe(true);
-      
+
       store.dispatch(setLoading(false));
-      
+
       state = store.getState().auth;
       expect(state.isLoading).toBe(false);
     });
@@ -114,11 +116,11 @@ describe('Auth Slice', () => {
         dailyTipTime: '09:00',
         streakReminders: true,
         encouragementMessages: true,
-        timezone: 'UTC'
+        timezone: 'UTC',
       },
       createdAt: new Date(),
       updatedAt: new Date(),
-      isActive: true
+      isActive: true,
     };
 
     describe('initializeAuth', () => {
@@ -126,7 +128,7 @@ describe('Auth Slice', () => {
         const mockInstance = {
           initializeAuth: jest.fn().mockResolvedValue(mockUser),
         };
-        
+
         // Mock the static getInstance method
         (AuthService.getInstance as jest.Mock).mockReturnValue(mockInstance);
 
@@ -144,7 +146,7 @@ describe('Auth Slice', () => {
         const mockInstance = {
           initializeAuth: jest.fn().mockRejectedValue(new Error('Init failed')),
         };
-        
+
         (AuthService.getInstance as jest.Mock).mockReturnValue(mockInstance);
 
         await store.dispatch(initializeAuth() as any);
@@ -165,16 +167,18 @@ describe('Auth Slice', () => {
             success: true,
             user: mockUser,
             token: 'access_token',
-            refreshToken: 'refresh_token'
+            refreshToken: 'refresh_token',
           }),
         };
-        
+
         (AuthService.getInstance as jest.Mock).mockReturnValue(mockInstance);
 
-        await store.dispatch(signIn({
-          method: 'email',
-          credentials: { email: 'john@example.com', password: 'password' }
-        }) as any);
+        await store.dispatch(
+          signIn({
+            method: 'email',
+            credentials: { email: 'john@example.com', password: 'password' },
+          }) as any,
+        );
 
         const state = store.getState().auth;
         expect(state.isLoading).toBe(false);
@@ -187,16 +191,18 @@ describe('Auth Slice', () => {
         const mockInstance = {
           signIn: jest.fn().mockResolvedValue({
             success: false,
-            error: 'Invalid credentials'
+            error: 'Invalid credentials',
           }),
         };
-        
+
         (AuthService.getInstance as jest.Mock).mockReturnValue(mockInstance);
 
-        await store.dispatch(signIn({
-          method: 'email',
-          credentials: { email: 'john@example.com', password: 'wrong' }
-        }) as any);
+        await store.dispatch(
+          signIn({
+            method: 'email',
+            credentials: { email: 'john@example.com', password: 'wrong' },
+          }) as any,
+        );
 
         const state = store.getState().auth;
         expect(state.isLoading).toBe(false);
@@ -210,11 +216,11 @@ describe('Auth Slice', () => {
       it('should handle successful sign out', async () => {
         // First sign in
         store.dispatch({ type: 'auth/signIn/fulfilled', payload: mockUser });
-        
+
         const mockInstance = {
           signOut: jest.fn().mockResolvedValue(undefined),
         };
-        
+
         (AuthService.getInstance as jest.Mock).mockReturnValue(mockInstance);
 
         await store.dispatch(signOut() as any);
@@ -230,7 +236,7 @@ describe('Auth Slice', () => {
         const mockInstance = {
           signOut: jest.fn().mockRejectedValue(new Error('Sign out failed')),
         };
-        
+
         (AuthService.getInstance as jest.Mock).mockReturnValue(mockInstance);
 
         await store.dispatch(signOut() as any);

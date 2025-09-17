@@ -66,7 +66,9 @@ describe('ContentService', () => {
 
   describe('getHealthTips', () => {
     it('should return cached tips if available', async () => {
-      const cachedTips = [{ ...mockHealthTip, cachedAt: new Date(), viewCount: 0 }];
+      const cachedTips = [
+        { ...mockHealthTip, cachedAt: new Date(), viewCount: 0 },
+      ];
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(cachedTips);
 
       const result = await contentService.getHealthTips();
@@ -86,16 +88,25 @@ describe('ContentService', () => {
     });
 
     it('should apply category filter', async () => {
-      const nutritionTip = { ...mockHealthTip, category: 'nutrition' as HealthCategory };
-      const fitnessTip = { ...mockHealthTip, id: 'tip2', category: 'fitness' as HealthCategory };
+      const nutritionTip = {
+        ...mockHealthTip,
+        category: 'nutrition' as HealthCategory,
+      };
+      const fitnessTip = {
+        ...mockHealthTip,
+        id: 'tip2',
+        category: 'fitness' as HealthCategory,
+      };
       const cachedTips = [
         { ...nutritionTip, cachedAt: new Date(), viewCount: 0 },
         { ...fitnessTip, cachedAt: new Date(), viewCount: 0 },
       ];
-      
+
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(cachedTips);
 
-      const result = await contentService.getHealthTips({ category: 'nutrition' });
+      const result = await contentService.getHealthTips({
+        category: 'nutrition',
+      });
 
       expect(result).toHaveLength(1);
       expect(result[0].category).toBe('nutrition');
@@ -103,12 +114,16 @@ describe('ContentService', () => {
 
     it('should apply difficulty filter', async () => {
       const easyTip = { ...mockHealthTip, difficulty: 'easy' as TipDifficulty };
-      const hardTip = { ...mockHealthTip, id: 'tip2', difficulty: 'hard' as TipDifficulty };
+      const hardTip = {
+        ...mockHealthTip,
+        id: 'tip2',
+        difficulty: 'hard' as TipDifficulty,
+      };
       const cachedTips = [
         { ...easyTip, cachedAt: new Date(), viewCount: 0 },
         { ...hardTip, cachedAt: new Date(), viewCount: 0 },
       ];
-      
+
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(cachedTips);
 
       const result = await contentService.getHealthTips({ difficulty: 'easy' });
@@ -119,15 +134,21 @@ describe('ContentService', () => {
 
     it('should apply search query filter', async () => {
       const matchingTip = { ...mockHealthTip, title: 'Hydration Tips' };
-      const nonMatchingTip = { ...mockHealthTip, id: 'tip2', title: 'Exercise Guide' };
+      const nonMatchingTip = {
+        ...mockHealthTip,
+        id: 'tip2',
+        title: 'Exercise Guide',
+      };
       const cachedTips = [
         { ...matchingTip, cachedAt: new Date(), viewCount: 0 },
         { ...nonMatchingTip, cachedAt: new Date(), viewCount: 0 },
       ];
-      
+
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(cachedTips);
 
-      const result = await contentService.getHealthTips({ searchQuery: 'hydration' });
+      const result = await contentService.getHealthTips({
+        searchQuery: 'hydration',
+      });
 
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('Hydration Tips');
@@ -136,7 +157,9 @@ describe('ContentService', () => {
 
   describe('getHealthTipById', () => {
     it('should return tip by ID and update view count', async () => {
-      const cachedTips = [{ ...mockHealthTip, cachedAt: new Date(), viewCount: 0 }];
+      const cachedTips = [
+        { ...mockHealthTip, cachedAt: new Date(), viewCount: 0 },
+      ];
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(cachedTips);
       mockCacheInstance.updateTipViewCount.mockResolvedValue();
 
@@ -170,7 +193,7 @@ describe('ContentService', () => {
     it('should generate and cache daily tips if none cached', async () => {
       mockCacheInstance.getCachedDailyTips.mockResolvedValue([]);
       mockCacheInstance.getCachedHealthTips.mockResolvedValue([
-        { ...mockHealthTip, cachedAt: new Date(), viewCount: 0 }
+        { ...mockHealthTip, cachedAt: new Date(), viewCount: 0 },
       ]);
       mockCacheInstance.cacheDailyTips.mockResolvedValue();
 
@@ -206,15 +229,17 @@ describe('ContentService', () => {
           userId: 'user1',
           action: 'like',
           timestamp: expect.any(Date),
-        })
+        }),
       );
     });
 
     it('should throw error if sync service fails', async () => {
-      mockSyncInstance.handleOfflineAction.mockRejectedValue(new Error('Sync failed'));
+      mockSyncInstance.handleOfflineAction.mockRejectedValue(
+        new Error('Sync failed'),
+      );
 
       await expect(
-        contentService.recordEngagement('user1', 'tip1', 'like')
+        contentService.recordEngagement('user1', 'tip1', 'like'),
       ).rejects.toThrow('Failed to record engagement');
     });
   });
@@ -222,8 +247,19 @@ describe('ContentService', () => {
   describe('searchTips', () => {
     it('should search tips by title', async () => {
       const tips = [
-        { ...mockHealthTip, title: 'Hydration Tips', cachedAt: new Date(), viewCount: 0 },
-        { ...mockHealthTip, id: 'tip2', title: 'Exercise Guide', cachedAt: new Date(), viewCount: 0 },
+        {
+          ...mockHealthTip,
+          title: 'Hydration Tips',
+          cachedAt: new Date(),
+          viewCount: 0,
+        },
+        {
+          ...mockHealthTip,
+          id: 'tip2',
+          title: 'Exercise Guide',
+          cachedAt: new Date(),
+          viewCount: 0,
+        },
       ];
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(tips);
 
@@ -235,8 +271,19 @@ describe('ContentService', () => {
 
     it('should search tips by content', async () => {
       const tips = [
-        { ...mockHealthTip, content: 'Drink plenty of water', cachedAt: new Date(), viewCount: 0 },
-        { ...mockHealthTip, id: 'tip2', content: 'Do regular exercise', cachedAt: new Date(), viewCount: 0 },
+        {
+          ...mockHealthTip,
+          content: 'Drink plenty of water',
+          cachedAt: new Date(),
+          viewCount: 0,
+        },
+        {
+          ...mockHealthTip,
+          id: 'tip2',
+          content: 'Do regular exercise',
+          cachedAt: new Date(),
+          viewCount: 0,
+        },
       ];
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(tips);
 
@@ -248,8 +295,19 @@ describe('ContentService', () => {
 
     it('should search tips by tags', async () => {
       const tips = [
-        { ...mockHealthTip, tags: ['hydration', 'health'], cachedAt: new Date(), viewCount: 0 },
-        { ...mockHealthTip, id: 'tip2', tags: ['exercise', 'fitness'], cachedAt: new Date(), viewCount: 0 },
+        {
+          ...mockHealthTip,
+          tags: ['hydration', 'health'],
+          cachedAt: new Date(),
+          viewCount: 0,
+        },
+        {
+          ...mockHealthTip,
+          id: 'tip2',
+          tags: ['exercise', 'fitness'],
+          cachedAt: new Date(),
+          viewCount: 0,
+        },
       ];
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(tips);
 
@@ -262,13 +320,20 @@ describe('ContentService', () => {
 
   describe('getTipsByCategory', () => {
     it('should return tips filtered by category', async () => {
-      const nutritionTip = { ...mockHealthTip, category: 'nutrition' as HealthCategory };
-      const fitnessTip = { ...mockHealthTip, id: 'tip2', category: 'fitness' as HealthCategory };
+      const nutritionTip = {
+        ...mockHealthTip,
+        category: 'nutrition' as HealthCategory,
+      };
+      const fitnessTip = {
+        ...mockHealthTip,
+        id: 'tip2',
+        category: 'fitness' as HealthCategory,
+      };
       const cachedTips = [
         { ...nutritionTip, cachedAt: new Date(), viewCount: 0 },
         { ...fitnessTip, cachedAt: new Date(), viewCount: 0 },
       ];
-      
+
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(cachedTips);
 
       const result = await contentService.getTipsByCategory('nutrition');
@@ -281,10 +346,21 @@ describe('ContentService', () => {
   describe('getContentStats', () => {
     it('should return content statistics', async () => {
       const tips = [
-        { ...mockHealthTip, category: 'nutrition' as HealthCategory, tags: ['health', 'water'], estimatedReadTime: 2 },
-        { ...mockHealthTip, id: 'tip2', category: 'fitness' as HealthCategory, tags: ['exercise', 'health'], estimatedReadTime: 3 },
+        {
+          ...mockHealthTip,
+          category: 'nutrition' as HealthCategory,
+          tags: ['health', 'water'],
+          estimatedReadTime: 2,
+        },
+        {
+          ...mockHealthTip,
+          id: 'tip2',
+          category: 'fitness' as HealthCategory,
+          tags: ['exercise', 'health'],
+          estimatedReadTime: 3,
+        },
       ].map(tip => ({ ...tip, cachedAt: new Date(), viewCount: 0 }));
-      
+
       mockCacheInstance.getCachedHealthTips.mockResolvedValue(tips);
 
       const result = await contentService.getContentStats();

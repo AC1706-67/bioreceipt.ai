@@ -53,7 +53,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           isLiked={false}
           isBookmarked={false}
           isCompleted={false}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -68,7 +68,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           isLiked={true}
           isBookmarked={true}
           isCompleted={false}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -77,11 +77,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
 
     it('should have no violations when completed', async () => {
       const { container } = render(
-        <TipCard
-          tip={mockTip}
-          onAction={jest.fn()}
-          isCompleted={true}
-        />
+        <TipCard tip={mockTip} onAction={jest.fn()} isCompleted={true} />,
       );
 
       const results = await axe(container);
@@ -96,7 +92,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           title="Weekly Progress"
           progress={mockProgress}
           onViewDetails={jest.fn()}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -115,7 +111,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           title="Starting Progress"
           progress={zeroProgress}
           onViewDetails={jest.fn()}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -133,7 +129,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           error={networkError}
           onRetry={jest.fn()}
           onGoHome={jest.fn()}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -149,7 +145,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           error={validationError}
           onRetry={jest.fn()}
           onGoHome={jest.fn()}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -164,7 +160,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           error={genericError}
           onRetry={jest.fn()}
           onGoHome={jest.fn()}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -182,7 +178,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             marketing: false,
             personalization: true,
           }}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -198,7 +194,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             marketing: true,
             personalization: true,
           }}
-        />
+        />,
       );
 
       const results = await axe(container);
@@ -219,7 +215,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             aria-describedby="email-help"
           />
           <div id="email-help">Enter your email address</div>
-          
+
           <label htmlFor="password">Password</label>
           <input
             id="password"
@@ -229,7 +225,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             aria-describedby="password-help"
           />
           <div id="password-help">Password must be at least 8 characters</div>
-          
+
           <button type="submit">Sign In</button>
         </form>
       );
@@ -243,7 +239,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
       const TestCheckboxGroup = () => (
         <fieldset>
           <legend>Notification Preferences</legend>
-          
+
           <div>
             <input
               type="checkbox"
@@ -253,7 +249,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             />
             <label htmlFor="email-notifications">Email Notifications</label>
           </div>
-          
+
           <div>
             <input
               type="checkbox"
@@ -263,7 +259,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             />
             <label htmlFor="push-notifications">Push Notifications</label>
           </div>
-          
+
           <div>
             <input
               type="checkbox"
@@ -285,7 +281,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
       const TestRadioGroup = () => (
         <fieldset>
           <legend>Difficulty Level</legend>
-          
+
           <div>
             <input
               type="radio"
@@ -296,24 +292,14 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             />
             <label htmlFor="easy">Easy</label>
           </div>
-          
+
           <div>
-            <input
-              type="radio"
-              id="medium"
-              name="difficulty"
-              value="medium"
-            />
+            <input type="radio" id="medium" name="difficulty" value="medium" />
             <label htmlFor="medium">Medium</label>
           </div>
-          
+
           <div>
-            <input
-              type="radio"
-              id="hard"
-              name="difficulty"
-              value="hard"
-            />
+            <input type="radio" id="hard" name="difficulty" value="hard" />
             <label htmlFor="hard">Hard</label>
           </div>
         </fieldset>
@@ -332,27 +318,39 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           <header>
             <nav aria-label="Main navigation">
               <ul>
-                <li><a href="/home">Home</a></li>
-                <li><a href="/tips">Tips</a></li>
-                <li><a href="/progress">Progress</a></li>
-                <li><a href="/profile">Profile</a></li>
+                <li>
+                  <a href="/home">Home</a>
+                </li>
+                <li>
+                  <a href="/tips">Tips</a>
+                </li>
+                <li>
+                  <a href="/progress">Progress</a>
+                </li>
+                <li>
+                  <a href="/profile">Profile</a>
+                </li>
               </ul>
             </nav>
           </header>
-          
+
           <main>
             <h1>Welcome to Healthy Tips</h1>
             <p>Your journey to better health starts here.</p>
           </main>
-          
+
           <aside aria-label="Quick actions">
             <h2>Quick Actions</h2>
             <ul>
-              <li><button>View Today's Tip</button></li>
-              <li><button>Check Progress</button></li>
+              <li>
+                <button>View Today's Tip</button>
+              </li>
+              <li>
+                <button>Check Progress</button>
+              </li>
             </ul>
           </aside>
-          
+
           <footer>
             <p>&copy; 2024 Healthy Tips App</p>
           </footer>
@@ -370,14 +368,18 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           <a href="#main-content" className="skip-link">
             Skip to main content
           </a>
-          
+
           <nav aria-label="Main navigation">
             <ul>
-              <li><a href="/home">Home</a></li>
-              <li><a href="/about">About</a></li>
+              <li>
+                <a href="/home">Home</a>
+              </li>
+              <li>
+                <a href="/about">About</a>
+              </li>
             </ul>
           </nav>
-          
+
           <main id="main-content">
             <h1>Main Content</h1>
             <p>This is the main content area.</p>
@@ -398,11 +400,11 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
           <div aria-live="polite" aria-label="Status updates">
             <p>Tip saved successfully</p>
           </div>
-          
+
           <div aria-live="assertive" aria-label="Error messages">
             <p role="alert">Please fix the following errors:</p>
           </div>
-          
+
           <div aria-live="off" aria-label="Background updates">
             <p>Background sync in progress...</p>
           </div>
@@ -429,7 +431,7 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             </progress>
             <div id="upload-status">32% complete</div>
           </div>
-          
+
           <div>
             <label htmlFor="loading-spinner">Loading</label>
             <div
@@ -460,13 +462,13 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
             src="https://example.com/health-tip.jpg"
             alt="Person drinking water outdoors"
           />
-          
+
           <img
             src="https://example.com/decoration.jpg"
             alt=""
             role="presentation"
           />
-          
+
           <figure>
             <img
               src="https://example.com/chart.jpg"
@@ -537,15 +539,11 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
               aria-invalid="true"
               aria-describedby="email-error-message"
             />
-            <div
-              id="email-error-message"
-              role="alert"
-              aria-live="assertive"
-            >
+            <div id="email-error-message" role="alert" aria-live="assertive">
               Please enter a valid email address
             </div>
           </div>
-          
+
           <div>
             <label htmlFor="password-error">Password</label>
             <input
@@ -556,15 +554,11 @@ describe('Accessibility (WCAG 2.1 AA) Compliance Tests', () => {
               aria-invalid="true"
               aria-describedby="password-error-message"
             />
-            <div
-              id="password-error-message"
-              role="alert"
-              aria-live="assertive"
-            >
+            <div id="password-error-message" role="alert" aria-live="assertive">
               Password must be at least 8 characters long
             </div>
           </div>
-          
+
           <button type="submit">Submit</button>
         </form>
       );

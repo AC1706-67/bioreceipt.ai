@@ -22,7 +22,9 @@ global.fetch = jest.fn();
 const mockCacheService = cacheService as jest.Mocked<typeof cacheService>;
 const mockLoggingService = loggingService as jest.Mocked<typeof loggingService>;
 const mockTokenManager = tokenManager as jest.Mocked<typeof tokenManager>;
-const mockPromptEngineering = promptEngineeringService as jest.Mocked<typeof promptEngineeringService>;
+const mockPromptEngineering = promptEngineeringService as jest.Mocked<
+  typeof promptEngineeringService
+>;
 const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
 describe('KiroAIService', () => {
@@ -92,7 +94,7 @@ describe('KiroAIService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default mocks
     mockCacheService.get.mockResolvedValue(null);
     mockCacheService.set.mockResolvedValue(undefined);
@@ -167,20 +169,26 @@ describe('KiroAIService', () => {
                 tips: [
                   {
                     title: 'Start Your Day with Protein',
-                    content: 'Begin your morning with a protein-rich breakfast...',
+                    content:
+                      'Begin your morning with a protein-rich breakfast...',
                     category: 'nutrition',
                     difficulty: 'easy',
                     estimatedReadTime: 3,
                     tags: ['breakfast', 'protein'],
                     personalizedReason: 'Perfect for your nutrition goals',
                     confidenceScore: 0.9,
-                    actionItems: ['Choose protein source', 'Prepare ingredients'],
+                    actionItems: [
+                      'Choose protein source',
+                      'Prepare ingredients',
+                    ],
                     motivationalHook: 'Great job on your 8-day streak!',
                   },
                 ],
                 personalizationScore: 0.85,
-                reasoning: 'Matched to your nutrition interests and morning routine',
-                adaptationStrategy: 'Used encouraging tone for achievement motivation',
+                reasoning:
+                  'Matched to your nutrition interests and morning routine',
+                adaptationStrategy:
+                  'Used encouraging tone for achievement motivation',
                 followUpSuggestions: ['Hydration tips', 'Meal prep strategies'],
               }),
             },
@@ -204,7 +212,7 @@ describe('KiroAIService', () => {
         mockProfile,
         mockEngagementData,
         mockRecentActivity,
-        { count: 1 }
+        { count: 1 },
       );
 
       expect(result.tips).toHaveLength(1);
@@ -220,10 +228,10 @@ describe('KiroAIService', () => {
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'Authorization': 'Bearer mock-token',
+            Authorization: 'Bearer mock-token',
             'X-User-ID': mockUserId,
           }),
-        })
+        }),
       );
     });
 
@@ -243,14 +251,14 @@ describe('KiroAIService', () => {
         mockProfile,
         mockEngagementData,
         mockRecentActivity,
-        { count: 1 }
+        { count: 1 },
       );
 
       expect(result).toEqual(cachedResponse);
       expect(mockFetch).not.toHaveBeenCalled();
       expect(mockLoggingService.logInfo).toHaveBeenCalledWith(
         'Returned cached AI response',
-        expect.objectContaining({ cacheHit: true })
+        expect.objectContaining({ cacheHit: true }),
       );
     });
 
@@ -288,7 +296,11 @@ describe('KiroAIService', () => {
             },
           },
         ],
-        usage: { prompt_tokens: 400, completion_tokens: 200, total_tokens: 600 },
+        usage: {
+          prompt_tokens: 400,
+          completion_tokens: 200,
+          total_tokens: 600,
+        },
         model: 'kiro-health-v2',
       };
 
@@ -302,7 +314,7 @@ describe('KiroAIService', () => {
         mockProfile,
         mockEngagementData,
         mockRecentActivity,
-        { count: 1 }
+        { count: 1 },
       );
 
       expect(result.tips[0].title).toBe('Retry Success');
@@ -342,7 +354,7 @@ describe('KiroAIService', () => {
         mockProfile,
         mockEngagementData,
         mockRecentActivity,
-        { count: 1 }
+        { count: 1 },
       );
 
       expect(result.tips).toHaveLength(1);
@@ -374,17 +386,18 @@ describe('KiroAIService', () => {
           mockProfile,
           mockEngagementData,
           mockRecentActivity,
-          { count: 1 }
-        )
+          { count: 1 },
+        ),
       ).rejects.toThrow('Invalid AI response: missing or invalid tips array');
     });
 
     it('should handle API timeout', async () => {
       // Mock a timeout scenario
-      mockFetch.mockImplementation(() => 
-        new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('AbortError')), 100);
-        })
+      mockFetch.mockImplementation(
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('AbortError')), 100);
+          }),
       );
 
       // Mock the AbortError
@@ -398,8 +411,8 @@ describe('KiroAIService', () => {
           mockProfile,
           mockEngagementData,
           mockRecentActivity,
-          { count: 1 }
-        )
+          { count: 1 },
+        ),
       ).rejects.toThrow();
 
       expect(mockLoggingService.logWarning).toHaveBeenCalled();
@@ -433,7 +446,11 @@ describe('KiroAIService', () => {
             },
           },
         ],
-        usage: { prompt_tokens: 300, completion_tokens: 150, total_tokens: 450 },
+        usage: {
+          prompt_tokens: 300,
+          completion_tokens: 150,
+          total_tokens: 450,
+        },
         model: 'kiro-health-v2',
       };
 
@@ -450,14 +467,14 @@ describe('KiroAIService', () => {
           mockProfile,
           mockEngagementData,
           mockRecentActivity,
-          options
+          options,
         ),
         kiroAIService.generatePersonalizedTips(
           mockUserId,
           mockProfile,
           mockEngagementData,
           mockRecentActivity,
-          options
+          options,
         ),
       ]);
 
@@ -480,7 +497,7 @@ describe('KiroAIService', () => {
         'request-123',
         'tip-456',
         'positive',
-        'Very helpful tip'
+        'Very helpful tip',
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -488,11 +505,11 @@ describe('KiroAIService', () => {
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'Authorization': 'Bearer mock-token',
+            Authorization: 'Bearer mock-token',
             'X-Request-ID': 'request-123',
           }),
           body: expect.stringContaining('"feedback":"positive"'),
-        })
+        }),
       );
 
       expect(mockLoggingService.logInfo).toHaveBeenCalledWith(
@@ -500,7 +517,7 @@ describe('KiroAIService', () => {
         expect.objectContaining({
           userId: mockUserId,
           feedback: 'positive',
-        })
+        }),
       );
     });
 
@@ -513,14 +530,14 @@ describe('KiroAIService', () => {
         'request-123',
         'tip-456',
         'negative',
-        'Not helpful'
+        'Not helpful',
       );
 
       expect(mockLoggingService.logWarning).toHaveBeenCalledWith(
         'Failed to record AI feedback',
         expect.objectContaining({
           error: 'Feedback API error',
-        })
+        }),
       );
     });
   });
@@ -590,13 +607,13 @@ describe('KiroAIService', () => {
         mockProfile,
         mockEngagementData,
         mockRecentActivity,
-        { count: 1 }
+        { count: 1 },
       );
 
       expect(mockCacheService.set).toHaveBeenCalledWith(
         expect.stringContaining('ai-personalized-tips'),
         expect.any(Object),
-        expect.any(Number) // TTL should be calculated based on confidence
+        expect.any(Number), // TTL should be calculated based on confidence
       );
     });
 
@@ -614,7 +631,9 @@ describe('KiroAIService', () => {
         },
       };
 
-      mockPromptEngineering.buildUserContext.mockResolvedValueOnce(morningContext);
+      mockPromptEngineering.buildUserContext.mockResolvedValueOnce(
+        morningContext,
+      );
 
       const mockAIResponse = {
         choices: [
@@ -641,14 +660,14 @@ describe('KiroAIService', () => {
         mockProfile,
         mockEngagementData,
         mockRecentActivity,
-        { count: 1 }
+        { count: 1 },
       );
 
       // Should cache with reduced TTL due to morning time
       expect(mockCacheService.set).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(Object),
-        expect.any(Number)
+        expect.any(Number),
       );
     });
   });

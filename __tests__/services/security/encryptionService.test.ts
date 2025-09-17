@@ -110,9 +110,9 @@ describe('EncryptionService', () => {
       const uninitializedService = EncryptionService.getInstance();
       uninitializedService.secureWipe(); // Clear initialization
 
-      await expect(
-        uninitializedService.encryptData('test')
-      ).rejects.toThrow('Encryption service not initialized');
+      await expect(uninitializedService.encryptData('test')).rejects.toThrow(
+        'Encryption service not initialized',
+      );
     });
   });
 
@@ -144,9 +144,9 @@ describe('EncryptionService', () => {
         timestamp: Date.now(),
       };
 
-      await expect(
-        encryptionService.decryptData(invalidInput)
-      ).rejects.toThrow('Unsupported encryption version: 2.0');
+      await expect(encryptionService.decryptData(invalidInput)).rejects.toThrow(
+        'Unsupported encryption version: 2.0',
+      );
     });
 
     it('should throw error when not initialized', async () => {
@@ -162,9 +162,9 @@ describe('EncryptionService', () => {
         timestamp: Date.now(),
       };
 
-      await expect(
-        uninitializedService.decryptData(mockInput)
-      ).rejects.toThrow('Encryption service not initialized');
+      await expect(uninitializedService.decryptData(mockInput)).rejects.toThrow(
+        'Encryption service not initialized',
+      );
     });
   });
 
@@ -178,7 +178,11 @@ describe('EncryptionService', () => {
       const userId = 'user-123';
       const dataType = 'medical_history';
 
-      const result = await encryptionService.encryptPHI(phiData, userId, dataType);
+      const result = await encryptionService.encryptPHI(
+        phiData,
+        userId,
+        dataType,
+      );
 
       expect(result).toHaveProperty('encryptedData');
       expect(result).toHaveProperty('timestamp');
@@ -189,8 +193,16 @@ describe('EncryptionService', () => {
       const userId = 'user-123';
       const dataType = 'health_data';
 
-      const encrypted = await encryptionService.encryptPHI(phiData, userId, dataType);
-      const decrypted = await encryptionService.decryptPHI(encrypted, userId, dataType);
+      const encrypted = await encryptionService.encryptPHI(
+        phiData,
+        userId,
+        dataType,
+      );
+      const decrypted = await encryptionService.decryptPHI(
+        encrypted,
+        userId,
+        dataType,
+      );
 
       // Note: This will return the mocked JSON.parse result
       expect(typeof decrypted).toBe('object');
@@ -228,7 +240,11 @@ describe('EncryptionService', () => {
       const password = 'test-password';
       const wrongPassword = 'wrong-password';
       const { hash, salt } = encryptionService.hashPassword(password);
-      const isValid = encryptionService.verifyPassword(wrongPassword, hash, salt);
+      const isValid = encryptionService.verifyPassword(
+        wrongPassword,
+        hash,
+        salt,
+      );
 
       expect(isValid).toBe(false);
     });
@@ -276,9 +292,9 @@ describe('EncryptionService', () => {
         throw new Error('Encryption failed');
       });
 
-      await expect(
-        encryptionService.encryptData('test')
-      ).rejects.toThrow('Data encryption failed');
+      await expect(encryptionService.encryptData('test')).rejects.toThrow(
+        'Data encryption failed',
+      );
     });
 
     it('should handle decryption errors gracefully', async () => {
@@ -296,9 +312,9 @@ describe('EncryptionService', () => {
         timestamp: Date.now(),
       };
 
-      await expect(
-        encryptionService.decryptData(mockInput)
-      ).rejects.toThrow('Data decryption failed');
+      await expect(encryptionService.decryptData(mockInput)).rejects.toThrow(
+        'Data decryption failed',
+      );
     });
   });
 
@@ -319,9 +335,9 @@ describe('EncryptionService', () => {
         toString: () => 'different-hmac',
       });
 
-      await expect(
-        encryptionService.decryptData(mockInput)
-      ).rejects.toThrow('Data integrity verification failed');
+      await expect(encryptionService.decryptData(mockInput)).rejects.toThrow(
+        'Data integrity verification failed',
+      );
     });
 
     it('should use proper key derivation', async () => {

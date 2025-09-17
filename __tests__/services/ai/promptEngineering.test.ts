@@ -90,14 +90,16 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.profile).toEqual(mockProfile);
       expect(context.currentStreak).toBe(12);
       expect(context.engagementHistory.totalInteractions).toBe(50);
       expect(context.engagementHistory.completionRate).toBe(0.8);
-      expect(context.timeContext.timeOfDay).toMatch(/morning|afternoon|evening|night|early_morning|midday/);
+      expect(context.timeContext.timeOfDay).toMatch(
+        /morning|afternoon|evening|night|early_morning|midday/,
+      );
       expect(context.timeContext.timezone).toBeDefined();
       expect(context.personalityInsights.motivationStyle).toBeDefined();
       expect(context.contentPreferences.preferredLength).toBeDefined();
@@ -108,20 +110,20 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       // Should infer achievement motivation from weight_loss goal
       expect(context.personalityInsights.motivationStyle).toBe('achievement');
-      
+
       // Should infer communication preference from engagement patterns
       expect(context.personalityInsights.communicationPreference).toMatch(
-        /direct|encouraging|scientific|casual/
+        /direct|encouraging|scientific|casual/,
       );
-      
+
       // Should infer challenge level from difficulty and completion rate
       expect(context.personalityInsights.challengeLevel).toMatch(
-        /comfort_zone|moderate_challenge|high_challenge/
+        /comfort_zone|moderate_challenge|high_challenge/,
       );
     });
 
@@ -130,15 +132,17 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.timeContext.currentTime).toBeInstanceOf(Date);
       expect(context.timeContext.dayOfWeek).toMatch(
-        /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/
+        /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/,
       );
       expect(typeof context.timeContext.isWeekend).toBe('boolean');
-      expect(context.timeContext.seasonalContext).toMatch(/spring|summer|fall|winter/);
+      expect(context.timeContext.seasonalContext).toMatch(
+        /spring|summer|fall|winter/,
+      );
     });
 
     it('should handle errors gracefully', async () => {
@@ -149,8 +153,8 @@ describe('PromptEngineeringService', () => {
           'test-user-123',
           mockProfile,
           invalidEngagementData,
-          mockRecentActivity
-        )
+          mockRecentActivity,
+        ),
       ).rejects.toThrow();
 
       expect(mockLoggingService.logError).toHaveBeenCalled();
@@ -165,7 +169,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
     });
 
@@ -177,14 +181,21 @@ describe('PromptEngineeringService', () => {
         context: mockUserContext,
       };
 
-      const prompt = promptEngineeringService.generatePersonalizationPrompt(request);
+      const prompt =
+        promptEngineeringService.generatePersonalizationPrompt(request);
 
       expect(prompt.systemPrompt).toContain('KIRO');
       expect(prompt.systemPrompt).toContain('health and wellness coach');
-      expect(prompt.systemPrompt).toContain(mockUserContext.personalityInsights.motivationStyle);
-      expect(prompt.systemPrompt).toContain(mockUserContext.contentPreferences.tonePreference);
+      expect(prompt.systemPrompt).toContain(
+        mockUserContext.personalityInsights.motivationStyle,
+      );
+      expect(prompt.systemPrompt).toContain(
+        mockUserContext.contentPreferences.tonePreference,
+      );
 
-      expect(prompt.userPrompt).toContain('Generate 3 highly personalized health tips');
+      expect(prompt.userPrompt).toContain(
+        'Generate 3 highly personalized health tips',
+      );
       expect(prompt.userPrompt).toContain(mockProfile.name);
       expect(prompt.userPrompt).toContain(mockProfile.age.toString());
       expect(prompt.userPrompt).toContain('nutrition (intermediate level)');
@@ -192,7 +203,9 @@ describe('PromptEngineeringService', () => {
 
       expect(prompt.constraints).toBeInstanceOf(Array);
       expect(prompt.constraints.length).toBeGreaterThan(5);
-      expect(prompt.constraints).toContain('Each tip must be actionable within the next 24 hours');
+      expect(prompt.constraints).toContain(
+        'Each tip must be actionable within the next 24 hours',
+      );
 
       expect(prompt.outputFormat).toBeDefined();
       expect(prompt.examples).toBeInstanceOf(Array);
@@ -207,10 +220,13 @@ describe('PromptEngineeringService', () => {
         context: mockUserContext,
       };
 
-      const prompt = promptEngineeringService.generatePersonalizationPrompt(request);
+      const prompt =
+        promptEngineeringService.generatePersonalizationPrompt(request);
 
       expect(prompt.userPrompt).toContain('Focus on nutrition category tips');
-      expect(prompt.userPrompt).toContain('Generate 2 highly personalized health tips');
+      expect(prompt.userPrompt).toContain(
+        'Generate 2 highly personalized health tips',
+      );
     });
 
     it('should include mood context when provided', () => {
@@ -222,7 +238,8 @@ describe('PromptEngineeringService', () => {
         context: mockUserContext,
       };
 
-      const prompt = promptEngineeringService.generatePersonalizationPrompt(request);
+      const prompt =
+        promptEngineeringService.generatePersonalizationPrompt(request);
 
       expect(prompt.userPrompt).toContain('Current Mood: stressed');
     });
@@ -243,9 +260,12 @@ describe('PromptEngineeringService', () => {
         context: morningContext,
       };
 
-      const prompt = promptEngineeringService.generatePersonalizationPrompt(request);
+      const prompt =
+        promptEngineeringService.generatePersonalizationPrompt(request);
 
-      expect(prompt.constraints).toContain('Focus on energizing and preparation activities');
+      expect(prompt.constraints).toContain(
+        'Focus on energizing and preparation activities',
+      );
     });
 
     it('should adapt constraints based on streak length', () => {
@@ -261,10 +281,11 @@ describe('PromptEngineeringService', () => {
         context: highStreakContext,
       };
 
-      const prompt = promptEngineeringService.generatePersonalizationPrompt(request);
+      const prompt =
+        promptEngineeringService.generatePersonalizationPrompt(request);
 
       expect(prompt.constraints).toContain(
-        'Provide advanced or challenging recommendations to maintain engagement'
+        'Provide advanced or challenging recommendations to maintain engagement',
       );
     });
 
@@ -284,9 +305,12 @@ describe('PromptEngineeringService', () => {
         context: scientificContext,
       };
 
-      const prompt = promptEngineeringService.generatePersonalizationPrompt(request);
+      const prompt =
+        promptEngineeringService.generatePersonalizationPrompt(request);
 
-      expect(prompt.constraints).toContain('Include relevant research or scientific backing');
+      expect(prompt.constraints).toContain(
+        'Include relevant research or scientific backing',
+      );
     });
   });
 
@@ -299,7 +323,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       mockPrompt = {
@@ -319,7 +343,10 @@ describe('PromptEngineeringService', () => {
     });
 
     it('should validate high-quality prompt successfully', () => {
-      const validation = promptEngineeringService.validatePrompt(mockPrompt, mockUserContext);
+      const validation = promptEngineeringService.validatePrompt(
+        mockPrompt,
+        mockUserContext,
+      );
 
       expect(validation.isValid).toBe(true);
       expect(validation.score).toBeGreaterThan(0.8);
@@ -333,10 +360,15 @@ describe('PromptEngineeringService', () => {
         userPrompt: 'Short prompt',
       };
 
-      const validation = promptEngineeringService.validatePrompt(shortPrompt, mockUserContext);
+      const validation = promptEngineeringService.validatePrompt(
+        shortPrompt,
+        mockUserContext,
+      );
 
       expect(validation.score).toBeLessThan(1.0);
-      expect(validation.issues).toContain('Prompt may be too short for comprehensive personalization');
+      expect(validation.issues).toContain(
+        'Prompt may be too short for comprehensive personalization',
+      );
     });
 
     it('should identify missing personalization elements', () => {
@@ -345,7 +377,10 @@ describe('PromptEngineeringService', () => {
         userPrompt: 'Generate health tips without any personal context',
       };
 
-      const validation = promptEngineeringService.validatePrompt(impersonalPrompt, mockUserContext);
+      const validation = promptEngineeringService.validatePrompt(
+        impersonalPrompt,
+        mockUserContext,
+      );
 
       expect(validation.score).toBeLessThan(1.0);
       expect(validation.issues).toContain('Missing user name personalization');
@@ -358,10 +393,15 @@ describe('PromptEngineeringService', () => {
         constraints: ['Must be actionable', 'Be helpful'],
       };
 
-      const validation = promptEngineeringService.validatePrompt(weakPrompt, mockUserContext);
+      const validation = promptEngineeringService.validatePrompt(
+        weakPrompt,
+        mockUserContext,
+      );
 
       expect(validation.score).toBeLessThan(1.0);
-      expect(validation.issues).toContain('Insufficient constraints for quality control');
+      expect(validation.issues).toContain(
+        'Insufficient constraints for quality control',
+      );
     });
 
     it('should provide relevant suggestions', () => {
@@ -370,9 +410,14 @@ describe('PromptEngineeringService', () => {
         currentStreak: 15,
       };
 
-      const validation = promptEngineeringService.validatePrompt(mockPrompt, highStreakContext);
+      const validation = promptEngineeringService.validatePrompt(
+        mockPrompt,
+        highStreakContext,
+      );
 
-      expect(validation.suggestions).toContain('Consider adding streak milestone recognition');
+      expect(validation.suggestions).toContain(
+        'Consider adding streak milestone recognition',
+      );
     });
 
     it('should suggest focus on simpler recommendations for low completion rate', () => {
@@ -384,9 +429,14 @@ describe('PromptEngineeringService', () => {
         },
       };
 
-      const validation = promptEngineeringService.validatePrompt(mockPrompt, lowEngagementContext);
+      const validation = promptEngineeringService.validatePrompt(
+        mockPrompt,
+        lowEngagementContext,
+      );
 
-      expect(validation.suggestions).toContain('Focus on simpler, more achievable recommendations');
+      expect(validation.suggestions).toContain(
+        'Focus on simpler, more achievable recommendations',
+      );
     });
   });
 
@@ -401,7 +451,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         achievementProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.personalityInsights.motivationStyle).toBe('achievement');
@@ -417,7 +467,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         highEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.personalityInsights.motivationStyle).toBe('knowledge');
@@ -433,10 +483,12 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         longReadData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
-      expect(context.personalityInsights.communicationPreference).toBe('scientific');
+      expect(context.personalityInsights.communicationPreference).toBe(
+        'scientific',
+      );
     });
 
     it('should infer direct communication from high completion rate', async () => {
@@ -449,10 +501,12 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         highCompletionData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
-      expect(context.personalityInsights.communicationPreference).toBe('direct');
+      expect(context.personalityInsights.communicationPreference).toBe(
+        'direct',
+      );
     });
   });
 
@@ -467,7 +521,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         shortReadData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.contentPreferences.preferredLength).toBe('quick');
@@ -484,7 +538,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         longReadData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.contentPreferences.preferredLength).toBe('detailed');
@@ -503,7 +557,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         advancedProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.contentPreferences.evidencePreference).toBe('scientific');
@@ -515,9 +569,11 @@ describe('PromptEngineeringService', () => {
     it('should correctly identify time of day', async () => {
       // Mock different times
       const originalDate = Date;
-      
+
       // Test morning (8 AM)
-      global.Date = jest.fn(() => new originalDate('2024-01-01T08:00:00Z')) as any;
+      global.Date = jest.fn(
+        () => new originalDate('2024-01-01T08:00:00Z'),
+      ) as any;
       global.Date.now = originalDate.now;
       global.Date.prototype = originalDate.prototype;
 
@@ -525,7 +581,7 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(context.timeContext.timeOfDay).toBe('early_morning');
@@ -539,12 +595,12 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
       expect(typeof context.timeContext.isWeekend).toBe('boolean');
       expect(context.timeContext.dayOfWeek).toMatch(
-        /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/
+        /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/,
       );
     });
 
@@ -553,10 +609,12 @@ describe('PromptEngineeringService', () => {
         'test-user-123',
         mockProfile,
         mockEngagementData,
-        mockRecentActivity
+        mockRecentActivity,
       );
 
-      expect(context.timeContext.seasonalContext).toMatch(/spring|summer|fall|winter/);
+      expect(context.timeContext.seasonalContext).toMatch(
+        /spring|summer|fall|winter/,
+      );
     });
   });
 });

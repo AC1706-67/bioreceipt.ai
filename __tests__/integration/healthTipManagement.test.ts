@@ -16,7 +16,9 @@ jest.mock('../../src/services/auth/authService');
 jest.mock('../../src/utils/tokenManager');
 jest.mock('../../src/services/logging/loggingService');
 
-const mockHealthTipService = healthTipService as jest.Mocked<typeof healthTipService>;
+const mockHealthTipService = healthTipService as jest.Mocked<
+  typeof healthTipService
+>;
 const mockAuthService = authService as jest.Mocked<typeof authService>;
 const mockTokenManager = tokenManager as jest.Mocked<typeof tokenManager>;
 const mockLoggingService = loggingService as jest.Mocked<typeof loggingService>;
@@ -64,7 +66,8 @@ describe('HealthTip Management Integration Tests', () => {
     it('should handle complete health tip lifecycle', async () => {
       const healthTipData = {
         title: 'Complete Lifecycle Test Tip',
-        content: 'This is a comprehensive test of the health tip management system with sufficient content.',
+        content:
+          'This is a comprehensive test of the health tip management system with sufficient content.',
         category: 'nutrition',
         difficulty: 'easy',
         estimatedReadTime: 5,
@@ -88,7 +91,8 @@ describe('HealthTip Management Integration Tests', () => {
       const updatedTip = {
         ...createdTip,
         title: 'Updated Lifecycle Test Tip',
-        content: 'This is updated content for the comprehensive test with sufficient length.',
+        content:
+          'This is updated content for the comprehensive test with sufficient length.',
         updatedAt: '2024-01-15T12:00:00Z',
       };
 
@@ -132,7 +136,8 @@ describe('HealthTip Management Integration Tests', () => {
       // 3. Update health tip
       const updateData = {
         title: 'Updated Lifecycle Test Tip',
-        content: 'This is updated content for the comprehensive test with sufficient length.',
+        content:
+          'This is updated content for the comprehensive test with sufficient length.',
         category: 'exercise',
         difficulty: 'medium',
         estimatedReadTime: 8,
@@ -164,24 +169,31 @@ describe('HealthTip Management Integration Tests', () => {
         .expect(200);
 
       expect(deleteResponse.body.success).toBe(true);
-      expect(deleteResponse.body.message).toBe('Health tip deleted successfully');
+      expect(deleteResponse.body.message).toBe(
+        'Health tip deleted successfully',
+      );
 
       // Verify all service methods were called correctly
       expect(mockHealthTipService.createHealthTip).toHaveBeenCalledWith({
         ...healthTipData,
         authorId: testUser.id,
       });
-      expect(mockHealthTipService.getHealthTipById).toHaveBeenCalledWith('created-tip-id');
-      expect(mockHealthTipService.updateHealthTip).toHaveBeenCalledWith('created-tip-id', updateData);
-      expect(mockHealthTipService.deleteHealthTip).toHaveBeenCalledWith('created-tip-id');
+      expect(mockHealthTipService.getHealthTipById).toHaveBeenCalledWith(
+        'created-tip-id',
+      );
+      expect(mockHealthTipService.updateHealthTip).toHaveBeenCalledWith(
+        'created-tip-id',
+        updateData,
+      );
+      expect(mockHealthTipService.deleteHealthTip).toHaveBeenCalledWith(
+        'created-tip-id',
+      );
     });
   });
 
   describe('Authentication and Authorization', () => {
     it('should reject requests without authentication token', async () => {
-      const response = await request(app)
-        .get('/api/health-tips')
-        .expect(401);
+      const response = await request(app).get('/api/health-tips').expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('MISSING_TOKEN');
@@ -252,7 +264,9 @@ describe('HealthTip Management Integration Tests', () => {
     });
 
     it('should handle service errors gracefully', async () => {
-      mockHealthTipService.getHealthTips.mockRejectedValue(new Error('Database connection failed'));
+      mockHealthTipService.getHealthTips.mockRejectedValue(
+        new Error('Database connection failed'),
+      );
 
       const response = await request(app)
         .get('/api/health-tips')
@@ -270,7 +284,8 @@ describe('HealthTip Management Integration Tests', () => {
 
       const validData = {
         title: 'Duplicate Title Test',
-        content: 'This is a test for duplicate title handling with sufficient content length.',
+        content:
+          'This is a test for duplicate title handling with sufficient content length.',
         category: 'nutrition',
         difficulty: 'easy',
         estimatedReadTime: 5,
@@ -304,7 +319,9 @@ describe('HealthTip Management Integration Tests', () => {
         popularityScore: 244,
       };
 
-      mockHealthTipService.getHealthTipAnalytics.mockResolvedValue(mockAnalytics);
+      mockHealthTipService.getHealthTipAnalytics.mockResolvedValue(
+        mockAnalytics,
+      );
 
       const response = await request(app)
         .get('/api/health-tips/test-tip-id/analytics')

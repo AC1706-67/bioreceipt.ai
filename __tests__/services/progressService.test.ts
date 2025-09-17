@@ -2,7 +2,10 @@
  * Unit tests for Progress Service
  */
 
-import { ProgressService, ProgressUpdate } from '../../src/services/progress/progressService';
+import {
+  ProgressService,
+  ProgressUpdate,
+} from '../../src/services/progress/progressService';
 import { UserProgress } from '../../src/types';
 import * as storage from '../../src/utils/storage';
 
@@ -138,7 +141,7 @@ describe('ProgressService', () => {
       await progressService.updateProgress(update);
 
       const storeCall = mockStorage.storeData.mock.calls.find(
-        call => call[0] === 'USER_PROGRESS'
+        call => call[0] === 'USER_PROGRESS',
       );
       const updatedProgress = storeCall?.[1] as UserProgress;
 
@@ -156,7 +159,7 @@ describe('ProgressService', () => {
       await progressService.updateProgress(update);
 
       const storeCall = mockStorage.storeData.mock.calls.find(
-        call => call[0] === 'USER_PROGRESS'
+        call => call[0] === 'USER_PROGRESS',
       );
       const updatedProgress = storeCall?.[1] as UserProgress;
 
@@ -205,7 +208,7 @@ describe('ProgressService', () => {
 
       expect(milestones).toBeDefined();
       expect(milestones.length).toBeGreaterThan(0);
-      
+
       // Should have achieved 3-day and 7-day milestones
       const threeDayMilestone = milestones.find(m => m.days === 3);
       const sevenDayMilestone = milestones.find(m => m.days === 7);
@@ -237,7 +240,9 @@ describe('ProgressService', () => {
 
       mockStorage.getData.mockResolvedValue(mockDailyActivity);
 
-      const weeklyProgress = await progressService.getWeeklyProgress(mockUserId);
+      const weeklyProgress = await progressService.getWeeklyProgress(
+        mockUserId,
+      );
 
       expect(weeklyProgress).toBeDefined();
       expect(weeklyProgress.activities).toHaveLength(7);
@@ -248,7 +253,9 @@ describe('ProgressService', () => {
     it('should handle missing daily activities', async () => {
       mockStorage.getData.mockResolvedValue(null);
 
-      const weeklyProgress = await progressService.getWeeklyProgress(mockUserId);
+      const weeklyProgress = await progressService.getWeeklyProgress(
+        mockUserId,
+      );
 
       expect(weeklyProgress).toBeDefined();
       expect(weeklyProgress.totalTipsCompleted).toBe(0);
@@ -345,7 +352,7 @@ describe('ProgressService', () => {
           currentStreak: 0,
           longestStreak: 0,
           totalTipsCompleted: 0,
-        })
+        }),
       );
     });
   });

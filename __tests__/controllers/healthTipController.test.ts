@@ -12,14 +12,16 @@ import { loggingService } from '../../src/services/logging/loggingService';
 jest.mock('../../src/services/healthTipService');
 jest.mock('../../src/services/logging/loggingService');
 
-const mockHealthTipService = healthTipService as jest.Mocked<typeof healthTipService>;
+const mockHealthTipService = healthTipService as jest.Mocked<
+  typeof healthTipService
+>;
 const mockLoggingService = loggingService as jest.Mocked<typeof loggingService>;
 
 // Create Express app for testing
 const createTestApp = () => {
   const app = express();
   app.use(express.json());
-  
+
   // Add mock user middleware for testing
   app.use((req, res, next) => {
     req.user = { id: 'test-user-id', email: 'test@example.com' };
@@ -27,12 +29,30 @@ const createTestApp = () => {
   });
 
   // Define routes
-  app.get('/api/health-tips', healthTipController.getHealthTips.bind(healthTipController));
-  app.get('/api/health-tips/:id', healthTipController.getHealthTipById.bind(healthTipController));
-  app.post('/api/health-tips', healthTipController.createHealthTip.bind(healthTipController));
-  app.put('/api/health-tips/:id', healthTipController.updateHealthTip.bind(healthTipController));
-  app.delete('/api/health-tips/:id', healthTipController.deleteHealthTip.bind(healthTipController));
-  app.get('/api/health-tips/:id/analytics', healthTipController.getHealthTipAnalytics.bind(healthTipController));
+  app.get(
+    '/api/health-tips',
+    healthTipController.getHealthTips.bind(healthTipController),
+  );
+  app.get(
+    '/api/health-tips/:id',
+    healthTipController.getHealthTipById.bind(healthTipController),
+  );
+  app.post(
+    '/api/health-tips',
+    healthTipController.createHealthTip.bind(healthTipController),
+  );
+  app.put(
+    '/api/health-tips/:id',
+    healthTipController.updateHealthTip.bind(healthTipController),
+  );
+  app.delete(
+    '/api/health-tips/:id',
+    healthTipController.deleteHealthTip.bind(healthTipController),
+  );
+  app.get(
+    '/api/health-tips/:id/analytics',
+    healthTipController.getHealthTipAnalytics.bind(healthTipController),
+  );
 
   return app;
 };
@@ -43,7 +63,7 @@ describe('HealthTipController Integration Tests', () => {
   beforeEach(() => {
     app = createTestApp();
     jest.clearAllMocks();
-    
+
     // Setup default mock implementations
     mockLoggingService.logInfo.mockResolvedValue(undefined);
     mockLoggingService.logError.mockResolvedValue(undefined);
@@ -57,7 +77,8 @@ describe('HealthTipController Integration Tests', () => {
           {
             id: '1',
             title: 'Test Health Tip',
-            content: 'This is a test health tip with sufficient content for validation.',
+            content:
+              'This is a test health tip with sufficient content for validation.',
             category: 'nutrition',
             difficulty: 'easy',
             estimatedReadTime: 5,
@@ -83,9 +104,7 @@ describe('HealthTipController Integration Tests', () => {
 
       mockHealthTipService.getHealthTips.mockResolvedValue(mockResult);
 
-      const response = await request(app)
-        .get('/api/health-tips')
-        .expect(200);
+      const response = await request(app).get('/api/health-tips').expect(200);
 
       expect(response.body).toEqual({
         data: mockResult.data,
@@ -158,11 +177,11 @@ describe('HealthTipController Integration Tests', () => {
     });
 
     it('should return 500 when service throws error', async () => {
-      mockHealthTipService.getHealthTips.mockRejectedValue(new Error('Database error'));
+      mockHealthTipService.getHealthTips.mockRejectedValue(
+        new Error('Database error'),
+      );
 
-      const response = await request(app)
-        .get('/api/health-tips')
-        .expect(500);
+      const response = await request(app).get('/api/health-tips').expect(500);
 
       expect(response.body).toEqual({
         success: false,
@@ -180,7 +199,8 @@ describe('HealthTipController Integration Tests', () => {
       const mockHealthTip = {
         id: '1',
         title: 'Test Health Tip',
-        content: 'This is a test health tip with sufficient content for validation.',
+        content:
+          'This is a test health tip with sufficient content for validation.',
         category: 'nutrition',
         difficulty: 'easy',
         estimatedReadTime: 5,
@@ -196,9 +216,7 @@ describe('HealthTipController Integration Tests', () => {
 
       mockHealthTipService.getHealthTipById.mockResolvedValue(mockHealthTip);
 
-      const response = await request(app)
-        .get('/api/health-tips/1')
-        .expect(200);
+      const response = await request(app).get('/api/health-tips/1').expect(200);
 
       expect(response.body).toEqual({
         success: true,
@@ -226,11 +244,11 @@ describe('HealthTipController Integration Tests', () => {
     });
 
     it('should return 500 when service throws error', async () => {
-      mockHealthTipService.getHealthTipById.mockRejectedValue(new Error('Database error'));
+      mockHealthTipService.getHealthTipById.mockRejectedValue(
+        new Error('Database error'),
+      );
 
-      const response = await request(app)
-        .get('/api/health-tips/1')
-        .expect(500);
+      const response = await request(app).get('/api/health-tips/1').expect(500);
 
       expect(response.body).toEqual({
         success: false,
@@ -246,7 +264,8 @@ describe('HealthTipController Integration Tests', () => {
   describe('POST /api/health-tips', () => {
     const validHealthTipData = {
       title: 'New Health Tip',
-      content: 'This is a new health tip with sufficient content to pass validation requirements.',
+      content:
+        'This is a new health tip with sufficient content to pass validation requirements.',
       category: 'nutrition',
       difficulty: 'easy',
       estimatedReadTime: 5,
@@ -307,7 +326,9 @@ describe('HealthTipController Integration Tests', () => {
     });
 
     it('should return 500 for service errors', async () => {
-      mockHealthTipService.createHealthTip.mockRejectedValue(new Error('Database error'));
+      mockHealthTipService.createHealthTip.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       const response = await request(app)
         .post('/api/health-tips')
@@ -328,7 +349,8 @@ describe('HealthTipController Integration Tests', () => {
   describe('PUT /api/health-tips/:id', () => {
     const updateData = {
       title: 'Updated Health Tip',
-      content: 'This is updated content that meets the minimum length requirements for validation.',
+      content:
+        'This is updated content that meets the minimum length requirements for validation.',
       category: 'exercise',
       difficulty: 'medium',
       estimatedReadTime: 10,
@@ -354,7 +376,9 @@ describe('HealthTipController Integration Tests', () => {
         updatedAt: '2024-01-15T12:00:00Z',
       };
 
-      mockHealthTipService.getHealthTipById.mockResolvedValue(mockExistingTip as any);
+      mockHealthTipService.getHealthTipById.mockResolvedValue(
+        mockExistingTip as any,
+      );
       mockHealthTipService.updateHealthTip.mockResolvedValue(mockUpdatedTip);
 
       const response = await request(app)
@@ -368,7 +392,10 @@ describe('HealthTipController Integration Tests', () => {
         message: 'Health tip updated successfully',
         timestamp: expect.any(String),
       });
-      expect(mockHealthTipService.updateHealthTip).toHaveBeenCalledWith('1', updateData);
+      expect(mockHealthTipService.updateHealthTip).toHaveBeenCalledWith(
+        '1',
+        updateData,
+      );
     });
 
     it('should return 404 when health tip not found', async () => {
@@ -391,7 +418,9 @@ describe('HealthTipController Integration Tests', () => {
 
     it('should return 409 for duplicate title', async () => {
       const mockExistingTip = { id: '1', title: 'Existing' };
-      mockHealthTipService.getHealthTipById.mockResolvedValue(mockExistingTip as any);
+      mockHealthTipService.getHealthTipById.mockResolvedValue(
+        mockExistingTip as any,
+      );
 
       const error = new Error('Duplicate title');
       (error as any).code = 'DUPLICATE_TITLE';
@@ -421,7 +450,9 @@ describe('HealthTipController Integration Tests', () => {
         content: 'Content to delete',
       };
 
-      mockHealthTipService.getHealthTipById.mockResolvedValue(mockExistingTip as any);
+      mockHealthTipService.getHealthTipById.mockResolvedValue(
+        mockExistingTip as any,
+      );
       mockHealthTipService.deleteHealthTip.mockResolvedValue(undefined);
 
       const response = await request(app)
@@ -455,8 +486,12 @@ describe('HealthTipController Integration Tests', () => {
 
     it('should return 500 when service throws error', async () => {
       const mockExistingTip = { id: '1', title: 'Existing' };
-      mockHealthTipService.getHealthTipById.mockResolvedValue(mockExistingTip as any);
-      mockHealthTipService.deleteHealthTip.mockRejectedValue(new Error('Database error'));
+      mockHealthTipService.getHealthTipById.mockResolvedValue(
+        mockExistingTip as any,
+      );
+      mockHealthTipService.deleteHealthTip.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       const response = await request(app)
         .delete('/api/health-tips/1')
@@ -489,7 +524,9 @@ describe('HealthTipController Integration Tests', () => {
         popularityScore: 185,
       };
 
-      mockHealthTipService.getHealthTipAnalytics.mockResolvedValue(mockAnalytics);
+      mockHealthTipService.getHealthTipAnalytics.mockResolvedValue(
+        mockAnalytics,
+      );
 
       const response = await request(app)
         .get('/api/health-tips/1/analytics')
@@ -500,7 +537,9 @@ describe('HealthTipController Integration Tests', () => {
         data: mockAnalytics,
         timestamp: expect.any(String),
       });
-      expect(mockHealthTipService.getHealthTipAnalytics).toHaveBeenCalledWith('1');
+      expect(mockHealthTipService.getHealthTipAnalytics).toHaveBeenCalledWith(
+        '1',
+      );
     });
 
     it('should return 404 when health tip not found', async () => {
@@ -521,7 +560,9 @@ describe('HealthTipController Integration Tests', () => {
     });
 
     it('should return 500 when service throws error', async () => {
-      mockHealthTipService.getHealthTipAnalytics.mockRejectedValue(new Error('Analytics error'));
+      mockHealthTipService.getHealthTipAnalytics.mockRejectedValue(
+        new Error('Analytics error'),
+      );
 
       const response = await request(app)
         .get('/api/health-tips/1/analytics')

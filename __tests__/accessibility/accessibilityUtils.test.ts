@@ -20,7 +20,10 @@ import {
 describe('Accessibility Utilities', () => {
   describe('createButtonAccessibility', () => {
     it('should create proper button accessibility props', () => {
-      const props = createButtonAccessibility('Submit', 'Double tap to submit form');
+      const props = createButtonAccessibility(
+        'Submit',
+        'Double tap to submit form',
+      );
 
       expect(props).toEqual({
         accessible: true,
@@ -32,7 +35,9 @@ describe('Accessibility Utilities', () => {
     });
 
     it('should include state when provided', () => {
-      const props = createButtonAccessibility('Toggle', 'Toggle setting', { selected: true });
+      const props = createButtonAccessibility('Toggle', 'Toggle setting', {
+        selected: true,
+      });
 
       expect(props.accessibilityState).toEqual({ selected: true });
     });
@@ -40,7 +45,12 @@ describe('Accessibility Utilities', () => {
 
   describe('createTextInputAccessibility', () => {
     it('should create proper text input accessibility props', () => {
-      const props = createTextInputAccessibility('Email', 'Enter your email address', true, false);
+      const props = createTextInputAccessibility(
+        'Email',
+        'Enter your email address',
+        true,
+        false,
+      );
 
       expect(props).toEqual({
         accessible: true,
@@ -55,7 +65,12 @@ describe('Accessibility Utilities', () => {
     });
 
     it('should set assertive live region for invalid inputs', () => {
-      const props = createTextInputAccessibility('Email', 'Enter email', false, true);
+      const props = createTextInputAccessibility(
+        'Email',
+        'Enter email',
+        false,
+        true,
+      );
 
       expect(props.accessibilityLiveRegion).toBe('assertive');
     });
@@ -102,7 +117,11 @@ describe('Accessibility Utilities', () => {
 
   describe('createSwitchAccessibility', () => {
     it('should create proper switch accessibility props', () => {
-      const props = createSwitchAccessibility('Dark mode', true, 'Toggle dark mode');
+      const props = createSwitchAccessibility(
+        'Dark mode',
+        true,
+        'Toggle dark mode',
+      );
 
       expect(props).toEqual({
         accessible: true,
@@ -178,7 +197,7 @@ describe('Accessibility Utilities', () => {
       it('should use correct thresholds for different text sizes', () => {
         // Mock a ratio that's between large and normal text requirements
         const mockRatio = 4.0; // Between 3.0 (large) and 4.5 (normal)
-        
+
         // This would need to be tested with actual color combinations
         // For now, we test the function exists and returns boolean
         const result = meetsContrastRequirement('#333333', '#ffffff', 'large');
@@ -197,7 +216,7 @@ describe('Accessibility Utilities', () => {
           type: 'missing_label',
           severity: 'error',
           message: 'Interactive element missing accessibilityLabel',
-        })
+        }),
       );
     });
 
@@ -210,7 +229,7 @@ describe('Accessibility Utilities', () => {
           type: 'missing_role',
           severity: 'warning',
           message: 'Interactive element missing accessibilityRole',
-        })
+        }),
       );
     });
 
@@ -222,7 +241,7 @@ describe('Accessibility Utilities', () => {
           type: 'missing_label',
           severity: 'error',
           message: 'Image missing accessibilityLabel',
-        })
+        }),
       );
     });
 
@@ -249,7 +268,7 @@ describe('Accessibility Utilities', () => {
         onPress: jest.fn(),
       };
       const result = auditAccessibility('GoodButton', goodProps);
-      
+
       expect(result.issues).toHaveLength(0);
       expect(result.score).toBe(100);
     });
@@ -279,7 +298,12 @@ describe('Accessibility Utilities', () => {
     });
 
     it('should handle undefined values gracefully', () => {
-      const props = createTextInputAccessibility('Test', undefined, undefined, undefined);
+      const props = createTextInputAccessibility(
+        'Test',
+        undefined,
+        undefined,
+        undefined,
+      );
       expect(props.accessibilityHint).toBeUndefined();
       expect(props.accessibilityState?.required).toBeUndefined();
     });

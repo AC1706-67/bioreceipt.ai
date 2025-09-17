@@ -17,7 +17,9 @@ jest.mock('../../src/services/sync/syncService');
 const mockStorage = storage as jest.Mocked<typeof storage>;
 
 // Test component that throws an error
-const ThrowErrorComponent: React.FC<{ shouldThrow: boolean }> = ({ shouldThrow }) => {
+const ThrowErrorComponent: React.FC<{ shouldThrow: boolean }> = ({
+  shouldThrow,
+}) => {
   if (shouldThrow) {
     throw new Error('Test component error');
   }
@@ -62,7 +64,7 @@ describe('Error Handling Integration', () => {
       const { getByText, queryByText } = render(
         <ErrorBoundary>
           <ThrowErrorComponent shouldThrow={true} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Should not show the original component
@@ -78,7 +80,7 @@ describe('Error Handling Integration', () => {
       const { getByText, queryByText } = render(
         <ErrorBoundary>
           <ThrowErrorComponent shouldThrow={false} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Should show the original component
@@ -92,7 +94,7 @@ describe('Error Handling Integration', () => {
       const { getByText, getByTestId } = render(
         <ErrorBoundary>
           <ErrorTriggerComponent />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Initially should show normal component
@@ -117,14 +119,14 @@ describe('Error Handling Integration', () => {
       render(
         <ErrorBoundary onError={onError}>
           <ThrowErrorComponent shouldThrow={true} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       expect(onError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
           componentStack: expect.any(String),
-        })
+        }),
       );
     });
 
@@ -134,7 +136,7 @@ describe('Error Handling Integration', () => {
       const { getByText, queryByText } = render(
         <ErrorBoundary fallback={customFallback}>
           <ThrowErrorComponent shouldThrow={true} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Should show custom fallback
@@ -154,7 +156,7 @@ describe('Error Handling Integration', () => {
       render(
         <ErrorBoundary>
           <ThrowErrorComponent shouldThrow={true} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Wait for async logging to complete
@@ -171,8 +173,8 @@ describe('Error Handling Integration', () => {
               module: 'component',
               componentStack: expect.any(String),
             }),
-          })
-        ])
+          }),
+        ]),
       );
     });
 
@@ -180,13 +182,13 @@ describe('Error Handling Integration', () => {
       render(
         <ErrorBoundary>
           <ThrowErrorComponent shouldThrow={true} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       await new Promise(resolve => setTimeout(resolve, 0));
 
       const logCall = mockStorage.storeData.mock.calls.find(
-        call => call[0] === 'LOG_ENTRIES'
+        call => call[0] === 'LOG_ENTRIES',
       );
       expect(logCall).toBeDefined();
 
@@ -218,7 +220,7 @@ describe('Error Handling Integration', () => {
       const { getByText, getByTestId, queryByTestId } = render(
         <ErrorBoundary>
           <MultiErrorComponent />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Trigger first error
@@ -265,7 +267,7 @@ describe('Error Handling Integration', () => {
       const { getByText, getByTestId } = render(
         <ErrorBoundary>
           <StatefulErrorComponent />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Increment counter
@@ -291,7 +293,7 @@ describe('Error Handling Integration', () => {
       const { getByText } = render(
         <ErrorBoundary>
           <ThrowErrorComponent shouldThrow={true} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Should show report error button
@@ -319,8 +321,8 @@ describe('Error Handling Integration', () => {
               module: 'user_report',
               userReported: true,
             }),
-          })
-        ])
+          }),
+        ]),
       );
     });
 
@@ -331,7 +333,7 @@ describe('Error Handling Integration', () => {
       const { getByText } = render(
         <ErrorBoundary>
           <ThrowErrorComponent shouldThrow={true} />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Should show error details button in dev mode
@@ -348,7 +350,7 @@ describe('Error Handling Integration', () => {
         render(
           <ErrorBoundary>
             <ThrowErrorComponent shouldThrow={false} />
-          </ErrorBoundary>
+          </ErrorBoundary>,
         );
       }
 
@@ -381,7 +383,7 @@ describe('Error Handling Integration', () => {
       const { getByText } = render(
         <ErrorBoundary>
           <RapidErrorComponent />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // Wait for errors to trigger

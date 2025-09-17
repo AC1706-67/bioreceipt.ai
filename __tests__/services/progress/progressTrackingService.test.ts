@@ -15,8 +15,12 @@ jest.mock('../../../src/services/analytics/analyticsService');
 const mockStorage = storage as jest.Mocked<typeof storage>;
 const mockCacheService = cacheService as jest.Mocked<typeof cacheService>;
 const mockKiroAIService = kiroAIService as jest.Mocked<typeof kiroAIService>;
-const mockNotificationService = notificationService as jest.Mocked<typeof notificationService>;
-const mockAnalyticsService = analyticsService as jest.Mocked<typeof analyticsService>;
+const mockNotificationService = notificationService as jest.Mocked<
+  typeof notificationService
+>;
+const mockAnalyticsService = analyticsService as jest.Mocked<
+  typeof analyticsService
+>;
 
 describe('ProgressTrackingService', () => {
   const mockUserId = 'test-user-123';
@@ -24,7 +28,7 @@ describe('ProgressTrackingService', () => {
     tipId: 'tip-123',
     userId: mockUserId,
     action: 'view' as const,
-    timestamp: new Date()
+    timestamp: new Date(),
   };
   const mockQuality = {
     readingTime: 120,
@@ -32,7 +36,7 @@ describe('ProgressTrackingService', () => {
     completionRate: 1,
     retentionScore: 0.8,
     applicationAttempted: true,
-    feedbackProvided: false
+    feedbackProvided: false,
   };
 
   beforeEach(() => {
@@ -49,7 +53,9 @@ describe('ProgressTrackingService', () => {
 
   describe('initializeUserProgress', () => {
     it('should create initial progress for new user', async () => {
-      const result = await progressTrackingService.initializeUserProgress(mockUserId);
+      const result = await progressTrackingService.initializeUserProgress(
+        mockUserId,
+      );
 
       expect(result).toMatchObject({
         userId: mockUserId,
@@ -58,7 +64,7 @@ describe('ProgressTrackingService', () => {
         totalTipsCompleted: 0,
         totalEngagementTime: 0,
         streakFreezeUsed: 0,
-        streakFreezeRemaining: 3
+        streakFreezeRemaining: 3,
       });
 
       expect(result.categoryProgress).toHaveLength(6);
@@ -69,15 +75,16 @@ describe('ProgressTrackingService', () => {
 
       expect(mockStorage.setItem).toHaveBeenCalledWith(
         `progress_${mockUserId}`,
-        expect.any(String)
+        expect.any(String),
       );
     });
 
     it('should handle initialization errors', async () => {
       mockStorage.setItem.mockRejectedValue(new Error('Storage error'));
 
-      await expect(progressTrackingService.initializeUserProgress(mockUserId))
-        .rejects.toThrow('Failed to initialize user progress');
+      await expect(
+        progressTrackingService.initializeUserProgress(mockUserId),
+      ).rejects.toThrow('Failed to initialize user progress');
     });
   });
 
@@ -102,15 +109,15 @@ describe('ProgressTrackingService', () => {
           averageEngagementScore: 0.8,
           lastActivityDate: new Date(),
           progressPercentage: 50,
-          level: 'intermediate' as const
-        }
+          level: 'intermediate' as const,
+        },
       ],
       weeklyGoals: [],
       monthlyGoals: [],
       achievements: [],
       milestones: [],
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     beforeEach(() => {
@@ -118,16 +125,20 @@ describe('ProgressTrackingService', () => {
     });
 
     it('should record engagement and update progress', async () => {
-      await progressTrackingService.recordEngagement(mockUserId, mockEngagement, mockQuality);
-
-      expect(mockStorage.setItem).toHaveBeenCalledWith(
-        `progress_${mockUserId}`,
-        expect.stringContaining('"totalTipsCompleted":26')
+      await progressTrackingService.recordEngagement(
+        mockUserId,
+        mockEngagement,
+        mockQuality,
       );
 
       expect(mockStorage.setItem).toHaveBeenCalledWith(
         `progress_${mockUserId}`,
-        expect.stringContaining('"totalEngagementTime":1620')
+        expect.stringContaining('"totalTipsCompleted":26'),
+      );
+
+      expect(mockStorage.setItem).toHaveBeenCalledWith(
+        `progress_${mockUserId}`,
+        expect.stringContaining('"totalEngagementTime":1620'),
       );
 
       expect(mockAnalyticsService.trackEvent).toHaveBeenCalledWith(
@@ -135,31 +146,40 @@ describe('ProgressTrackingService', () => {
         expect.objectContaining({
           userId: mockUserId,
           tipId: mockEngagement.tipId,
-          engagementTime: mockQuality.readingTime
-        })
+          engagementTime: mockQuality.readingTime,
+        }),
       );
     });
 
     it('should update streak when engagement is on new day', async () => {
       const yesterdayProgress = {
         ...mockProgress,
-        lastActivityDate: new Date(Date.now() - 24 * 60 * 60 * 1000)
+        lastActivityDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
       };
       mockStorage.getItem.mockResolvedValue(JSON.stringify(yesterdayProgress));
 
-      await progressTrackingService.recordEngagement(mockUserId, mockEngagement, mockQuality);
+      await progressTrackingService.recordEngagement(
+        mockUserId,
+        mockEngagement,
+        mockQuality,
+      );
 
       expect(mockStorage.setItem).toHaveBeenCalledWith(
         `progress_${mockUserId}`,
-        expect.stringContaining('"currentStreak":6')
+        expect.stringContaining('"currentStreak":6'),
       );
     });
 
     it('should handle engagement recording errors', async () => {
       mockStorage.getItem.mockRejectedValue(new Error('Storage error'));
 
-      await expect(progressTrackingService.recordEngagement(mockUserId, mockEngagement, mockQuality))
-        .rejects.toThrow('Failed to record engagement');
+      await expect(
+        progressTrackingService.recordEngagement(
+          mockUserId,
+          mockEngagement,
+          mockQuality,
+        ),
+      ).rejects.toThrow('Failed to record engagement');
     });
   });
 
@@ -180,7 +200,7 @@ describe('ProgressTrackingService', () => {
       achievements: [],
       milestones: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     it('should return cached progress if available', async () => {
@@ -217,8 +237,9 @@ describe('ProgressTrackingService', () => {
     it('should handle errors gracefully', async () => {
       mockCacheService.get.mockRejectedValue(new Error('Cache error'));
 
-      await expect(progressTrackingService.getUserProgress(mockUserId))
-        .rejects.toThrow('Failed to get user progress');
+      await expect(
+        progressTrackingService.getUserProgress(mockUserId),
+      ).rejects.toThrow('Failed to get user progress');
     });
   });
 
@@ -237,11 +258,11 @@ describe('ProgressTrackingService', () => {
         reward: {
           type: 'badge' as const,
           value: 'week_warrior',
-          description: 'Week Warrior badge'
+          description: 'Week Warrior badge',
         },
         aiGenerated: false,
         celebrationShown: false,
-        createdAt: new Date()
+        createdAt: new Date(),
       },
       {
         id: 'milestone-2',
@@ -257,18 +278,21 @@ describe('ProgressTrackingService', () => {
         reward: {
           type: 'badge' as const,
           value: 'first_steps',
-          description: 'First Steps badge'
+          description: 'First Steps badge',
         },
         aiGenerated: false,
         celebrationShown: true,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     ];
 
     it('should return all milestones when includeCompleted is true', async () => {
       mockStorage.getItem.mockResolvedValue(JSON.stringify(mockMilestones));
 
-      const result = await progressTrackingService.getUserMilestones(mockUserId, true);
+      const result = await progressTrackingService.getUserMilestones(
+        mockUserId,
+        true,
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0].isCompleted).toBe(false);
@@ -278,7 +302,10 @@ describe('ProgressTrackingService', () => {
     it('should return only incomplete milestones when includeCompleted is false', async () => {
       mockStorage.getItem.mockResolvedValue(JSON.stringify(mockMilestones));
 
-      const result = await progressTrackingService.getUserMilestones(mockUserId, false);
+      const result = await progressTrackingService.getUserMilestones(
+        mockUserId,
+        false,
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].isCompleted).toBe(false);
@@ -287,7 +314,9 @@ describe('ProgressTrackingService', () => {
     it('should return empty array if no milestones found', async () => {
       mockStorage.getItem.mockResolvedValue(null);
 
-      const result = await progressTrackingService.getUserMilestones(mockUserId);
+      const result = await progressTrackingService.getUserMilestones(
+        mockUserId,
+      );
 
       expect(result).toEqual([]);
     });
@@ -295,8 +324,9 @@ describe('ProgressTrackingService', () => {
     it('should handle errors gracefully', async () => {
       mockStorage.getItem.mockRejectedValue(new Error('Storage error'));
 
-      await expect(progressTrackingService.getUserMilestones(mockUserId))
-        .rejects.toThrow('Failed to get user milestones');
+      await expect(
+        progressTrackingService.getUserMilestones(mockUserId),
+      ).rejects.toThrow('Failed to get user milestones');
     });
   });
 
@@ -314,14 +344,16 @@ describe('ProgressTrackingService', () => {
         progress: 100,
         maxProgress: 100,
         isVisible: true,
-        imageUrl: '/badges/first_tip.png'
-      }
+        imageUrl: '/badges/first_tip.png',
+      },
     ];
 
     it('should return user achievements', async () => {
       mockStorage.getItem.mockResolvedValue(JSON.stringify(mockAchievements));
 
-      const result = await progressTrackingService.getUserAchievements(mockUserId);
+      const result = await progressTrackingService.getUserAchievements(
+        mockUserId,
+      );
 
       expect(result).toEqual(mockAchievements);
     });
@@ -329,7 +361,9 @@ describe('ProgressTrackingService', () => {
     it('should return empty array if no achievements found', async () => {
       mockStorage.getItem.mockResolvedValue(null);
 
-      const result = await progressTrackingService.getUserAchievements(mockUserId);
+      const result = await progressTrackingService.getUserAchievements(
+        mockUserId,
+      );
 
       expect(result).toEqual([]);
     });
@@ -337,8 +371,9 @@ describe('ProgressTrackingService', () => {
     it('should handle errors gracefully', async () => {
       mockStorage.getItem.mockRejectedValue(new Error('Storage error'));
 
-      await expect(progressTrackingService.getUserAchievements(mockUserId))
-        .rejects.toThrow('Failed to get user achievements');
+      await expect(
+        progressTrackingService.getUserAchievements(mockUserId),
+      ).rejects.toThrow('Failed to get user achievements');
     });
   });
 
@@ -359,33 +394,36 @@ describe('ProgressTrackingService', () => {
       achievements: [],
       milestones: [],
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     it('should use streak freeze when available', async () => {
       mockStorage.getItem
         .mockResolvedValueOnce(JSON.stringify(mockProgress)) // getUserProgress
-        .mockResolvedValueOnce(JSON.stringify({ // getStreakData
-          id: `streak_${mockUserId}_daily`,
-          userId: mockUserId,
-          streakType: 'daily',
-          currentCount: 5,
-          longestCount: 10,
-          startDate: new Date(),
-          lastActivityDate: new Date(),
-          isActive: true,
-          freezeCount: 1,
-          streakHistory: [],
-          qualityScore: 0.8,
-          consistencyScore: 0.7,
-          metadata: {
-            averageEngagementTime: 60,
-            preferredEngagementTime: '09:00',
-            categoryDistribution: {},
-            difficultyDistribution: {},
-            seasonalPatterns: []
-          }
-        }));
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            // getStreakData
+            id: `streak_${mockUserId}_daily`,
+            userId: mockUserId,
+            streakType: 'daily',
+            currentCount: 5,
+            longestCount: 10,
+            startDate: new Date(),
+            lastActivityDate: new Date(),
+            isActive: true,
+            freezeCount: 1,
+            streakHistory: [],
+            qualityScore: 0.8,
+            consistencyScore: 0.7,
+            metadata: {
+              averageEngagementTime: 60,
+              preferredEngagementTime: '09:00',
+              categoryDistribution: {},
+              difficultyDistribution: {},
+              seasonalPatterns: [],
+            },
+          }),
+        );
 
       const result = await progressTrackingService.useStreakFreeze(mockUserId);
 
@@ -394,15 +432,15 @@ describe('ProgressTrackingService', () => {
       expect(mockNotificationService.scheduleNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'streak',
-          title: 'Streak Freeze Activated! 🧊'
-        })
+          title: 'Streak Freeze Activated! 🧊',
+        }),
       );
     });
 
     it('should return false when no streak freezes remaining', async () => {
       const noFreezesProgress = {
         ...mockProgress,
-        streakFreezeRemaining: 0
+        streakFreezeRemaining: 0,
       };
       mockStorage.getItem.mockResolvedValue(JSON.stringify(noFreezesProgress));
 
@@ -410,7 +448,9 @@ describe('ProgressTrackingService', () => {
 
       expect(result).toBe(false);
       expect(mockStorage.setItem).not.toHaveBeenCalled();
-      expect(mockNotificationService.scheduleNotification).not.toHaveBeenCalled();
+      expect(
+        mockNotificationService.scheduleNotification,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle errors gracefully', async () => {
@@ -442,15 +482,18 @@ describe('ProgressTrackingService', () => {
           dataPoints: ['behavior_analysis'],
           correlations: [],
           predictions: [],
-          recommendations: []
-        }
-      }
+          recommendations: [],
+        },
+      },
     ];
 
     it('should return progress insights', async () => {
       mockStorage.getItem.mockResolvedValue(JSON.stringify(mockInsights));
 
-      const result = await progressTrackingService.getProgressInsights(mockUserId, 5);
+      const result = await progressTrackingService.getProgressInsights(
+        mockUserId,
+        5,
+      );
 
       expect(result).toEqual(mockInsights);
     });
@@ -458,23 +501,30 @@ describe('ProgressTrackingService', () => {
     it('should filter out expired insights', async () => {
       const expiredInsight = {
         ...mockInsights[0],
-        expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000) // Yesterday
+        expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
       };
       mockStorage.getItem.mockResolvedValue(JSON.stringify([expiredInsight]));
 
-      const result = await progressTrackingService.getProgressInsights(mockUserId);
+      const result = await progressTrackingService.getProgressInsights(
+        mockUserId,
+      );
 
       expect(result).toEqual([]);
     });
 
     it('should limit results to specified count', async () => {
-      const manyInsights = Array(10).fill(null).map((_, i) => ({
-        ...mockInsights[0],
-        id: `insight-${i}`
-      }));
+      const manyInsights = Array(10)
+        .fill(null)
+        .map((_, i) => ({
+          ...mockInsights[0],
+          id: `insight-${i}`,
+        }));
       mockStorage.getItem.mockResolvedValue(JSON.stringify(manyInsights));
 
-      const result = await progressTrackingService.getProgressInsights(mockUserId, 3);
+      const result = await progressTrackingService.getProgressInsights(
+        mockUserId,
+        3,
+      );
 
       expect(result).toHaveLength(3);
     });
@@ -482,8 +532,9 @@ describe('ProgressTrackingService', () => {
     it('should handle errors gracefully', async () => {
       mockStorage.getItem.mockRejectedValue(new Error('Storage error'));
 
-      await expect(progressTrackingService.getProgressInsights(mockUserId))
-        .rejects.toThrow('Failed to get progress insights');
+      await expect(
+        progressTrackingService.getProgressInsights(mockUserId),
+      ).rejects.toThrow('Failed to get progress insights');
     });
   });
 });

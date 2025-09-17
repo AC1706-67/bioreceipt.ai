@@ -103,9 +103,27 @@ describe('Data Transformation Utilities', () => {
 
     it('should calculate correct engagement score', () => {
       const engagements: UserEngagement[] = [
-        { id: '1', tipId: 'tip1', userId: 'user1', action: 'view', timestamp: new Date() },
-        { id: '2', tipId: 'tip1', userId: 'user1', action: 'like', timestamp: new Date() },
-        { id: '3', tipId: 'tip1', userId: 'user1', action: 'complete', timestamp: new Date() },
+        {
+          id: '1',
+          tipId: 'tip1',
+          userId: 'user1',
+          action: 'view',
+          timestamp: new Date(),
+        },
+        {
+          id: '2',
+          tipId: 'tip1',
+          userId: 'user1',
+          action: 'like',
+          timestamp: new Date(),
+        },
+        {
+          id: '3',
+          tipId: 'tip1',
+          userId: 'user1',
+          action: 'complete',
+          timestamp: new Date(),
+        },
       ];
 
       const result = calculateEngagementScore(engagements);
@@ -115,8 +133,20 @@ describe('Data Transformation Utilities', () => {
 
     it('should cap engagement score at 1.0', () => {
       const engagements: UserEngagement[] = [
-        { id: '1', tipId: 'tip1', userId: 'user1', action: 'complete', timestamp: new Date() },
-        { id: '2', tipId: 'tip1', userId: 'user1', action: 'complete', timestamp: new Date() },
+        {
+          id: '1',
+          tipId: 'tip1',
+          userId: 'user1',
+          action: 'complete',
+          timestamp: new Date(),
+        },
+        {
+          id: '2',
+          tipId: 'tip1',
+          userId: 'user1',
+          action: 'complete',
+          timestamp: new Date(),
+        },
       ];
 
       const result = calculateEngagementScore(engagements);
@@ -156,9 +186,27 @@ describe('Data Transformation Utilities', () => {
 
     it('should return favorite category based on engagements', () => {
       const engagements: UserEngagement[] = [
-        { id: '1', tipId: 'tip1', userId: 'user1', action: 'complete', timestamp: new Date() },
-        { id: '2', tipId: 'tip1', userId: 'user1', action: 'like', timestamp: new Date() },
-        { id: '3', tipId: 'tip2', userId: 'user1', action: 'view', timestamp: new Date() },
+        {
+          id: '1',
+          tipId: 'tip1',
+          userId: 'user1',
+          action: 'complete',
+          timestamp: new Date(),
+        },
+        {
+          id: '2',
+          tipId: 'tip1',
+          userId: 'user1',
+          action: 'like',
+          timestamp: new Date(),
+        },
+        {
+          id: '3',
+          tipId: 'tip2',
+          userId: 'user1',
+          action: 'view',
+          timestamp: new Date(),
+        },
       ];
 
       const result = getFavoriteCategory(tips, engagements);
@@ -186,7 +234,7 @@ describe('Data Transformation Utilities', () => {
     it('should generate unique reference numbers', () => {
       const ref1 = generateReferenceNumber();
       const ref2 = generateReferenceNumber();
-      
+
       expect(ref1).toMatch(/^HT-[A-Z0-9]+-[A-Z0-9]+$/);
       expect(ref2).toMatch(/^HT-[A-Z0-9]+-[A-Z0-9]+$/);
       expect(ref1).not.toBe(ref2);

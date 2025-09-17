@@ -38,7 +38,9 @@ describe('Token Manager', () => {
   describe('storeTokens', () => {
     it('should store tokens correctly', async () => {
       mockAsyncStorage.setItem.mockResolvedValue();
-      (mockKeychain.setInternetCredentials as jest.Mock).mockResolvedValue(false);
+      (mockKeychain.setInternetCredentials as jest.Mock).mockResolvedValue(
+        false,
+      );
 
       await storeTokens(mockTokens);
 
@@ -48,20 +50,22 @@ describe('Token Manager', () => {
           accessToken: mockTokens.accessToken,
           expiresAt: mockTokens.expiresAt.toISOString(),
           tokenType: mockTokens.tokenType,
-        })
+        }),
       );
 
       expect(mockKeychain.setInternetCredentials).toHaveBeenCalledWith(
         'refresh_token',
         'refresh_token',
-        mockTokens.refreshToken
+        mockTokens.refreshToken,
       );
     });
 
     it('should throw error if storage fails', async () => {
       mockAsyncStorage.setItem.mockRejectedValue(new Error('Storage error'));
 
-      await expect(storeTokens(mockTokens)).rejects.toThrow('Failed to store authentication tokens');
+      await expect(storeTokens(mockTokens)).rejects.toThrow(
+        'Failed to store authentication tokens',
+      );
     });
   });
 
@@ -95,12 +99,16 @@ describe('Token Manager', () => {
     });
 
     it('should return null if keychain access fails', async () => {
-      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify({
-        accessToken: 'token',
-        expiresAt: new Date().toISOString(),
-        tokenType: 'Bearer',
-      }));
-      (mockKeychain.getInternetCredentials as jest.Mock).mockResolvedValue(false);
+      mockAsyncStorage.getItem.mockResolvedValue(
+        JSON.stringify({
+          accessToken: 'token',
+          expiresAt: new Date().toISOString(),
+          tokenType: 'Bearer',
+        }),
+      );
+      (mockKeychain.getInternetCredentials as jest.Mock).mockResolvedValue(
+        false,
+      );
 
       const result = await getTokens();
 
@@ -111,12 +119,16 @@ describe('Token Manager', () => {
   describe('clearTokens', () => {
     it('should clear all tokens', async () => {
       mockAsyncStorage.removeItem.mockResolvedValue();
-      (mockKeychain.resetInternetCredentials as jest.Mock).mockResolvedValue(undefined);
+      (mockKeychain.resetInternetCredentials as jest.Mock).mockResolvedValue(
+        undefined,
+      );
 
       await clearTokens();
 
       expect(mockAsyncStorage.removeItem).toHaveBeenCalledWith('auth_tokens');
-      expect(mockKeychain.resetInternetCredentials).toHaveBeenCalledWith('refresh_token');
+      expect(mockKeychain.resetInternetCredentials).toHaveBeenCalledWith(
+        'refresh_token',
+      );
     });
   });
 
@@ -183,7 +195,9 @@ describe('Token Manager', () => {
         tokenType: mockTokens.tokenType,
       };
 
-      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(expiredTokenData));
+      mockAsyncStorage.getItem.mockResolvedValue(
+        JSON.stringify(expiredTokenData),
+      );
       (mockKeychain.getInternetCredentials as jest.Mock).mockResolvedValue({
         username: 'refresh_token',
         password: mockTokens.refreshToken,

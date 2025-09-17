@@ -28,7 +28,7 @@ describe('Content Management Integration Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default mocks
     mockCacheService.get.mockResolvedValue(null);
     mockCacheService.set.mockResolvedValue(undefined);
@@ -123,7 +123,8 @@ describe('Content Management Integration Tests', () => {
     it('should create a new health tip with workflow', async () => {
       const newTipData = {
         title: 'New Health Tip',
-        content: 'This is a comprehensive health tip about staying hydrated throughout the day.',
+        content:
+          'This is a comprehensive health tip about staying hydrated throughout the day.',
         category: 'nutrition',
         difficulty: 'easy',
         estimatedReadTime: 2,
@@ -215,7 +216,9 @@ describe('Content Management Integration Tests', () => {
         updatedAt: new Date(),
       };
 
-      jest.spyOn(contentManagementService, 'getContentById').mockResolvedValue(existingTip);
+      jest
+        .spyOn(contentManagementService, 'getContentById')
+        .mockResolvedValue(existingTip);
 
       const mockUpdatedData = {
         ...existingTip,
@@ -355,7 +358,8 @@ describe('Content Management Integration Tests', () => {
       };
 
       // Mock successful updates
-      jest.spyOn(contentManagementService, 'updateContent')
+      jest
+        .spyOn(contentManagementService, 'updateContent')
         .mockResolvedValueOnce({ id: 'tip_1' } as any)
         .mockResolvedValueOnce({ id: 'tip_2' } as any);
 
@@ -443,7 +447,9 @@ describe('Content Management Integration Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('scheduledFor date must be in the future');
+      expect(response.body.error.message).toBe(
+        'scheduledFor date must be in the future',
+      );
     });
   });
 
@@ -536,7 +542,9 @@ describe('Content Management Integration Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('Count must be between 1 and 10');
+      expect(response.body.error.message).toBe(
+        'Count must be between 1 and 10',
+      );
     });
   });
 
@@ -546,14 +554,14 @@ describe('Content Management Integration Tests', () => {
         select: jest.fn().mockReturnThis(),
         neq: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
-        range: jest.fn().mockRejectedValue(new Error('Database connection failed')),
+        range: jest
+          .fn()
+          .mockRejectedValue(new Error('Database connection failed')),
       };
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      const response = await request(app)
-        .get('/api/health-tips')
-        .expect(500);
+      const response = await request(app).get('/api/health-tips').expect(500);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('INTERNAL_ERROR');
@@ -561,13 +569,13 @@ describe('Content Management Integration Tests', () => {
 
     it('should handle rate limiting', async () => {
       // Make multiple requests quickly to trigger rate limiting
-      const requests = Array(110).fill(null).map(() => 
-        request(app).get('/api/health-tips')
-      );
+      const requests = Array(110)
+        .fill(null)
+        .map(() => request(app).get('/api/health-tips'));
 
       const responses = await Promise.allSettled(requests);
       const rateLimitedResponses = responses.filter(
-        (result) => result.status === 'fulfilled' && result.value.status === 429
+        result => result.status === 'fulfilled' && result.value.status === 429,
       );
 
       expect(rateLimitedResponses.length).toBeGreaterThan(0);

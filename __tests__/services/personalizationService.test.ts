@@ -16,7 +16,8 @@ jest.mock('../../src/utils/tokenManager');
 // Mock fetch
 global.fetch = jest.fn();
 
-const mockCacheService = CacheService.getInstance() as jest.Mocked<CacheService>;
+const mockCacheService =
+  CacheService.getInstance() as jest.Mocked<CacheService>;
 const mockLoggingService = loggingService as jest.Mocked<typeof loggingService>;
 const mockTokenManager = tokenManager as jest.Mocked<typeof tokenManager>;
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
@@ -45,16 +46,19 @@ describe('PersonalizationService', () => {
       tips: [
         {
           title: 'Morning Hydration Boost',
-          content: 'Start your day with a glass of water with lemon to kickstart your metabolism and provide vitamin C.',
+          content:
+            'Start your day with a glass of water with lemon to kickstart your metabolism and provide vitamin C.',
           category: 'nutrition',
           difficulty: 'easy',
           estimatedReadTime: 2,
           tags: ['hydration', 'morning', 'metabolism'],
-          personalizedReason: 'Perfect for your morning routine and nutrition goals',
+          personalizedReason:
+            'Perfect for your morning routine and nutrition goals',
         },
       ],
       personalizationScore: 0.85,
-      reasoning: 'Selected based on your nutrition interests and morning activity patterns',
+      reasoning:
+        'Selected based on your nutrition interests and morning activity patterns',
     };
 
     it('should return cached personalized tips when available', async () => {
@@ -85,10 +89,16 @@ describe('PersonalizationService', () => {
 
       mockCacheService.get.mockResolvedValue(cachedResponse);
 
-      const result = await personalizationService.getPersonalizedTips(mockUserId, 3, false);
+      const result = await personalizationService.getPersonalizedTips(
+        mockUserId,
+        3,
+        false,
+      );
 
       expect(result).toEqual(cachedResponse);
-      expect(mockCacheService.get).toHaveBeenCalledWith(`personalized-tips-${mockUserId}-3`);
+      expect(mockCacheService.get).toHaveBeenCalledWith(
+        `personalized-tips-${mockUserId}-3`,
+      );
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
@@ -107,12 +117,18 @@ describe('PersonalizationService', () => {
         }),
       } as Response);
 
-      const result = await personalizationService.getPersonalizedTips(mockUserId, 3, true);
+      const result = await personalizationService.getPersonalizedTips(
+        mockUserId,
+        3,
+        true,
+      );
 
       expect(result.tips).toHaveLength(1);
       expect(result.tips[0].title).toBe('Morning Hydration Boost');
       expect(result.personalizationScore).toBe(0.85);
-      expect(result.reasoning).toBe('Selected based on your nutrition interests and morning activity patterns');
+      expect(result.reasoning).toBe(
+        'Selected based on your nutrition interests and morning activity patterns',
+      );
       expect(result.fallbackUsed).toBe(false);
 
       // Verify KIRO AI was called correctly
@@ -121,11 +137,11 @@ describe('PersonalizationService', () => {
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'Authorization': 'Bearer test-token',
+            Authorization: 'Bearer test-token',
             'X-User-ID': mockUserId,
           }),
           body: expect.stringContaining('kiro-health-v1'),
-        })
+        }),
       );
 
       // Verify result was cached
@@ -136,7 +152,7 @@ describe('PersonalizationService', () => {
           personalizationScore: 0.85,
           fallbackUsed: false,
         }),
-        1800
+        1800,
       );
     });
 
@@ -171,7 +187,11 @@ describe('PersonalizationService', () => {
         },
       }));
 
-      const result = await personalizationService.getPersonalizedTips(mockUserId, 3, true);
+      const result = await personalizationService.getPersonalizedTips(
+        mockUserId,
+        3,
+        true,
+      );
 
       expect(result.fallbackUsed).toBe(true);
       expect(result.personalizationScore).toBeLessThan(0.8);
@@ -180,7 +200,7 @@ describe('PersonalizationService', () => {
         expect.objectContaining({
           userId: mockUserId,
           error: expect.any(Error),
-        })
+        }),
       );
     });
 
@@ -192,18 +212,26 @@ describe('PersonalizationService', () => {
       jest.doMock('../../src/services/content/contentService', () => ({
         ContentService: {
           getInstance: () => ({
-            getHealthTips: jest.fn().mockRejectedValue(new Error('Content service failed')),
+            getHealthTips: jest
+              .fn()
+              .mockRejectedValue(new Error('Content service failed')),
           }),
         },
       }));
 
-      const result = await personalizationService.getPersonalizedTips(mockUserId, 3, true);
+      const result = await personalizationService.getPersonalizedTips(
+        mockUserId,
+        3,
+        true,
+      );
 
       expect(result.fallbackUsed).toBe(true);
       expect(result.tips).toHaveLength(3);
       expect(result.tips[0].title).toBe('Stay Hydrated Throughout the Day');
       expect(result.personalizationScore).toBe(0.3);
-      expect(result.reasoning).toBe('Generic recommendations due to system limitations');
+      expect(result.reasoning).toBe(
+        'Generic recommendations due to system limitations',
+      );
     });
 
     it('should handle invalid KIRO AI responses gracefully', async () => {
@@ -221,7 +249,11 @@ describe('PersonalizationService', () => {
         }),
       } as Response);
 
-      const result = await personalizationService.getPersonalizedTips(mockUserId, 3, true);
+      const result = await personalizationService.getPersonalizedTips(
+        mockUserId,
+        3,
+        true,
+      );
 
       expect(result.fallbackUsed).toBe(true);
       expect(mockLoggingService.logWarning).toHaveBeenCalled();
@@ -250,7 +282,7 @@ describe('PersonalizationService', () => {
       expect(mockCacheService.set).toHaveBeenCalledWith(
         expect.stringMatching(/^feedback-test-user-123-test-tip-456-\d+$/),
         mockFeedback,
-        86400 * 30
+        86400 * 30,
       );
 
       // Verify feedback was sent to KIRO
@@ -259,7 +291,7 @@ describe('PersonalizationService', () => {
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'Authorization': 'Bearer test-token',
+            Authorization: 'Bearer test-token',
           }),
           body: JSON.stringify({
             userId: mockFeedback.userId,
@@ -269,7 +301,7 @@ describe('PersonalizationService', () => {
             timestamp: mockFeedback.timestamp.toISOString(),
             context: 'health-tips-personalization',
           }),
-        })
+        }),
       );
 
       expect(mockLoggingService.logInfo).toHaveBeenCalledWith(
@@ -278,7 +310,7 @@ describe('PersonalizationService', () => {
           userId: mockFeedback.userId,
           tipId: mockFeedback.tipId,
           feedback: mockFeedback.feedback,
-        })
+        }),
       );
     });
 
@@ -297,13 +329,13 @@ describe('PersonalizationService', () => {
         expect.objectContaining({
           feedback: mockFeedback,
           error: expect.any(Error),
-        })
+        }),
       );
 
       // Should still log successful local recording
       expect(mockLoggingService.logInfo).toHaveBeenCalledWith(
         'Personalization feedback recorded',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -339,14 +371,20 @@ describe('PersonalizationService', () => {
 
       mockCacheService.get.mockResolvedValue(cachedProfile);
 
-      const result = await personalizationService.getUserPersonalizationProfile(mockUserId);
+      const result = await personalizationService.getUserPersonalizationProfile(
+        mockUserId,
+      );
 
       expect(result).toEqual(cachedProfile);
-      expect(mockCacheService.get).toHaveBeenCalledWith(`personalization-profile-${mockUserId}`);
+      expect(mockCacheService.get).toHaveBeenCalledWith(
+        `personalization-profile-${mockUserId}`,
+      );
     });
 
     it('should build and cache new profile when not cached', async () => {
-      const result = await personalizationService.getUserPersonalizationProfile(mockUserId);
+      const result = await personalizationService.getUserPersonalizationProfile(
+        mockUserId,
+      );
 
       expect(result.userId).toBe(mockUserId);
       expect(result.preferences).toBeDefined();
@@ -361,7 +399,7 @@ describe('PersonalizationService', () => {
           preferences: expect.any(Object),
           insights: expect.any(Object),
         }),
-        3600
+        3600,
       );
     });
   });
@@ -390,12 +428,15 @@ describe('PersonalizationService', () => {
 
       mockCacheService.get.mockResolvedValue(existingProfile);
 
-      const result = await personalizationService.updatePersonalizationPreferences(
-        mockUserId,
-        mockPreferences
-      );
+      const result =
+        await personalizationService.updatePersonalizationPreferences(
+          mockUserId,
+          mockPreferences,
+        );
 
-      expect(result.preferences).toEqual(expect.objectContaining(mockPreferences));
+      expect(result.preferences).toEqual(
+        expect.objectContaining(mockPreferences),
+      );
       expect(result.lastUpdated).toBeInstanceOf(Date);
 
       // Verify profile cache was updated
@@ -404,12 +445,12 @@ describe('PersonalizationService', () => {
         expect.objectContaining({
           preferences: expect.objectContaining(mockPreferences),
         }),
-        3600
+        3600,
       );
 
       // Verify personalized tips cache was cleared
       expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        `personalized-tips-${mockUserId}-*`
+        `personalized-tips-${mockUserId}-*`,
       );
 
       expect(mockLoggingService.logInfo).toHaveBeenCalledWith(
@@ -417,7 +458,7 @@ describe('PersonalizationService', () => {
         expect.objectContaining({
           userId: mockUserId,
           preferences: mockPreferences,
-        })
+        }),
       );
     });
   });
@@ -431,7 +472,7 @@ describe('PersonalizationService', () => {
       mockFetch.mockImplementationOnce(async (url, options) => {
         const body = JSON.parse(options?.body as string);
         capturedPrompt = body.messages[1].content;
-        
+
         return {
           ok: true,
           json: async () => ({
@@ -469,14 +510,18 @@ describe('PersonalizationService', () => {
         statusText: 'Unauthorized',
       } as Response);
 
-      const result = await personalizationService.getPersonalizedTips('test-user', 3, true);
+      const result = await personalizationService.getPersonalizedTips(
+        'test-user',
+        3,
+        true,
+      );
 
       expect(result.fallbackUsed).toBe(true);
       expect(mockLoggingService.logWarning).toHaveBeenCalledWith(
         'KIRO AI failed, using fallback',
         expect.objectContaining({
           error: expect.any(Error),
-        })
+        }),
       );
     });
 
@@ -487,7 +532,11 @@ describe('PersonalizationService', () => {
         statusText: 'Too Many Requests',
       } as Response);
 
-      const result = await personalizationService.getPersonalizedTips('test-user', 3, true);
+      const result = await personalizationService.getPersonalizedTips(
+        'test-user',
+        3,
+        true,
+      );
 
       expect(result.fallbackUsed).toBe(true);
       expect(mockLoggingService.logWarning).toHaveBeenCalled();

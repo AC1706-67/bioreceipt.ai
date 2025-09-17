@@ -4,7 +4,12 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  waitFor,
+  screen,
+} from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { TipsFeed } from '../../src/components/tips/TipsFeed';
@@ -29,7 +34,8 @@ jest.mock('../../src/hooks/useAnalytics', () => ({
 // Mock fetch
 global.fetch = jest.fn();
 
-const mockContentService = ContentService.getInstance() as jest.Mocked<ContentService>;
+const mockContentService =
+  ContentService.getInstance() as jest.Mocked<ContentService>;
 const mockTokenManager = tokenManager as jest.Mocked<typeof tokenManager>;
 const mockLoggingService = loggingService as jest.Mocked<typeof loggingService>;
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
@@ -58,19 +64,18 @@ const createTestStore = (initialState = {}) => {
   });
 };
 
-const renderWithProvider = (component: React.ReactElement, initialState = {}) => {
+const renderWithProvider = (
+  component: React.ReactElement,
+  initialState = {},
+) => {
   const store = createTestStore(initialState);
-  return render(
-    <Provider store={store}>
-      {component}
-    </Provider>
-  );
+  return render(<Provider store={store}>{component}</Provider>);
 };
 
 describe('Frontend-Backend Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default mocks
     mockTokenManager.getToken.mockResolvedValue('test-token');
     mockLoggingService.logInfo.mockResolvedValue(undefined);
@@ -83,7 +88,8 @@ describe('Frontend-Backend Integration', () => {
       {
         id: 'tip-1',
         title: 'Stay Hydrated',
-        content: 'Drink plenty of water throughout the day to maintain good health and energy levels.',
+        content:
+          'Drink plenty of water throughout the day to maintain good health and energy levels.',
         category: 'nutrition' as const,
         difficulty: 'easy' as const,
         estimatedReadTime: 2,
@@ -100,7 +106,8 @@ describe('Frontend-Backend Integration', () => {
       {
         id: 'tip-2',
         title: 'Practice Deep Breathing',
-        content: 'Take 5 minutes each day to practice deep breathing exercises for stress relief.',
+        content:
+          'Take 5 minutes each day to practice deep breathing exercises for stress relief.',
         category: 'mental_wellness' as const,
         difficulty: 'easy' as const,
         estimatedReadTime: 3,
@@ -136,10 +143,7 @@ describe('Frontend-Backend Integration', () => {
       const mockOnTipAction = jest.fn();
 
       renderWithProvider(
-        <TipsFeed
-          userId="test-user-id"
-          onTipAction={mockOnTipAction}
-        />
+        <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />,
       );
 
       // Wait for tips to load
@@ -153,10 +157,10 @@ describe('Frontend-Backend Integration', () => {
         expect.stringContaining('/health-tips'),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': 'Bearer test-token',
+            Authorization: 'Bearer test-token',
             'Content-Type': 'application/json',
           }),
-        })
+        }),
       );
     });
 
@@ -186,10 +190,7 @@ describe('Frontend-Backend Integration', () => {
       const mockOnTipAction = jest.fn();
 
       renderWithProvider(
-        <TipsFeed
-          userId="test-user-id"
-          onTipAction={mockOnTipAction}
-        />
+        <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />,
       );
 
       // Wait for tips to load
@@ -214,10 +215,7 @@ describe('Frontend-Backend Integration', () => {
       const mockOnTipAction = jest.fn();
 
       renderWithProvider(
-        <TipsFeed
-          userId="test-user-id"
-          onTipAction={mockOnTipAction}
-        />
+        <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />,
       );
 
       // Wait for error state
@@ -230,7 +228,7 @@ describe('Frontend-Backend Integration', () => {
     it('should filter tips correctly', async () => {
       // Mock filtered response
       const filteredTips = [mockTips[0]]; // Only nutrition tip
-      
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -253,7 +251,7 @@ describe('Frontend-Backend Integration', () => {
           userId="test-user-id"
           onTipAction={mockOnTipAction}
           initialFilter={{ category: 'nutrition' }}
-        />
+        />,
       );
 
       // Wait for filtered tips to load
@@ -265,7 +263,7 @@ describe('Frontend-Backend Integration', () => {
       // Verify API was called with filter
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('category=nutrition'),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -275,7 +273,8 @@ describe('Frontend-Backend Integration', () => {
       {
         id: 'daily-tip-1',
         title: 'Morning Hydration',
-        content: 'Start your day with a glass of water to kickstart your metabolism.',
+        content:
+          'Start your day with a glass of water to kickstart your metabolism.',
         category: 'nutrition' as const,
         difficulty: 'easy' as const,
         estimatedReadTime: 1,
@@ -304,7 +303,10 @@ describe('Frontend-Backend Integration', () => {
       });
 
       // Verify service was called
-      expect(mockContentService.getDailyTips).toHaveBeenCalledWith('test-user-id', 3);
+      expect(mockContentService.getDailyTips).toHaveBeenCalledWith(
+        'test-user-id',
+        3,
+      );
     });
 
     it('should handle tip completion with celebration', async () => {
@@ -335,7 +337,7 @@ describe('Frontend-Backend Integration', () => {
         expect(mockContentService.recordEngagement).toHaveBeenCalledWith(
           'test-user-id',
           'daily-tip-1',
-          'complete'
+          'complete',
         );
       });
     });
@@ -360,7 +362,9 @@ describe('Frontend-Backend Integration', () => {
       ]);
 
       // Trigger refresh by scrolling down (pull to refresh)
-      const scrollView = screen.getByTestId('daily-tips-scroll') || screen.getByRole('scrollview');
+      const scrollView =
+        screen.getByTestId('daily-tips-scroll') ||
+        screen.getByRole('scrollview');
       fireEvent(scrollView, 'refresh');
 
       // Verify refresh was called
@@ -370,7 +374,9 @@ describe('Frontend-Backend Integration', () => {
     });
 
     it('should show error state when tips fail to load', async () => {
-      mockContentService.getDailyTips.mockRejectedValue(new Error('Failed to load daily tips'));
+      mockContentService.getDailyTips.mockRejectedValue(
+        new Error('Failed to load daily tips'),
+      );
 
       renderWithProvider(<DailyTipsScreen />);
 
@@ -389,7 +395,9 @@ describe('Frontend-Backend Integration', () => {
       });
 
       // Should show sign-in message
-      expect(screen.getByText('Please sign in to view your daily tips.')).toBeTruthy();
+      expect(
+        screen.getByText('Please sign in to view your daily tips.'),
+      ).toBeTruthy();
     });
   });
 
@@ -411,10 +419,7 @@ describe('Frontend-Backend Integration', () => {
       const mockOnTipAction = jest.fn();
 
       renderWithProvider(
-        <TipsFeed
-          userId="test-user-id"
-          onTipAction={mockOnTipAction}
-        />
+        <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />,
       );
 
       // Wait for error state
@@ -443,10 +448,7 @@ describe('Frontend-Backend Integration', () => {
       const mockOnTipAction = jest.fn();
 
       renderWithProvider(
-        <TipsFeed
-          userId="test-user-id"
-          onTipAction={mockOnTipAction}
-        />
+        <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />,
       );
 
       // Wait for error state
@@ -461,10 +463,7 @@ describe('Frontend-Backend Integration', () => {
       const mockOnTipAction = jest.fn();
 
       renderWithProvider(
-        <TipsFeed
-          userId="test-user-id"
-          onTipAction={mockOnTipAction}
-        />
+        <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />,
       );
 
       // Wait for error state
@@ -495,10 +494,7 @@ describe('Frontend-Backend Integration', () => {
       const mockOnTipAction = jest.fn();
 
       const { rerender } = renderWithProvider(
-        <TipsFeed
-          userId="test-user-id"
-          onTipAction={mockOnTipAction}
-        />
+        <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />,
       );
 
       // Wait for initial load
@@ -512,16 +508,13 @@ describe('Frontend-Backend Integration', () => {
       // Re-render component (should use cache)
       rerender(
         <Provider store={createTestStore()}>
-          <TipsFeed
-            userId="test-user-id"
-            onTipAction={mockOnTipAction}
-          />
-        </Provider>
+          <TipsFeed userId="test-user-id" onTipAction={mockOnTipAction} />
+        </Provider>,
       );
 
       // Should still show tips without additional API call
       expect(screen.getByText('Stay Hydrated')).toBeTruthy();
-      
+
       // Note: In a real implementation, we'd verify cache was used
       // This would depend on the specific caching implementation
     });

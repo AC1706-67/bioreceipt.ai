@@ -76,7 +76,7 @@ describe('Analytics Flow Integration', () => {
           visible={true}
           onConsentGiven={onConsentGiven}
           onConsentDeclined={onConsentDeclined}
-        />
+        />,
       );
 
       // Check initial screen elements
@@ -95,7 +95,7 @@ describe('Analytics Flow Integration', () => {
             performanceConsent: true,
             crashReportingConsent: true,
             trackingLevel: 'standard',
-          })
+          }),
         );
       });
     });
@@ -109,7 +109,7 @@ describe('Analytics Flow Integration', () => {
           visible={true}
           onConsentGiven={onConsentGiven}
           onConsentDeclined={onConsentDeclined}
-        />
+        />,
       );
 
       // Decline consent
@@ -130,7 +130,7 @@ describe('Analytics Flow Integration', () => {
           visible={true}
           onConsentGiven={onConsentGiven}
           onConsentDeclined={onConsentDeclined}
-        />
+        />,
       );
 
       // Open custom settings
@@ -170,7 +170,7 @@ describe('Analytics Flow Integration', () => {
         'view',
         'tip123',
         { title: 'Test Tip', category: 'nutrition' },
-        'user123'
+        'user123',
       );
 
       // Track tip like
@@ -178,12 +178,12 @@ describe('Analytics Flow Integration', () => {
         'like',
         'tip123',
         { title: 'Test Tip', category: 'nutrition' },
-        'user123'
+        'user123',
       );
 
       // Verify events were stored
       expect(mockStorage.storeData).toHaveBeenCalledTimes(4);
-      
+
       // Check that events have correct structure
       const lastCall = mockStorage.storeData.mock.calls[3];
       const events = lastCall[1] as AnalyticsEvent[];
@@ -230,10 +230,10 @@ describe('Analytics Flow Integration', () => {
         id: 'event2',
         userId: 'user1',
         eventType: 'tip_view',
-        eventData: { 
-          tipId: 'tip1', 
-          tipTitle: 'Popular Tip', 
-          tipCategory: 'nutrition' 
+        eventData: {
+          tipId: 'tip1',
+          tipTitle: 'Popular Tip',
+          tipCategory: 'nutrition',
         },
         timestamp: new Date('2024-01-01T10:05:00Z'),
         sessionId: 'session1',
@@ -242,10 +242,10 @@ describe('Analytics Flow Integration', () => {
         id: 'event3',
         userId: 'user2',
         eventType: 'tip_like',
-        eventData: { 
-          tipId: 'tip1', 
-          tipTitle: 'Popular Tip', 
-          tipCategory: 'nutrition' 
+        eventData: {
+          tipId: 'tip1',
+          tipTitle: 'Popular Tip',
+          tipCategory: 'nutrition',
         },
         timestamp: new Date('2024-01-01T11:00:00Z'),
         sessionId: 'session2',
@@ -258,7 +258,7 @@ describe('Analytics Flow Integration', () => {
       const { getByText } = render(
         <Provider store={store}>
           <AnalyticsDashboard />
-        </Provider>
+        </Provider>,
       );
 
       // Wait for data to load
@@ -282,7 +282,7 @@ describe('Analytics Flow Integration', () => {
       const { getByText } = render(
         <Provider store={store}>
           <AnalyticsDashboard />
-        </Provider>
+        </Provider>,
       );
 
       await waitFor(() => {
@@ -296,7 +296,7 @@ describe('Analytics Flow Integration', () => {
       const { getByText } = render(
         <Provider store={store}>
           <AnalyticsDashboard />
-        </Provider>
+        </Provider>,
       );
 
       await waitFor(() => {
@@ -311,7 +311,7 @@ describe('Analytics Flow Integration', () => {
 
       // Verify period selection works
       expect(dayButton.props.style).toContainEqual(
-        expect.objectContaining({ backgroundColor: '#3498db' })
+        expect.objectContaining({ backgroundColor: '#3498db' }),
       );
     });
   });
@@ -356,7 +356,9 @@ describe('Analytics Flow Integration', () => {
       mockStorage.getData.mockResolvedValue(mockUserEvents);
       await analyticsService.initialize(true, 'standard');
 
-      const metrics = await analyticsService.getUserEngagementMetrics('user123');
+      const metrics = await analyticsService.getUserEngagementMetrics(
+        'user123',
+      );
 
       expect(metrics).toBeDefined();
       expect(metrics!.userId).toBe('user123');
@@ -417,7 +419,7 @@ describe('Analytics Flow Integration', () => {
 
       expect(mockStorage.storeData).toHaveBeenCalledWith(
         'ANALYTICS_EVENTS',
-        [mockEvents[1]] // Only user456's event should remain
+        [mockEvents[1]], // Only user456's event should remain
       );
     });
 

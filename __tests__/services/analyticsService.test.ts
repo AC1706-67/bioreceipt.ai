@@ -68,7 +68,8 @@ describe('AnalyticsService', () => {
       });
 
       expect(mockStorage.storeData).toHaveBeenCalled();
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents).toHaveLength(1);
       expect(storedEvents[0].eventType).toBe('app_launch');
       expect(storedEvents[0].eventData.userId).toBe('user123');
@@ -92,7 +93,8 @@ describe('AnalyticsService', () => {
         userId: 'user123',
       });
 
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents[0].eventData.searchQuery).toBeUndefined();
     });
 
@@ -101,9 +103,11 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEvent('tip_view', { tipId: 'tip2' });
 
       expect(mockStorage.storeData).toHaveBeenCalledTimes(2);
-      const firstCall = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
-      const secondCall = mockStorage.storeData.mock.calls[1][1] as AnalyticsEvent[];
-      
+      const firstCall = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
+      const secondCall = mockStorage.storeData.mock
+        .calls[1][1] as AnalyticsEvent[];
+
       expect(firstCall[0].id).not.toBe(secondCall[0].id);
     });
   });
@@ -118,7 +122,8 @@ describe('AnalyticsService', () => {
         previousScreen: 'LoginScreen',
       });
 
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents[0].eventType).toBe('screen_view');
       expect(storedEvents[0].eventData.screen).toBe('HomeScreen');
       expect(storedEvents[0].eventData.previousScreen).toBe('LoginScreen');
@@ -135,10 +140,11 @@ describe('AnalyticsService', () => {
         'view',
         'tip123',
         { title: 'Test Tip', category: 'nutrition' },
-        'user123'
+        'user123',
       );
 
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents[0].eventType).toBe('tip_view');
       expect(storedEvents[0].eventData.tipId).toBe('tip123');
       expect(storedEvents[0].eventData.tipTitle).toBe('Test Tip');
@@ -150,10 +156,11 @@ describe('AnalyticsService', () => {
         'like',
         'tip123',
         { title: 'Test Tip' },
-        'user123'
+        'user123',
       );
 
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents[0].eventType).toBe('tip_like');
     });
   });
@@ -166,7 +173,8 @@ describe('AnalyticsService', () => {
     it('should track search queries', async () => {
       await analyticsService.trackSearch('healthy recipes', 15, 'user123');
 
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents[0].eventType).toBe('search_performed');
       expect(storedEvents[0].eventData.searchQuery).toBe('healthy recipes');
       expect(storedEvents[0].eventData.searchResults).toBe(15);
@@ -177,7 +185,8 @@ describe('AnalyticsService', () => {
 
       await analyticsService.trackSearch('sensitive query', 5, 'user123');
 
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents[0].eventData.searchQuery).toBe('[REDACTED]');
     });
   });
@@ -192,7 +201,8 @@ describe('AnalyticsService', () => {
         page: 'home',
       });
 
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
       expect(storedEvents[0].eventType).toBe('performance_metric');
       expect(storedEvents[0].eventData.action).toBe('page_load_time');
       expect(storedEvents[0].eventData.value).toBe(1500);
@@ -250,7 +260,9 @@ describe('AnalyticsService', () => {
     });
 
     it('should calculate user engagement metrics', async () => {
-      const metrics = await analyticsService.getUserEngagementMetrics('user123');
+      const metrics = await analyticsService.getUserEngagementMetrics(
+        'user123',
+      );
 
       expect(metrics).toBeDefined();
       expect(metrics!.userId).toBe('user123');
@@ -265,7 +277,9 @@ describe('AnalyticsService', () => {
     it('should return null for user with no events', async () => {
       mockStorage.getData.mockResolvedValue([]);
 
-      const metrics = await analyticsService.getUserEngagementMetrics('user123');
+      const metrics = await analyticsService.getUserEngagementMetrics(
+        'user123',
+      );
 
       expect(metrics).toBeNull();
     });
@@ -293,7 +307,11 @@ describe('AnalyticsService', () => {
         id: 'event3',
         userId: 'user1',
         eventType: 'tip_view',
-        eventData: { tipId: 'tip1', tipTitle: 'Popular Tip', tipCategory: 'nutrition' },
+        eventData: {
+          tipId: 'tip1',
+          tipTitle: 'Popular Tip',
+          tipCategory: 'nutrition',
+        },
         timestamp: new Date('2024-01-01T10:05:00Z'),
         sessionId: 'session1',
       },
@@ -301,7 +319,11 @@ describe('AnalyticsService', () => {
         id: 'event4',
         userId: 'user1',
         eventType: 'tip_like',
-        eventData: { tipId: 'tip1', tipTitle: 'Popular Tip', tipCategory: 'nutrition' },
+        eventData: {
+          tipId: 'tip1',
+          tipTitle: 'Popular Tip',
+          tipCategory: 'nutrition',
+        },
         timestamp: new Date('2024-01-01T10:06:00Z'),
         sessionId: 'session1',
       },
@@ -340,7 +362,10 @@ describe('AnalyticsService', () => {
     it('should clear all data', async () => {
       await analyticsService.clearAllData();
 
-      expect(mockStorage.storeData).toHaveBeenCalledWith('ANALYTICS_EVENTS', []);
+      expect(mockStorage.storeData).toHaveBeenCalledWith(
+        'ANALYTICS_EVENTS',
+        [],
+      );
     });
 
     it('should export user data', async () => {
@@ -395,7 +420,7 @@ describe('AnalyticsService', () => {
 
       expect(mockStorage.storeData).toHaveBeenCalledWith(
         'ANALYTICS_EVENTS',
-        [mockEvents[1]] // Only user456's event should remain
+        [mockEvents[1]], // Only user456's event should remain
       );
     });
   });
@@ -410,10 +435,13 @@ describe('AnalyticsService', () => {
       const config = analyticsService.getConfig();
       expect(config.retentionDays).toBe(30);
       expect(config.batchSize).toBe(25);
-      expect(mockStorage.storeData).toHaveBeenCalledWith('ANALYTICS_CONFIG', expect.objectContaining({
-        retentionDays: 30,
-        batchSize: 25,
-      }));
+      expect(mockStorage.storeData).toHaveBeenCalledWith(
+        'ANALYTICS_CONFIG',
+        expect.objectContaining({
+          retentionDays: 30,
+          batchSize: 25,
+        }),
+      );
     });
 
     it('should get current configuration', () => {
@@ -461,8 +489,11 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEvent('tip_view', { tipId: 'tip1' });
 
       // Should store only recent events (within retention period)
-      const storedEvents = mockStorage.storeData.mock.calls[0][1] as AnalyticsEvent[];
-      const oldEvents = storedEvents.filter(e => e.timestamp.getTime() === oldDate.getTime());
+      const storedEvents = mockStorage.storeData.mock
+        .calls[0][1] as AnalyticsEvent[];
+      const oldEvents = storedEvents.filter(
+        e => e.timestamp.getTime() === oldDate.getTime(),
+      );
       expect(oldEvents).toHaveLength(0);
     });
   });

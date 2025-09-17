@@ -20,28 +20,3 @@ describe('Profile Integration', () => {
     });
   });
 });
-    });
-
-    it('should track onboarding progress', async () => {
-      // Test would verify progress tracking
-      expect(true).toBe(true); // Placeholder
-    });
-
-    it('should handle onboarding errors', async () => {
-      // Test would verify error handling
-      expect(true).toBe(true); // Placeholder
-    });
-  });
-
-  describe('User Preferences', () => {
-    it('should save user preferences', async () => {
-      // Test would verify preference saving
-      expect(true).toBe(true); // Placeholder
-    });
-
-    it('should load user preferences', async () => {
-      // Test would verify preference loading
-      expect(true).toBe(true); // Placeholder
-    });
-  });
-});

@@ -23,7 +23,9 @@ jest.mock('../../src/middleware/authMiddleware', () => ({
 }));
 
 const mockKiroAIService = kiroAIService as jest.Mocked<typeof kiroAIService>;
-const mockPromptEngineering = promptEngineeringService as jest.Mocked<typeof promptEngineeringService>;
+const mockPromptEngineering = promptEngineeringService as jest.Mocked<
+  typeof promptEngineeringService
+>;
 const mockProfileService = profileService as jest.Mocked<typeof profileService>;
 const mockCacheService = cacheService as jest.Mocked<typeof cacheService>;
 
@@ -74,7 +76,8 @@ describe('AI Personalization Integration Tests', () => {
       {
         id: 'kiro-123-1',
         title: 'Personalized Morning Nutrition Tip',
-        content: 'Start your day with a protein-rich breakfast tailored to your intermediate nutrition knowledge. Consider Greek yogurt with berries and nuts for sustained energy that aligns with your weight loss goals.',
+        content:
+          'Start your day with a protein-rich breakfast tailored to your intermediate nutrition knowledge. Consider Greek yogurt with berries and nuts for sustained energy that aligns with your weight loss goals.',
         category: 'nutrition',
         difficulty: 'medium',
         estimatedReadTime: 3,
@@ -89,16 +92,28 @@ describe('AI Personalization Integration Tests', () => {
         bookmarkCount: 0,
         completionCount: 0,
         shareCount: 0,
-        personalizedReason: 'Matches your intermediate nutrition level and weight loss goals',
+        personalizedReason:
+          'Matches your intermediate nutrition level and weight loss goals',
         confidenceScore: 0.92,
-        actionItems: ['Buy Greek yogurt', 'Prepare berries', 'Set morning reminder'],
-        motivationalHook: 'You\'re building great momentum with your health journey!',
+        actionItems: [
+          'Buy Greek yogurt',
+          'Prepare berries',
+          'Set morning reminder',
+        ],
+        motivationalHook:
+          "You're building great momentum with your health journey!",
       },
     ],
     personalizationScore: 0.88,
-    reasoning: 'Personalized based on your nutrition interests, morning routine, and weight loss goals',
-    adaptationStrategy: 'Used encouraging tone for achievement-motivated user with intermediate nutrition knowledge',
-    followUpSuggestions: ['Hydration tips', 'Meal prep strategies', 'Energy-boosting snacks'],
+    reasoning:
+      'Personalized based on your nutrition interests, morning routine, and weight loss goals',
+    adaptationStrategy:
+      'Used encouraging tone for achievement-motivated user with intermediate nutrition knowledge',
+    followUpSuggestions: [
+      'Hydration tips',
+      'Meal prep strategies',
+      'Energy-boosting snacks',
+    ],
     confidence: 0.92,
     metrics: {
       requestId: 'kiro-123',
@@ -115,10 +130,12 @@ describe('AI Personalization Integration Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default mocks
     mockProfileService.getUserProfile.mockResolvedValue(mockUserProfile);
-    mockKiroAIService.generatePersonalizedTips.mockResolvedValue(mockAIResponse);
+    mockKiroAIService.generatePersonalizedTips.mockResolvedValue(
+      mockAIResponse,
+    );
     mockCacheService.get.mockResolvedValue(null);
     mockCacheService.set.mockResolvedValue(undefined);
     mockCacheService.delete.mockResolvedValue(undefined);
@@ -134,11 +151,13 @@ describe('AI Personalization Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.tips).toHaveLength(1);
-      expect(response.body.data.tips[0].title).toBe('Personalized Morning Nutrition Tip');
+      expect(response.body.data.tips[0].title).toBe(
+        'Personalized Morning Nutrition Tip',
+      );
       expect(response.body.data.tips[0].personalizedReason).toBeDefined();
       expect(response.body.data.tips[0].actionItems).toBeInstanceOf(Array);
       expect(response.body.data.tips[0].motivationalHook).toBeDefined();
-      
+
       expect(response.body.data.personalizationScore).toBe(0.88);
       expect(response.body.data.reasoning).toContain('nutrition interests');
       expect(response.body.data.fallbackUsed).toBe(false);
@@ -153,21 +172,21 @@ describe('AI Personalization Integration Tests', () => {
         expect.objectContaining({
           count: 1,
           forceRefresh: false,
-        })
+        }),
       );
     });
 
     it('should handle category-specific requests', async () => {
       const response = await request(app)
         .get('/api/personalization/tips')
-        .query({ 
+        .query({
           count: 2,
           category: 'fitness',
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      
+
       expect(mockKiroAIService.generatePersonalizedTips).toHaveBeenCalledWith(
         mockUserId,
         mockUserProfile,
@@ -176,21 +195,21 @@ describe('AI Personalization Integration Tests', () => {
         expect.objectContaining({
           count: 2,
           category: 'fitness',
-        })
+        }),
       );
     });
 
     it('should handle mood-based requests', async () => {
       const response = await request(app)
         .get('/api/personalization/tips')
-        .query({ 
+        .query({
           count: 1,
           mood: 'stressed',
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      
+
       expect(mockKiroAIService.generatePersonalizedTips).toHaveBeenCalledWith(
         mockUserId,
         mockUserProfile,
@@ -198,21 +217,21 @@ describe('AI Personalization Integration Tests', () => {
         expect.any(Object),
         expect.objectContaining({
           mood: 'stressed',
-        })
+        }),
       );
     });
 
     it('should handle force refresh requests', async () => {
       const response = await request(app)
         .get('/api/personalization/tips')
-        .query({ 
+        .query({
           count: 3,
           refresh: 'true',
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      
+
       expect(mockKiroAIService.generatePersonalizedTips).toHaveBeenCalledWith(
         mockUserId,
         mockUserProfile,
@@ -220,7 +239,7 @@ describe('AI Personalization Integration Tests', () => {
         expect.any(Object),
         expect.objectContaining({
           forceRefresh: true,
-        })
+        }),
       );
     });
 
@@ -232,12 +251,14 @@ describe('AI Personalization Integration Tests', () => {
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('INVALID_PARAMETER');
-      expect(response.body.error.message).toBe('Count must be between 1 and 10');
+      expect(response.body.error.message).toBe(
+        'Count must be between 1 and 10',
+      );
     });
 
     it('should handle AI service failures gracefully', async () => {
       mockKiroAIService.generatePersonalizedTips.mockRejectedValue(
-        new Error('AI service temporarily unavailable')
+        new Error('AI service temporarily unavailable'),
       );
 
       const response = await request(app)
@@ -247,7 +268,9 @@ describe('AI Personalization Integration Tests', () => {
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('PERSONALIZATION_ERROR');
-      expect(response.body.error.message).toBe('Failed to generate personalized recommendations');
+      expect(response.body.error.message).toBe(
+        'Failed to generate personalized recommendations',
+      );
     });
 
     it('should handle missing user profile', async () => {
@@ -294,7 +317,7 @@ describe('AI Personalization Integration Tests', () => {
         'kiro-123',
         'kiro-123-1',
         'positive',
-        'Very helpful and actionable'
+        'Very helpful and actionable',
       );
     });
 
@@ -317,7 +340,7 @@ describe('AI Personalization Integration Tests', () => {
         'kiro-456',
         'kiro-456-2',
         'negative',
-        'Too complex for my current level'
+        'Too complex for my current level',
       );
     });
 
@@ -332,7 +355,9 @@ describe('AI Personalization Integration Tests', () => {
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('INVALID_FEEDBACK');
-      expect(response.body.error.message).toBe('Valid tipId and feedback (positive/negative) are required');
+      expect(response.body.error.message).toBe(
+        'Valid tipId and feedback (positive/negative) are required',
+      );
     });
 
     it('should require tipId', async () => {
@@ -349,7 +374,7 @@ describe('AI Personalization Integration Tests', () => {
 
     it('should handle feedback recording errors', async () => {
       mockKiroAIService.recordFeedback.mockRejectedValue(
-        new Error('Feedback service unavailable')
+        new Error('Feedback service unavailable'),
       );
 
       const response = await request(app)
@@ -386,7 +411,7 @@ describe('AI Personalization Integration Tests', () => {
           recommendations: {
             nextCategories: ['mental_wellness'],
             suggestedDifficulty: 'medium',
-            motivationalMessage: 'You\'re doing great! Keep up the momentum.',
+            motivationalMessage: "You're doing great! Keep up the momentum.",
           },
         },
         lastUpdated: new Date(),
@@ -394,12 +419,17 @@ describe('AI Personalization Integration Tests', () => {
 
       // Mock the personalization service method
       const mockPersonalizationService = {
-        getUserPersonalizationProfile: jest.fn().mockResolvedValue(mockPersonalizationProfile),
+        getUserPersonalizationProfile: jest
+          .fn()
+          .mockResolvedValue(mockPersonalizationProfile),
       };
 
-      jest.doMock('../../src/services/personalization/personalizationService', () => ({
-        personalizationService: mockPersonalizationService,
-      }));
+      jest.doMock(
+        '../../src/services/personalization/personalizationService',
+        () => ({
+          personalizationService: mockPersonalizationService,
+        }),
+      );
 
       const response = await request(app)
         .get('/api/personalization/profile')
@@ -408,7 +438,9 @@ describe('AI Personalization Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.userId).toBe(mockUserId);
       expect(response.body.data.preferences.categories).toContain('nutrition');
-      expect(response.body.data.insights.favoriteCategories).toContain('fitness');
+      expect(response.body.data.insights.favoriteCategories).toContain(
+        'fitness',
+      );
     });
   });
 
@@ -440,12 +472,17 @@ describe('AI Personalization Integration Tests', () => {
       };
 
       const mockPersonalizationService = {
-        updatePersonalizationPreferences: jest.fn().mockResolvedValue(updatedProfile),
+        updatePersonalizationPreferences: jest
+          .fn()
+          .mockResolvedValue(updatedProfile),
       };
 
-      jest.doMock('../../src/services/personalization/personalizationService', () => ({
-        personalizationService: mockPersonalizationService,
-      }));
+      jest.doMock(
+        '../../src/services/personalization/personalizationService',
+        () => ({
+          personalizationService: mockPersonalizationService,
+        }),
+      );
 
       const response = await request(app)
         .put('/api/personalization/preferences')
@@ -499,7 +536,8 @@ describe('AI Personalization Integration Tests', () => {
       const fallbackResponse = {
         ...mockAIResponse,
         personalizationScore: 0.6,
-        reasoning: 'Generated using rule-based fallback system due to AI service unavailability',
+        reasoning:
+          'Generated using rule-based fallback system due to AI service unavailability',
         metrics: {
           ...mockAIResponse.metrics,
           fallbackUsed: true,
@@ -507,7 +545,9 @@ describe('AI Personalization Integration Tests', () => {
         },
       };
 
-      mockKiroAIService.generatePersonalizedTips.mockResolvedValue(fallbackResponse);
+      mockKiroAIService.generatePersonalizedTips.mockResolvedValue(
+        fallbackResponse,
+      );
 
       const response = await request(app)
         .get('/api/personalization/tips')
@@ -536,7 +576,9 @@ describe('AI Personalization Integration Tests', () => {
         .expect(200);
 
       // AI service should only be called once due to caching
-      expect(mockKiroAIService.generatePersonalizedTips).toHaveBeenCalledTimes(2);
+      expect(mockKiroAIService.generatePersonalizedTips).toHaveBeenCalledTimes(
+        2,
+      );
     });
 
     it('should handle high-confidence responses with longer cache', async () => {
@@ -546,7 +588,9 @@ describe('AI Personalization Integration Tests', () => {
         personalizationScore: 0.95,
       };
 
-      mockKiroAIService.generatePersonalizedTips.mockResolvedValue(highConfidenceResponse);
+      mockKiroAIService.generatePersonalizedTips.mockResolvedValue(
+        highConfidenceResponse,
+      );
 
       const response = await request(app)
         .get('/api/personalization/tips')

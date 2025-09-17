@@ -21,12 +21,14 @@ const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 // Mock crypto
 jest.mock('react-native-crypto-js', () => ({
   AES: {
-    encrypt: jest.fn((data) => ({ toString: () => `encrypted_${data}` })),
-    decrypt: jest.fn((data) => ({ toString: () => data.replace('encrypted_', '') })),
+    encrypt: jest.fn(data => ({ toString: () => `encrypted_${data}` })),
+    decrypt: jest.fn(data => ({
+      toString: () => data.replace('encrypted_', ''),
+    })),
   },
   enc: {
     Utf8: {
-      stringify: jest.fn((data) => data),
+      stringify: jest.fn(data => data),
     },
   },
 }));
@@ -45,7 +47,7 @@ describe('Storage Utilities', () => {
 
       expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
         'user_data',
-        expect.stringContaining('encrypted_')
+        expect.stringContaining('encrypted_'),
       );
     });
 
@@ -53,14 +55,18 @@ describe('Storage Utilities', () => {
       mockAsyncStorage.setItem.mockRejectedValue(new Error('Storage error'));
 
       const testData = { name: 'John' };
-      await expect(storeData('USER_DATA', testData)).rejects.toThrow('Failed to store data for USER_DATA');
+      await expect(storeData('USER_DATA', testData)).rejects.toThrow(
+        'Failed to store data for USER_DATA',
+      );
     });
   });
 
   describe('getData', () => {
     it('should retrieve and decrypt data successfully', async () => {
       const testData = { name: 'John', age: 30 };
-      mockAsyncStorage.getItem.mockResolvedValue(`encrypted_${JSON.stringify(testData)}`);
+      mockAsyncStorage.getItem.mockResolvedValue(
+        `encrypted_${JSON.stringify(testData)}`,
+      );
 
       const result = await getData<typeof testData>('USER_DATA');
 
@@ -97,7 +103,9 @@ describe('Storage Utilities', () => {
     it('should throw error if removal fails', async () => {
       mockAsyncStorage.removeItem.mockRejectedValue(new Error('Remove error'));
 
-      await expect(removeData('USER_DATA')).rejects.toThrow('Failed to remove data for USER_DATA');
+      await expect(removeData('USER_DATA')).rejects.toThrow(
+        'Failed to remove data for USER_DATA',
+      );
     });
   });
 
@@ -108,7 +116,7 @@ describe('Storage Utilities', () => {
       await clearAllData();
 
       expect(mockAsyncStorage.multiRemove).toHaveBeenCalledWith(
-        expect.arrayContaining(['user_data', 'health_tips', 'user_progress'])
+        expect.arrayContaining(['user_data', 'health_tips', 'user_progress']),
       );
     });
   });
@@ -140,7 +148,7 @@ describe('Storage Utilities', () => {
 
       expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
         'user_data',
-        expect.stringContaining('encrypted_')
+        expect.stringContaining('encrypted_'),
       );
     });
   });
@@ -152,8 +160,10 @@ describe('Storage Utilities', () => {
         data: { name: 'John' },
         expirationTime: futureTime,
       };
-      
-      mockAsyncStorage.getItem.mockResolvedValue(`encrypted_${JSON.stringify(testData)}`);
+
+      mockAsyncStorage.getItem.mockResolvedValue(
+        `encrypted_${JSON.stringify(testData)}`,
+      );
 
       const result = await getDataIfNotExpired('USER_DATA');
 
@@ -166,8 +176,10 @@ describe('Storage Utilities', () => {
         data: { name: 'John' },
         expirationTime: pastTime,
       };
-      
-      mockAsyncStorage.getItem.mockResolvedValue(`encrypted_${JSON.stringify(testData)}`);
+
+      mockAsyncStorage.getItem.mockResolvedValue(
+        `encrypted_${JSON.stringify(testData)}`,
+      );
       mockAsyncStorage.removeItem.mockResolvedValue();
 
       const result = await getDataIfNotExpired('USER_DATA');
@@ -184,7 +196,7 @@ describe('Storage Utilities', () => {
         'health_tips',
         'other_key',
       ]);
-      mockAsyncStorage.getItem.mockImplementation((key) => {
+      mockAsyncStorage.getItem.mockImplementation(key => {
         if (key === 'user_data') return Promise.resolve('data1');
         if (key === 'health_tips') return Promise.resolve('data2');
         return Promise.resolve(null);

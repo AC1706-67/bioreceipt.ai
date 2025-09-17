@@ -3,7 +3,10 @@
  */
 
 import { NotificationService } from '../../src/services/notification/notificationService';
-import { NotificationSettings, NotificationPermission } from '../../src/types/notification';
+import {
+  NotificationSettings,
+  NotificationPermission,
+} from '../../src/types/notification';
 import { HealthTip, StreakMilestone } from '../../src/types';
 import * as storage from '../../src/utils/storage';
 
@@ -37,7 +40,7 @@ describe('NotificationService', () => {
         expect.objectContaining({
           granted: true,
           requestedAt: expect.any(Date),
-        })
+        }),
       );
     });
 
@@ -61,8 +64,11 @@ describe('NotificationService', () => {
       mockStorage.storeData.mockResolvedValue();
 
       // Mock permission denial
-      const originalRequestPermission = (notificationService as any).pushLibrary.requestPermission;
-      (notificationService as any).pushLibrary.requestPermission = jest.fn().mockResolvedValue(false);
+      const originalRequestPermission = (notificationService as any).pushLibrary
+        .requestPermission;
+      (notificationService as any).pushLibrary.requestPermission = jest
+        .fn()
+        .mockResolvedValue(false);
 
       const result = await notificationService.requestPermission();
 
@@ -73,11 +79,12 @@ describe('NotificationService', () => {
         expect.objectContaining({
           granted: false,
           deniedAt: expect.any(Date),
-        })
+        }),
       );
 
       // Restore original method
-      (notificationService as any).pushLibrary.requestPermission = originalRequestPermission;
+      (notificationService as any).pushLibrary.requestPermission =
+        originalRequestPermission;
     });
   });
 
@@ -99,17 +106,23 @@ describe('NotificationService', () => {
 
       mockStorage.getData.mockResolvedValue(mockSettings);
 
-      const result = await notificationService.getNotificationSettings(mockUserId);
+      const result = await notificationService.getNotificationSettings(
+        mockUserId,
+      );
 
       expect(result).toEqual(mockSettings);
-      expect(mockStorage.getData).toHaveBeenCalledWith(`NOTIFICATION_SETTINGS_${mockUserId}`);
+      expect(mockStorage.getData).toHaveBeenCalledWith(
+        `NOTIFICATION_SETTINGS_${mockUserId}`,
+      );
     });
 
     it('should return default settings for new user', async () => {
       mockStorage.getData.mockResolvedValue(null);
       mockStorage.storeData.mockResolvedValue();
 
-      const result = await notificationService.getNotificationSettings(mockUserId);
+      const result = await notificationService.getNotificationSettings(
+        mockUserId,
+      );
 
       expect(result.enabled).toBe(true);
       expect(result.dailyTipTime).toBe('09:00');
@@ -134,11 +147,14 @@ describe('NotificationService', () => {
 
       mockStorage.storeData.mockResolvedValue();
 
-      await notificationService.updateNotificationSettings(mockUserId, newSettings);
+      await notificationService.updateNotificationSettings(
+        mockUserId,
+        newSettings,
+      );
 
       expect(mockStorage.storeData).toHaveBeenCalledWith(
         `NOTIFICATION_SETTINGS_${mockUserId}`,
-        newSettings
+        newSettings,
       );
     });
   });
@@ -147,7 +163,8 @@ describe('NotificationService', () => {
     const mockTip: HealthTip = {
       id: 'tip123',
       title: 'Stay Hydrated',
-      content: 'Drink plenty of water throughout the day to maintain good health.',
+      content:
+        'Drink plenty of water throughout the day to maintain good health.',
       category: 'nutrition',
       tags: ['hydration', 'health'],
       difficulty: 'easy',
@@ -171,7 +188,10 @@ describe('NotificationService', () => {
       mockStorage.getData.mockResolvedValue(mockSettings);
       mockStorage.storeData.mockResolvedValue();
 
-      const result = await notificationService.scheduleDailyTipNotification(mockUserId, mockTip);
+      const result = await notificationService.scheduleDailyTipNotification(
+        mockUserId,
+        mockTip,
+      );
 
       expect(result).toBeDefined();
       expect(result).toContain('mock_notification_');
@@ -189,7 +209,10 @@ describe('NotificationService', () => {
 
       mockStorage.getData.mockResolvedValue(mockSettings);
 
-      const result = await notificationService.scheduleDailyTipNotification(mockUserId, mockTip);
+      const result = await notificationService.scheduleDailyTipNotification(
+        mockUserId,
+        mockTip,
+      );
 
       expect(result).toBe('');
     });
@@ -216,7 +239,11 @@ describe('NotificationService', () => {
 
       mockStorage.getData.mockResolvedValue(mockSettings);
 
-      await notificationService.sendMilestoneNotification(mockUserId, mockMilestone, 7);
+      await notificationService.sendMilestoneNotification(
+        mockUserId,
+        mockMilestone,
+        7,
+      );
 
       // Should not throw an error
       expect(true).toBe(true);
@@ -234,7 +261,11 @@ describe('NotificationService', () => {
 
       mockStorage.getData.mockResolvedValue(mockSettings);
 
-      await notificationService.sendMilestoneNotification(mockUserId, mockMilestone, 7);
+      await notificationService.sendMilestoneNotification(
+        mockUserId,
+        mockMilestone,
+        7,
+      );
 
       // Should not throw an error and should return early
       expect(true).toBe(true);
@@ -339,7 +370,7 @@ describe('NotificationService', () => {
 
       expect(mockStorage.storeData).toHaveBeenCalledWith(
         `SCHEDULED_NOTIFICATIONS_${mockUserId}`,
-        []
+        [],
       );
     });
   });
@@ -361,16 +392,22 @@ describe('NotificationService', () => {
 
       mockStorage.getData.mockResolvedValue(mockNotifications);
 
-      const result = await notificationService.getScheduledNotifications(mockUserId);
+      const result = await notificationService.getScheduledNotifications(
+        mockUserId,
+      );
 
       expect(result).toEqual(mockNotifications);
-      expect(mockStorage.getData).toHaveBeenCalledWith(`SCHEDULED_NOTIFICATIONS_${mockUserId}`);
+      expect(mockStorage.getData).toHaveBeenCalledWith(
+        `SCHEDULED_NOTIFICATIONS_${mockUserId}`,
+      );
     });
 
     it('should return empty array when no notifications exist', async () => {
       mockStorage.getData.mockResolvedValue(null);
 
-      const result = await notificationService.getScheduledNotifications(mockUserId);
+      const result = await notificationService.getScheduledNotifications(
+        mockUserId,
+      );
 
       expect(result).toEqual([]);
     });
@@ -397,8 +434,11 @@ describe('NotificationService', () => {
 
     it('should return false if permission is denied', async () => {
       // Mock permission denial
-      const originalRequestPermission = (notificationService as any).pushLibrary.requestPermission;
-      (notificationService as any).pushLibrary.requestPermission = jest.fn().mockResolvedValue(false);
+      const originalRequestPermission = (notificationService as any).pushLibrary
+        .requestPermission;
+      (notificationService as any).pushLibrary.requestPermission = jest
+        .fn()
+        .mockResolvedValue(false);
 
       mockStorage.getData.mockResolvedValue(null);
       mockStorage.storeData.mockResolvedValue();
@@ -408,7 +448,8 @@ describe('NotificationService', () => {
       expect(result).toBe(false);
 
       // Restore original method
-      (notificationService as any).pushLibrary.requestPermission = originalRequestPermission;
+      (notificationService as any).pushLibrary.requestPermission =
+        originalRequestPermission;
     });
   });
 });

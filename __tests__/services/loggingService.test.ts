@@ -95,7 +95,7 @@ describe('LoggingService', () => {
       expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining('[ERROR] Test error'),
         context,
-        error.stack
+        error.stack,
       );
 
       // Should store the log entry
@@ -107,8 +107,8 @@ describe('LoggingService', () => {
             message: 'Test error',
             metadata: context,
             stackTrace: error.stack,
-          })
-        ])
+          }),
+        ]),
       );
     });
 
@@ -118,7 +118,7 @@ describe('LoggingService', () => {
       expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining('[ERROR] String error message'),
         undefined,
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -149,9 +149,9 @@ describe('LoggingService', () => {
 
   describe('info logging', () => {
     beforeEach(async () => {
-      await loggingService.initialize({ 
+      await loggingService.initialize({
         enableConsoleOutput: true,
-        logLevel: 'info'
+        logLevel: 'info',
       });
     });
 
@@ -162,7 +162,7 @@ describe('LoggingService', () => {
 
       expect(console.info).toHaveBeenCalledWith(
         expect.stringContaining('[INFO] Test info message'),
-        data
+        data,
       );
 
       expect(mockStorage.storeData).toHaveBeenCalledWith(
@@ -172,17 +172,17 @@ describe('LoggingService', () => {
             level: 'info',
             message: 'Test info message',
             metadata: data,
-          })
-        ])
+          }),
+        ]),
       );
     });
   });
 
   describe('warn logging', () => {
     beforeEach(async () => {
-      await loggingService.initialize({ 
+      await loggingService.initialize({
         enableConsoleOutput: true,
-        logLevel: 'warn'
+        logLevel: 'warn',
       });
     });
 
@@ -193,16 +193,16 @@ describe('LoggingService', () => {
 
       expect(console.warn).toHaveBeenCalledWith(
         expect.stringContaining('[WARN] Test warning'),
-        data
+        data,
       );
     });
   });
 
   describe('debug logging', () => {
     beforeEach(async () => {
-      await loggingService.initialize({ 
+      await loggingService.initialize({
         enableConsoleOutput: true,
-        logLevel: 'debug'
+        logLevel: 'debug',
       });
     });
 
@@ -213,7 +213,7 @@ describe('LoggingService', () => {
 
       expect(console.debug).toHaveBeenCalledWith(
         expect.stringContaining('[DEBUG] Test debug message'),
-        data
+        data,
       );
     });
   });
@@ -229,7 +229,7 @@ describe('LoggingService', () => {
         404,
         'Not found',
         { param: 'value' },
-        { error: 'Resource not found' }
+        { error: 'Resource not found' },
       );
 
       expect(console.error).toHaveBeenCalledWith(
@@ -241,7 +241,7 @@ describe('LoggingService', () => {
           requestData: { param: 'value' },
           responseData: { error: 'Resource not found' },
         }),
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -258,7 +258,7 @@ describe('LoggingService', () => {
           component: 'TestComponent',
           componentStack: 'Component stack trace',
         }),
-        error.stack
+        error.stack,
       );
     });
 
@@ -267,38 +267,39 @@ describe('LoggingService', () => {
         'email',
         'invalid-email',
         'email format',
-        'Invalid email format'
+        'Invalid email format',
       );
 
       expect(console.error).toHaveBeenCalledWith(
-        expect.stringContaining('[ERROR] Validation Error: Invalid email format'),
+        expect.stringContaining(
+          '[ERROR] Validation Error: Invalid email format',
+        ),
         expect.objectContaining({
           module: 'validation',
           fieldName: 'email',
           value: 'invalid-email',
           validationRule: 'email format',
         }),
-        expect.any(String)
+        expect.any(String),
       );
     });
 
     it('should log performance issues', async () => {
-      await loggingService.logPerformanceIssue(
-        'data_load',
-        3000,
-        2000,
-        { recordCount: 1000 }
-      );
+      await loggingService.logPerformanceIssue('data_load', 3000, 2000, {
+        recordCount: 1000,
+      });
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[WARN] Performance issue: data_load took 3000ms (threshold: 2000ms)'),
+        expect.stringContaining(
+          '[WARN] Performance issue: data_load took 3000ms (threshold: 2000ms)',
+        ),
         expect.objectContaining({
           module: 'performance',
           operation: 'data_load',
           duration: 3000,
           threshold: 2000,
           recordCount: 1000,
-        })
+        }),
       );
     });
   });
@@ -433,7 +434,7 @@ describe('LoggingService', () => {
         expect.objectContaining({
           logLevel: 'warn',
           maxLogEntries: 500,
-        })
+        }),
       );
     });
 
@@ -450,9 +451,9 @@ describe('LoggingService', () => {
   describe('session management', () => {
     it('should start new session', () => {
       const originalSessionId = (loggingService as any).sessionId;
-      
+
       loggingService.startNewSession();
-      
+
       const newSessionId = (loggingService as any).sessionId;
       expect(newSessionId).not.toBe(originalSessionId);
       expect((loggingService as any).correlationIdCounter).toBe(0);
@@ -464,7 +465,9 @@ describe('LoggingService', () => {
       mockStorage.storeData.mockRejectedValue(new Error('Storage error'));
 
       // Should not throw
-      await expect(loggingService.logError(new Error('Test error'))).resolves.not.toThrow();
+      await expect(
+        loggingService.logError(new Error('Test error')),
+      ).resolves.not.toThrow();
     });
 
     it('should handle retrieval errors gracefully', async () => {

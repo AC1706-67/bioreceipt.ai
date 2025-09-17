@@ -3,7 +3,11 @@
  * Tests for CRUD operations, validation, and error handling
  */
 
-import { healthTipService, CreateHealthTipData, UpdateHealthTipData } from '../../src/services/healthTipService';
+import {
+  healthTipService,
+  CreateHealthTipData,
+  UpdateHealthTipData,
+} from '../../src/services/healthTipService';
 import { AppError } from '../../src/utils/errorHandler';
 import { supabase } from '../../src/config/supabase';
 
@@ -34,7 +38,8 @@ describe('HealthTipService', () => {
         {
           id: '1',
           title: 'Test Tip',
-          content: 'This is a test health tip content that is long enough to pass validation.',
+          content:
+            'This is a test health tip content that is long enough to pass validation.',
           category: 'wellness',
           difficulty: 'easy',
           estimated_read_time: 5,
@@ -60,7 +65,10 @@ describe('HealthTipService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      const result = await healthTipService.getHealthTips({ page: 1, limit: 10 });
+      const result = await healthTipService.getHealthTips({
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toHaveLength(1);
       expect(result.pagination.total).toBe(1);
@@ -84,7 +92,7 @@ describe('HealthTipService', () => {
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
       await expect(
-        healthTipService.getHealthTips({ page: 1, limit: 10 })
+        healthTipService.getHealthTips({ page: 1, limit: 10 }),
       ).rejects.toThrow(AppError);
     });
 
@@ -113,7 +121,9 @@ describe('HealthTipService', () => {
 
       expect(mockQuery.eq).toHaveBeenCalledWith('category', 'wellness');
       expect(mockQuery.eq).toHaveBeenCalledWith('difficulty', 'easy');
-      expect(mockQuery.or).toHaveBeenCalledWith('title.ilike.%test%,content.ilike.%test%');
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'title.ilike.%test%,content.ilike.%test%',
+      );
     });
   });
 
@@ -122,7 +132,8 @@ describe('HealthTipService', () => {
       const mockData = {
         id: '1',
         title: 'Test Tip',
-        content: 'This is a test health tip content that is long enough to pass validation.',
+        content:
+          'This is a test health tip content that is long enough to pass validation.',
         category: 'wellness',
         difficulty: 'easy',
         estimated_read_time: 5,
@@ -155,7 +166,7 @@ describe('HealthTipService', () => {
 
     it('should throw error for missing ID', async () => {
       await expect(healthTipService.getHealthTipById('')).rejects.toThrow(
-        new AppError('Health tip ID is required', 400, 'VALIDATION_ERROR')
+        new AppError('Health tip ID is required', 400, 'VALIDATION_ERROR'),
       );
     });
 
@@ -171,16 +182,17 @@ describe('HealthTipService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(healthTipService.getHealthTipById('nonexistent')).rejects.toThrow(
-        new AppError('Health tip not found', 404, 'NOT_FOUND')
-      );
+      await expect(
+        healthTipService.getHealthTipById('nonexistent'),
+      ).rejects.toThrow(new AppError('Health tip not found', 404, 'NOT_FOUND'));
     });
   });
 
   describe('createHealthTip', () => {
     const validTipData: CreateHealthTipData = {
       title: 'New Health Tip',
-      content: 'This is a new health tip with sufficient content to pass validation requirements.',
+      content:
+        'This is a new health tip with sufficient content to pass validation requirements.',
       category: 'wellness',
       difficulty: 'easy',
       estimatedReadTime: 5,
@@ -229,7 +241,9 @@ describe('HealthTipService', () => {
         title: 'Too', // Too short
       };
 
-      await expect(healthTipService.createHealthTip(invalidTipData)).rejects.toThrow(AppError);
+      await expect(
+        healthTipService.createHealthTip(invalidTipData),
+      ).rejects.toThrow(AppError);
     });
 
     it('should throw validation error for missing required fields', async () => {
@@ -238,7 +252,9 @@ describe('HealthTipService', () => {
         // Missing required fields
       } as CreateHealthTipData;
 
-      await expect(healthTipService.createHealthTip(incompleteTipData)).rejects.toThrow(AppError);
+      await expect(
+        healthTipService.createHealthTip(incompleteTipData),
+      ).rejects.toThrow(AppError);
     });
 
     it('should handle database insertion errors', async () => {
@@ -253,7 +269,9 @@ describe('HealthTipService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(healthTipService.createHealthTip(validTipData)).rejects.toThrow(AppError);
+      await expect(
+        healthTipService.createHealthTip(validTipData),
+      ).rejects.toThrow(AppError);
     });
   });
 
@@ -261,7 +279,8 @@ describe('HealthTipService', () => {
     const updateData: UpdateHealthTipData = {
       id: '1',
       title: 'Updated Health Tip Title',
-      content: 'This is updated content that meets the minimum length requirements for validation.',
+      content:
+        'This is updated content that meets the minimum length requirements for validation.',
     };
 
     beforeEach(() => {
@@ -269,7 +288,8 @@ describe('HealthTipService', () => {
       const mockExistingTip = {
         id: '1',
         title: 'Original Title',
-        content: 'Original content that is long enough to pass validation requirements.',
+        content:
+          'Original content that is long enough to pass validation requirements.',
         category: 'wellness',
         difficulty: 'easy',
         estimatedReadTime: 5,
@@ -280,7 +300,9 @@ describe('HealthTipService', () => {
         updatedAt: new Date(),
       };
 
-      jest.spyOn(healthTipService, 'getHealthTipById').mockResolvedValue(mockExistingTip);
+      jest
+        .spyOn(healthTipService, 'getHealthTipById')
+        .mockResolvedValue(mockExistingTip);
     });
 
     it('should update a health tip successfully', async () => {
@@ -322,8 +344,10 @@ describe('HealthTipService', () => {
     it('should throw error for missing ID', async () => {
       const invalidUpdateData = { ...updateData, id: '' };
 
-      await expect(healthTipService.updateHealthTip(invalidUpdateData)).rejects.toThrow(
-        new AppError('Health tip ID is required', 400, 'VALIDATION_ERROR')
+      await expect(
+        healthTipService.updateHealthTip(invalidUpdateData),
+      ).rejects.toThrow(
+        new AppError('Health tip ID is required', 400, 'VALIDATION_ERROR'),
       );
     });
 
@@ -340,7 +364,9 @@ describe('HealthTipService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(healthTipService.updateHealthTip(updateData)).rejects.toThrow(AppError);
+      await expect(
+        healthTipService.updateHealthTip(updateData),
+      ).rejects.toThrow(AppError);
     });
   });
 
@@ -350,7 +376,8 @@ describe('HealthTipService', () => {
       const mockExistingTip = {
         id: '1',
         title: 'Tip to Delete',
-        content: 'Content of the tip that will be deleted with sufficient length.',
+        content:
+          'Content of the tip that will be deleted with sufficient length.',
         category: 'wellness',
         difficulty: 'easy',
         estimatedReadTime: 5,
@@ -361,7 +388,9 @@ describe('HealthTipService', () => {
         updatedAt: new Date(),
       };
 
-      jest.spyOn(healthTipService, 'getHealthTipById').mockResolvedValue(mockExistingTip);
+      jest
+        .spyOn(healthTipService, 'getHealthTipById')
+        .mockResolvedValue(mockExistingTip);
     });
 
     it('should delete a health tip successfully (soft delete)', async () => {
@@ -385,7 +414,7 @@ describe('HealthTipService', () => {
 
     it('should throw error for missing ID', async () => {
       await expect(healthTipService.deleteHealthTip('')).rejects.toThrow(
-        new AppError('Health tip ID is required', 400, 'VALIDATION_ERROR')
+        new AppError('Health tip ID is required', 400, 'VALIDATION_ERROR'),
       );
     });
 
@@ -399,7 +428,9 @@ describe('HealthTipService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(healthTipService.deleteHealthTip('1')).rejects.toThrow(AppError);
+      await expect(healthTipService.deleteHealthTip('1')).rejects.toThrow(
+        AppError,
+      );
     });
   });
 
@@ -409,7 +440,8 @@ describe('HealthTipService', () => {
         {
           id: '1',
           title: 'Wellness Tip',
-          content: 'This is a wellness tip with sufficient content length for validation.',
+          content:
+            'This is a wellness tip with sufficient content length for validation.',
           category: 'wellness',
           difficulty: 'easy',
           estimated_read_time: 5,
@@ -434,7 +466,10 @@ describe('HealthTipService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      const result = await healthTipService.getHealthTipsByCategory('wellness', 5);
+      const result = await healthTipService.getHealthTipsByCategory(
+        'wellness',
+        5,
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].category).toBe('wellness');
@@ -449,7 +484,8 @@ describe('HealthTipService', () => {
         {
           id: '1',
           title: 'Hydration Tips',
-          content: 'Stay hydrated with these helpful tips that provide sufficient content length.',
+          content:
+            'Stay hydrated with these helpful tips that provide sufficient content length.',
           category: 'wellness',
           difficulty: 'easy',
           estimated_read_time: 3,
@@ -479,7 +515,9 @@ describe('HealthTipService', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].title).toContain('Hydration');
-      expect(mockQuery.or).toHaveBeenCalledWith('title.ilike.%hydration%,content.ilike.%hydration%,tags.ilike.%hydration%');
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'title.ilike.%hydration%,content.ilike.%hydration%,tags.ilike.%hydration%',
+      );
     });
 
     it('should return empty array for empty query', async () => {

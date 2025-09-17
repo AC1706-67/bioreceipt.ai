@@ -18,7 +18,7 @@ describe('StreakCalculationService', () => {
     tipId: 'tip-123',
     userId: mockUserId,
     action: 'view' as const,
-    timestamp: new Date()
+    timestamp: new Date(),
   };
   const mockQuality = {
     readingTime: 180, // 3 minutes
@@ -26,7 +26,7 @@ describe('StreakCalculationService', () => {
     completionRate: 1,
     retentionScore: 0.8,
     applicationAttempted: true,
-    feedbackProvided: false
+    feedbackProvided: false,
   };
 
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe('StreakCalculationService', () => {
         mockUserId,
         'daily',
         mockEngagement,
-        mockQuality
+        mockQuality,
       );
 
       expect(result).toMatchObject({
@@ -53,7 +53,7 @@ describe('StreakCalculationService', () => {
         currentCount: 1,
         longestCount: 1,
         isActive: true,
-        freezeCount: 0
+        freezeCount: 0,
       });
 
       expect(result.qualityScore).toBeGreaterThan(0);
@@ -86,9 +86,9 @@ describe('StreakCalculationService', () => {
               completionRate: 1,
               retentionScore: 0.8,
               applicationAttempted: true,
-              feedbackProvided: false
-            }
-          }
+              feedbackProvided: false,
+            },
+          },
         ],
         qualityScore: 0.7,
         consistencyScore: 0.6,
@@ -97,8 +97,8 @@ describe('StreakCalculationService', () => {
           preferredEngagementTime: '09:00',
           categoryDistribution: {},
           difficultyDistribution: {},
-          seasonalPatterns: []
-        }
+          seasonalPatterns: [],
+        },
       };
 
       mockStorage.getItem.mockResolvedValue(JSON.stringify(existingStreakData));
@@ -107,7 +107,7 @@ describe('StreakCalculationService', () => {
         mockUserId,
         'daily',
         mockEngagement,
-        mockQuality
+        mockQuality,
       );
 
       expect(result.currentCount).toBe(6); // Incremented from 5
@@ -122,14 +122,14 @@ describe('StreakCalculationService', () => {
         completionRate: 1,
         retentionScore: 0.9,
         applicationAttempted: true,
-        feedbackProvided: true
+        feedbackProvided: true,
       };
 
       const result = await streakCalculationService.calculateStreakMetrics(
         mockUserId,
         'daily',
         mockEngagement,
-        highQualityEngagement
+        highQualityEngagement,
       );
 
       expect(result.qualityScore).toBeGreaterThan(0.8);
@@ -142,14 +142,14 @@ describe('StreakCalculationService', () => {
         completionRate: 0.5,
         retentionScore: 0.3,
         applicationAttempted: false,
-        feedbackProvided: false
+        feedbackProvided: false,
       };
 
       const result = await streakCalculationService.calculateStreakMetrics(
         mockUserId,
         'daily',
         mockEngagement,
-        lowQualityEngagement
+        lowQualityEngagement,
       );
 
       expect(result.qualityScore).toBeLessThan(0.5);
@@ -163,8 +163,8 @@ describe('StreakCalculationService', () => {
           mockUserId,
           'daily',
           mockEngagement,
-          mockQuality
-        )
+          mockQuality,
+        ),
       ).rejects.toThrow('Failed to calculate streak metrics');
     });
   });
@@ -180,21 +180,23 @@ describe('StreakCalculationService', () => {
       lastActivityDate: new Date(),
       isActive: true,
       freezeCount: 1,
-      streakHistory: Array(14).fill(null).map((_, i) => ({
-        date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
-        engaged: Math.random() > 0.2, // 80% engagement rate
-        engagementScore: 0.7 + Math.random() * 0.3,
-        tipIds: [`tip-${i}`],
-        totalTimeSpent: 120 + Math.random() * 60,
-        qualityMetrics: {
-          readingTime: 120,
-          interactionCount: 3,
-          completionRate: 1,
-          retentionScore: 0.8,
-          applicationAttempted: true,
-          feedbackProvided: false
-        }
-      })),
+      streakHistory: Array(14)
+        .fill(null)
+        .map((_, i) => ({
+          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
+          engaged: Math.random() > 0.2, // 80% engagement rate
+          engagementScore: 0.7 + Math.random() * 0.3,
+          tipIds: [`tip-${i}`],
+          totalTimeSpent: 120 + Math.random() * 60,
+          qualityMetrics: {
+            readingTime: 120,
+            interactionCount: 3,
+            completionRate: 1,
+            retentionScore: 0.8,
+            applicationAttempted: true,
+            feedbackProvided: false,
+          },
+        })),
       qualityScore: 0.8,
       consistencyScore: 0.75,
       metadata: {
@@ -202,8 +204,8 @@ describe('StreakCalculationService', () => {
         preferredEngagementTime: '09:00',
         categoryDistribution: {},
         difficultyDistribution: {},
-        seasonalPatterns: []
-      }
+        seasonalPatterns: [],
+      },
     };
 
     beforeEach(() => {
@@ -211,7 +213,10 @@ describe('StreakCalculationService', () => {
     });
 
     it('should predict streak continuation with high probability for consistent user', async () => {
-      const result = await streakCalculationService.predictStreakContinuation(mockUserId, 'daily');
+      const result = await streakCalculationService.predictStreakContinuation(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.probability).toBeGreaterThan(0.6);
       expect(result.riskFactors).toBeInstanceOf(Array);
@@ -224,11 +229,16 @@ describe('StreakCalculationService', () => {
         ...mockStreakData,
         qualityScore: 0.3,
         consistencyScore: 0.4,
-        freezeCount: 3
+        freezeCount: 3,
       };
-      mockStorage.getItem.mockResolvedValue(JSON.stringify(inconsistentStreakData));
+      mockStorage.getItem.mockResolvedValue(
+        JSON.stringify(inconsistentStreakData),
+      );
 
-      const result = await streakCalculationService.predictStreakContinuation(mockUserId, 'daily');
+      const result = await streakCalculationService.predictStreakContinuation(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.probability).toBeLessThan(0.6);
       expect(result.riskFactors).toContain('Low engagement quality');
@@ -237,7 +247,10 @@ describe('StreakCalculationService', () => {
     });
 
     it('should provide relevant recommendations', async () => {
-      const result = await streakCalculationService.predictStreakContinuation(mockUserId, 'daily');
+      const result = await streakCalculationService.predictStreakContinuation(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.recommendations).toBeInstanceOf(Array);
       expect(result.recommendations.length).toBeGreaterThan(0);
@@ -246,7 +259,10 @@ describe('StreakCalculationService', () => {
     it('should handle missing streak data', async () => {
       mockStorage.getItem.mockResolvedValue(null);
 
-      const result = await streakCalculationService.predictStreakContinuation(mockUserId, 'daily');
+      const result = await streakCalculationService.predictStreakContinuation(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.probability).toBe(0);
       expect(result.riskFactors).toBeInstanceOf(Array);
@@ -274,13 +290,16 @@ describe('StreakCalculationService', () => {
           preferredEngagementTime: '09:00',
           categoryDistribution: {},
           difficultyDistribution: {},
-          seasonalPatterns: []
-        }
+          seasonalPatterns: [],
+        },
       };
 
       mockStorage.getItem.mockResolvedValue(JSON.stringify(recentStreakData));
 
-      const result = await streakCalculationService.calculateStreakRecovery(mockUserId, 'daily');
+      const result = await streakCalculationService.calculateStreakRecovery(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.canRecover).toBe(true);
       expect(result.recoveryPlan).toBeInstanceOf(Array);
@@ -308,13 +327,16 @@ describe('StreakCalculationService', () => {
           preferredEngagementTime: '09:00',
           categoryDistribution: {},
           difficultyDistribution: {},
-          seasonalPatterns: []
-        }
+          seasonalPatterns: [],
+        },
       };
 
       mockStorage.getItem.mockResolvedValue(JSON.stringify(oldStreakData));
 
-      const result = await streakCalculationService.calculateStreakRecovery(mockUserId, 'daily');
+      const result = await streakCalculationService.calculateStreakRecovery(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.canRecover).toBe(false);
       expect(result.recoveryPlan).toContain('Start a new streak today!');
@@ -340,13 +362,18 @@ describe('StreakCalculationService', () => {
           preferredEngagementTime: '09:00',
           categoryDistribution: {},
           difficultyDistribution: {},
-          seasonalPatterns: []
-        }
+          seasonalPatterns: [],
+        },
       };
 
-      mockStorage.getItem.mockResolvedValue(JSON.stringify(overFrozenStreakData));
+      mockStorage.getItem.mockResolvedValue(
+        JSON.stringify(overFrozenStreakData),
+      );
 
-      const result = await streakCalculationService.calculateStreakRecovery(mockUserId, 'daily');
+      const result = await streakCalculationService.calculateStreakRecovery(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.canRecover).toBe(false);
     });
@@ -371,7 +398,7 @@ describe('StreakCalculationService', () => {
           engagementScore: 0.8,
           tipIds: ['tip-1'],
           totalTimeSpent: 120,
-          qualityMetrics: mockQuality
+          qualityMetrics: mockQuality,
         },
         // Tuesday engagement
         {
@@ -380,7 +407,7 @@ describe('StreakCalculationService', () => {
           engagementScore: 0.7,
           tipIds: ['tip-2'],
           totalTimeSpent: 150,
-          qualityMetrics: mockQuality
+          qualityMetrics: mockQuality,
         },
         // Wednesday engagement
         {
@@ -389,8 +416,8 @@ describe('StreakCalculationService', () => {
           engagementScore: 0.9,
           tipIds: ['tip-3'],
           totalTimeSpent: 180,
-          qualityMetrics: mockQuality
-        }
+          qualityMetrics: mockQuality,
+        },
       ],
       qualityScore: 0.8,
       consistencyScore: 0.75,
@@ -399,16 +426,20 @@ describe('StreakCalculationService', () => {
         preferredEngagementTime: '09:00',
         categoryDistribution: {},
         difficultyDistribution: {},
-        seasonalPatterns: []
-      }
+        seasonalPatterns: [],
+      },
     };
 
     beforeEach(() => {
-      mockStorage.getItem.mockResolvedValue(JSON.stringify(mockStreakDataWithHistory));
+      mockStorage.getItem.mockResolvedValue(
+        JSON.stringify(mockStreakDataWithHistory),
+      );
     });
 
     it('should analyze weekly and daily patterns', async () => {
-      const result = await streakCalculationService.analyzeStreakPatterns(mockStreakDataWithHistory);
+      const result = await streakCalculationService.analyzeStreakPatterns(
+        mockStreakDataWithHistory,
+      );
 
       expect(result.weeklyPattern).toBeInstanceOf(Array);
       expect(result.weeklyPattern).toHaveLength(7);
@@ -420,9 +451,13 @@ describe('StreakCalculationService', () => {
     });
 
     it('should identify optimal engagement conditions', async () => {
-      const result = await streakCalculationService.analyzeStreakPatterns(mockStreakDataWithHistory);
+      const result = await streakCalculationService.analyzeStreakPatterns(
+        mockStreakDataWithHistory,
+      );
 
-      expect(result.optimalConditions).toContain(expect.stringContaining('Best time: 9:00'));
+      expect(result.optimalConditions).toContain(
+        expect.stringContaining('Best time: 9:00'),
+      );
     });
   });
 
@@ -437,14 +472,16 @@ describe('StreakCalculationService', () => {
       lastActivityDate: new Date(),
       isActive: true,
       freezeCount: 1,
-      streakHistory: Array(30).fill(null).map((_, i) => ({
-        date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
-        engaged: i % 3 !== 0, // Varied engagement pattern
-        engagementScore: 0.5 + Math.random() * 0.5,
-        tipIds: [`tip-${i}`],
-        totalTimeSpent: 90 + Math.random() * 120,
-        qualityMetrics: mockQuality
-      })),
+      streakHistory: Array(30)
+        .fill(null)
+        .map((_, i) => ({
+          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
+          engaged: i % 3 !== 0, // Varied engagement pattern
+          engagementScore: 0.5 + Math.random() * 0.5,
+          tipIds: [`tip-${i}`],
+          totalTimeSpent: 90 + Math.random() * 120,
+          qualityMetrics: mockQuality,
+        })),
       qualityScore: 0.7,
       consistencyScore: 0.6,
       metadata: {
@@ -452,21 +489,28 @@ describe('StreakCalculationService', () => {
         preferredEngagementTime: '09:00',
         categoryDistribution: {},
         difficultyDistribution: {},
-        seasonalPatterns: []
-      }
+        seasonalPatterns: [],
+      },
     };
 
     beforeEach(() => {
-      mockStorage.getItem.mockResolvedValue(JSON.stringify(mockStreakDataWithVariedHistory));
+      mockStorage.getItem.mockResolvedValue(
+        JSON.stringify(mockStreakDataWithVariedHistory),
+      );
     });
 
     it('should calculate comprehensive streak statistics', async () => {
-      const result = await streakCalculationService.calculateAdvancedStats(mockUserId, 'daily');
+      const result = await streakCalculationService.calculateAdvancedStats(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.averageStreakLength).toBeGreaterThan(0);
       expect(result.streakStability).toBeGreaterThanOrEqual(0);
       expect(result.streakStability).toBeLessThanOrEqual(1);
-      expect(['improving', 'stable', 'declining']).toContain(result.qualityTrend);
+      expect(['improving', 'stable', 'declining']).toContain(
+        result.qualityTrend,
+      );
       expect(result.consistencyRating).toBeGreaterThanOrEqual(0);
       expect(result.consistencyRating).toBeLessThanOrEqual(100);
       expect(result.strengthScore).toBeGreaterThanOrEqual(0);
@@ -476,11 +520,14 @@ describe('StreakCalculationService', () => {
     it('should handle streak data with no history', async () => {
       const emptyStreakData = {
         ...mockStreakDataWithVariedHistory,
-        streakHistory: []
+        streakHistory: [],
       };
       mockStorage.getItem.mockResolvedValue(JSON.stringify(emptyStreakData));
 
-      const result = await streakCalculationService.calculateAdvancedStats(mockUserId, 'daily');
+      const result = await streakCalculationService.calculateAdvancedStats(
+        mockUserId,
+        'daily',
+      );
 
       expect(result.averageStreakLength).toBe(0);
       expect(result.streakStability).toBe(1); // Perfect stability with no variance
@@ -496,16 +543,16 @@ describe('StreakCalculationService', () => {
             period: 'weekly' as const,
             pattern: [0.8, 0.9, 0.7, 0.8, 0.6, 0.5, 0.4],
             confidence: 0.8,
-            lastUpdated: new Date()
-          }
-        ]
+            lastUpdated: new Date(),
+          },
+        ],
       });
 
       const result = await streakCalculationService.calculateStreakMetrics(
         mockUserId,
         'daily',
         mockEngagement,
-        mockQuality
+        mockQuality,
       );
 
       expect(mockKiroAIService.generateInsights).toHaveBeenCalled();
@@ -513,13 +560,15 @@ describe('StreakCalculationService', () => {
     });
 
     it('should handle AI service failures gracefully', async () => {
-      mockKiroAIService.generateInsights.mockRejectedValue(new Error('AI service error'));
+      mockKiroAIService.generateInsights.mockRejectedValue(
+        new Error('AI service error'),
+      );
 
       const result = await streakCalculationService.calculateStreakMetrics(
         mockUserId,
         'daily',
         mockEngagement,
-        mockQuality
+        mockQuality,
       );
 
       // Should still complete successfully without AI insights

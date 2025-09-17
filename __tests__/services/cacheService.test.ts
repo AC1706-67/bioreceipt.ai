@@ -86,14 +86,18 @@ describe('CacheService', () => {
             viewCount: 0,
           }),
         ]),
-        60
+        60,
       );
     });
 
     it('should throw error if caching fails', async () => {
-      mockStorage.storeDataWithExpiration.mockRejectedValue(new Error('Storage error'));
+      mockStorage.storeDataWithExpiration.mockRejectedValue(
+        new Error('Storage error'),
+      );
 
-      await expect(cacheService.cacheHealthTips([mockHealthTip])).rejects.toThrow('Failed to cache health tips');
+      await expect(
+        cacheService.cacheHealthTips([mockHealthTip]),
+      ).rejects.toThrow('Failed to cache health tips');
     });
   });
 
@@ -111,7 +115,9 @@ describe('CacheService', () => {
       const result = await cacheService.getCachedHealthTips();
 
       expect(result).toEqual(cachedTips);
-      expect(mockStorage.getDataIfNotExpired).toHaveBeenCalledWith('HEALTH_TIPS');
+      expect(mockStorage.getDataIfNotExpired).toHaveBeenCalledWith(
+        'HEALTH_TIPS',
+      );
     });
 
     it('should return empty array if no cached tips', async () => {
@@ -136,7 +142,7 @@ describe('CacheService', () => {
           date: new Date().toDateString(),
           cachedAt: expect.any(Date),
         }),
-        1440
+        1440,
       );
     });
   });
@@ -184,7 +190,7 @@ describe('CacheService', () => {
           progress: mockUserProgress,
           lastSync: expect.any(Date),
         }),
-        30
+        30,
       );
     });
   });
@@ -211,7 +217,7 @@ describe('CacheService', () => {
             viewCount: 3,
           }),
         ]),
-        60
+        60,
       );
     });
   });
@@ -241,7 +247,7 @@ describe('CacheService', () => {
             data: { streak: 5 },
             retryCount: 0,
           }),
-        ])
+        ]),
       );
     });
   });
@@ -275,7 +281,9 @@ describe('CacheService', () => {
 
   describe('getCacheStats', () => {
     it('should return cache statistics', async () => {
-      const cachedTips = [{ ...mockHealthTip, cachedAt: new Date(), viewCount: 0 }];
+      const cachedTips = [
+        { ...mockHealthTip, cachedAt: new Date(), viewCount: 0 },
+      ];
       const dailyTips = [mockHealthTip];
       const offlineQueue = [
         {

@@ -3,7 +3,11 @@
  * Tests for HIPAA-compliant audit logging functionality
  */
 
-import { AuditService, AuditEventType, AuditSeverity } from '../../../src/services/security/auditService';
+import {
+  AuditService,
+  AuditEventType,
+  AuditSeverity,
+} from '../../../src/services/security/auditService';
 
 // Mock dependencies
 jest.mock('../../../src/services/logging/loggingService');
@@ -43,7 +47,7 @@ describe('AuditService', () => {
         action,
         outcome,
         details,
-        options
+        options,
       );
 
       expect(typeof eventId).toBe('string');
@@ -55,7 +59,7 @@ describe('AuditService', () => {
         'user_login',
         'LOGIN_ATTEMPT',
         'failure',
-        { ipAddress: '192.168.1.1' }
+        { ipAddress: '192.168.1.1' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -67,7 +71,7 @@ describe('AuditService', () => {
         'UNAUTHORIZED_ACCESS',
         'failure',
         { attemptedResource: 'admin-panel' },
-        { severity: 'critical' }
+        { severity: 'critical' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -80,7 +84,7 @@ describe('AuditService', () => {
         'read',
         'medical_history',
         'record-123',
-        'user-456'
+        'user-456',
       );
 
       expect(typeof eventId).toBe('string');
@@ -93,7 +97,7 @@ describe('AuditService', () => {
         'new-record-789',
         'user-456',
         'success',
-        { dataType: 'blood_pressure' }
+        { dataType: 'blood_pressure' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -105,7 +109,7 @@ describe('AuditService', () => {
         'progress_data',
         'progress-123',
         'user-456',
-        'success'
+        'success',
       );
 
       expect(typeof eventId).toBe('string');
@@ -118,7 +122,7 @@ describe('AuditService', () => {
         'login',
         'user-123',
         'success',
-        { method: 'password', ipAddress: '192.168.1.1' }
+        { method: 'password', ipAddress: '192.168.1.1' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -129,7 +133,7 @@ describe('AuditService', () => {
         'login',
         'user-123',
         'failure',
-        { reason: 'invalid_password', ipAddress: '192.168.1.1' }
+        { reason: 'invalid_password', ipAddress: '192.168.1.1' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -139,7 +143,7 @@ describe('AuditService', () => {
       const eventId = await auditService.logAuthEvent(
         'logout',
         'user-123',
-        'success'
+        'success',
       );
 
       expect(typeof eventId).toBe('string');
@@ -150,7 +154,7 @@ describe('AuditService', () => {
         'password_change',
         'user-123',
         'success',
-        { method: 'self_service' }
+        { method: 'self_service' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -163,7 +167,7 @@ describe('AuditService', () => {
         'given',
         'user-123',
         'data_processing',
-        { version: '1.0', method: 'explicit' }
+        { version: '1.0', method: 'explicit' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -174,7 +178,7 @@ describe('AuditService', () => {
         'withdrawn',
         'user-123',
         'marketing',
-        { reason: 'user_request' }
+        { reason: 'user_request' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -185,7 +189,7 @@ describe('AuditService', () => {
         'updated',
         'user-123',
         'analytics',
-        { oldVersion: '1.0', newVersion: '1.1' }
+        { oldVersion: '1.0', newVersion: '1.1' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -197,14 +201,14 @@ describe('AuditService', () => {
       const lowSeverityEvent = await auditService.logSecurityEvent(
         'PASSWORD_POLICY_CHECK',
         'low',
-        { policyVersion: '1.0' }
+        { policyVersion: '1.0' },
       );
 
       const highSeverityEvent = await auditService.logSecurityEvent(
         'SUSPICIOUS_ACTIVITY_DETECTED',
         'high',
         { activityType: 'multiple_failed_logins' },
-        'user-123'
+        'user-123',
       );
 
       expect(typeof lowSeverityEvent).toBe('string');
@@ -215,7 +219,7 @@ describe('AuditService', () => {
       const eventId = await auditService.logSecurityEvent(
         'DATA_BREACH_DETECTED',
         'critical',
-        { affectedRecords: 100, breachType: 'unauthorized_access' }
+        { affectedRecords: 100, breachType: 'unauthorized_access' },
       );
 
       expect(typeof eventId).toBe('string');
@@ -275,7 +279,13 @@ describe('AuditService', () => {
       // Log some test events
       await auditService.logEvent('data_access', 'READ', 'success');
       await auditService.logEvent('user_login', 'LOGIN', 'failure');
-      await auditService.logEvent('security_event', 'ALERT', 'success', {}, { severity: 'critical' });
+      await auditService.logEvent(
+        'security_event',
+        'ALERT',
+        'success',
+        {},
+        { severity: 'critical' },
+      );
 
       const summary = await auditService.getAuditSummary();
 
@@ -304,7 +314,7 @@ describe('AuditService', () => {
     it('should export logs as JSON', async () => {
       const jsonExport = await auditService.exportAuditLogs({}, 'json');
       expect(typeof jsonExport).toBe('string');
-      
+
       // Should be valid JSON
       expect(() => JSON.parse(jsonExport)).not.toThrow();
     });
@@ -312,7 +322,7 @@ describe('AuditService', () => {
     it('should export logs as CSV', async () => {
       const csvExport = await auditService.exportAuditLogs({}, 'csv');
       expect(typeof csvExport).toBe('string');
-      
+
       // CSV should contain headers if there's data
       if (csvExport.length > 0) {
         expect(csvExport).toContain('ID');
@@ -335,14 +345,14 @@ describe('AuditService', () => {
     it('should purge old logs', async () => {
       const retentionDays = 30;
       const purgedCount = await auditService.purgeOldLogs(retentionDays);
-      
+
       expect(typeof purgedCount).toBe('number');
       expect(purgedCount).toBeGreaterThanOrEqual(0);
     });
 
     it('should use default retention period', async () => {
       const purgedCount = await auditService.purgeOldLogs();
-      
+
       expect(typeof purgedCount).toBe('number');
       expect(purgedCount).toBeGreaterThanOrEqual(0);
     });
@@ -353,20 +363,20 @@ describe('AuditService', () => {
       // This test would require mocking the storage to throw an error
       // For now, we'll test that the method doesn't throw
       await expect(
-        auditService.logEvent('data_access', 'TEST', 'success')
+        auditService.logEvent('data_access', 'TEST', 'success'),
       ).resolves.toBeDefined();
     });
 
     it('should handle query errors gracefully', async () => {
       // Test that query methods handle errors without crashing
       await expect(
-        auditService.queryEvents({ userId: 'nonexistent' })
+        auditService.queryEvents({ userId: 'nonexistent' }),
       ).resolves.toBeDefined();
     });
 
     it('should handle export errors gracefully', async () => {
       await expect(
-        auditService.exportAuditLogs({ userId: 'test' })
+        auditService.exportAuditLogs({ userId: 'test' }),
       ).resolves.toBeDefined();
     });
   });
@@ -384,7 +394,7 @@ describe('AuditService', () => {
         'data_access',
         'TEST_SANITIZATION',
         'success',
-        sensitiveDetails
+        sensitiveDetails,
       );
 
       expect(typeof eventId).toBe('string');
@@ -398,7 +408,7 @@ describe('AuditService', () => {
         'TEST_CORRELATION',
         'success',
         {},
-        { correlationId }
+        { correlationId },
       );
 
       expect(typeof eventId).toBe('string');
@@ -409,7 +419,7 @@ describe('AuditService', () => {
         'user_login',
         'SESSION_START',
         'success',
-        { sessionDuration: 3600 }
+        { sessionDuration: 3600 },
       );
 
       expect(typeof eventId).toBe('string');

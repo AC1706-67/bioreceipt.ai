@@ -8,20 +8,24 @@ import { progressAnalyticsService } from '../../src/services/progress/progressAn
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
-  useFocusEffect: (callback: () => void) => callback()
+  useFocusEffect: (callback: () => void) => callback(),
 }));
 
 // Mock auth hook
 jest.mock('../../src/hooks/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'test-user-123' } })
+  useAuth: () => ({ user: { id: 'test-user-123' } }),
 }));
 
 // Mock services
 jest.mock('../../src/services/progress/progressTrackingService');
 jest.mock('../../src/services/progress/progressAnalyticsService');
 
-const mockProgressService = progressTrackingService as jest.Mocked<typeof progressTrackingService>;
-const mockAnalyticsService = progressAnalyticsService as jest.Mocked<typeof progressAnalyticsService>;
+const mockProgressService = progressTrackingService as jest.Mocked<
+  typeof progressTrackingService
+>;
+const mockAnalyticsService = progressAnalyticsService as jest.Mocked<
+  typeof progressAnalyticsService
+>;
 
 describe('Progress Tracking Integration', () => {
   const mockUserProgress = {
@@ -40,7 +44,7 @@ describe('Progress Tracking Integration', () => {
     achievements: [],
     milestones: [],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   const mockAnalytics = {
@@ -54,30 +58,32 @@ describe('Progress Tracking Integration', () => {
       riskOfBreaking: 15,
       optimalEngagementTime: '09:00',
       streakQualityTrend: 'improving' as const,
-      recommendedActions: ['Keep up the great work!']
+      recommendedActions: ['Keep up the great work!'],
     },
     goalProgress: {
       weeklyGoalCompletion: 85,
       monthlyGoalCompletion: 70,
       goalAchievementTrend: 'improving' as const,
       averageGoalDifficulty: 2,
-      recommendedGoalAdjustments: []
+      recommendedGoalAdjustments: [],
     },
     behaviorPatterns: [],
     predictions: [],
     recommendations: [],
-    generatedAt: new Date()
+    generatedAt: new Date(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockProgressService.getUserProgress.mockResolvedValue(mockUserProgress);
-    mockAnalyticsService.generateProgressAnalytics.mockResolvedValue(mockAnalytics);
+    mockAnalyticsService.generateProgressAnalytics.mockResolvedValue(
+      mockAnalytics,
+    );
     mockAnalyticsService.calculateProgressScore.mockResolvedValue({
       overallScore: 82,
       categoryScores: {},
       factors: { consistency: 85, engagement: 78, diversity: 80, growth: 85 },
-      trend: 'improving' as const
+      trend: 'improving' as const,
     });
   });
 
@@ -88,7 +94,12 @@ describe('Progress Tracking Integration', () => {
       expect(getByText('Your Progress')).toBeTruthy();
     });
 
-    expect(mockProgressService.getUserProgress).toHaveBeenCalledWith('test-user-123');
-    expect(mockAnalyticsService.generateProgressAnalytics).toHaveBeenCalledWith('test-user-123', 'month');
+    expect(mockProgressService.getUserProgress).toHaveBeenCalledWith(
+      'test-user-123',
+    );
+    expect(mockAnalyticsService.generateProgressAnalytics).toHaveBeenCalledWith(
+      'test-user-123',
+      'month',
+    );
   });
 });

@@ -7,7 +7,11 @@ import { contentManagementService } from '../../src/services/content/contentMana
 import { supabase } from '../../src/config/supabase';
 import { cacheService } from '../../src/services/cache/cacheService';
 import { loggingService } from '../../src/services/logging/loggingService';
-import { HealthTip, HealthCategory, TipDifficulty } from '../../src/types/healthTip';
+import {
+  HealthTip,
+  HealthCategory,
+  TipDifficulty,
+} from '../../src/types/healthTip';
 
 // Mock dependencies
 jest.mock('../../src/config/supabase');
@@ -21,7 +25,7 @@ const mockLoggingService = loggingService as jest.Mocked<typeof loggingService>;
 describe('ContentManagementService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default mocks
     mockCacheService.get.mockResolvedValue(null);
     mockCacheService.set.mockResolvedValue(undefined);
@@ -89,12 +93,22 @@ describe('ContentManagementService', () => {
     it('should return cached content when available', async () => {
       const cachedResult = {
         data: [{ id: 'cached_tip' }],
-        pagination: { page: 1, limit: 10, total: 1, totalPages: 1, hasNext: false, hasPrev: false },
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
       };
 
       mockCacheService.get.mockResolvedValue(cachedResult);
 
-      const result = await contentManagementService.getContent({ page: 1, limit: 10 });
+      const result = await contentManagementService.getContent({
+        page: 1,
+        limit: 10,
+      });
 
       expect(result).toEqual(cachedResult);
       expect(mockSupabase.from).not.toHaveBeenCalled();
@@ -114,8 +128,9 @@ describe('ContentManagementService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(contentManagementService.getContent())
-        .rejects.toThrow('Failed to fetch content');
+      await expect(contentManagementService.getContent()).rejects.toThrow(
+        'Failed to fetch content',
+      );
     });
   });
 
@@ -153,7 +168,9 @@ describe('ContentManagementService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      const result = await contentManagementService.createContent(mockContentData);
+      const result = await contentManagementService.createContent(
+        mockContentData,
+      );
 
       expect(result.id).toBe('new_tip_id');
       expect(result.title).toBe(mockContentData.title);
@@ -171,8 +188,9 @@ describe('ContentManagementService', () => {
         createdBy: 'admin',
       };
 
-      await expect(contentManagementService.createContent(invalidData))
-        .rejects.toThrow('Validation failed');
+      await expect(
+        contentManagementService.createContent(invalidData),
+      ).rejects.toThrow('Validation failed');
     });
 
     it('should handle database insertion errors', async () => {
@@ -187,8 +205,9 @@ describe('ContentManagementService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(contentManagementService.createContent(mockContentData))
-        .rejects.toThrow('Failed to create content');
+      await expect(
+        contentManagementService.createContent(mockContentData),
+      ).rejects.toThrow('Failed to create content');
     });
   });
 
@@ -215,7 +234,9 @@ describe('ContentManagementService', () => {
         updatedAt: new Date(),
       };
 
-      jest.spyOn(contentManagementService, 'getContentById').mockResolvedValue(existingContent);
+      jest
+        .spyOn(contentManagementService, 'getContentById')
+        .mockResolvedValue(existingContent);
 
       const mockUpdatedData = {
         ...existingContent,
@@ -245,10 +266,13 @@ describe('ContentManagementService', () => {
     });
 
     it('should handle content not found', async () => {
-      jest.spyOn(contentManagementService, 'getContentById').mockResolvedValue(null);
+      jest
+        .spyOn(contentManagementService, 'getContentById')
+        .mockResolvedValue(null);
 
-      await expect(contentManagementService.updateContent(updateData))
-        .rejects.toThrow('Content not found');
+      await expect(
+        contentManagementService.updateContent(updateData),
+      ).rejects.toThrow('Content not found');
     });
   });
 
@@ -328,7 +352,9 @@ describe('ContentManagementService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      const result = await contentManagementService.getContentById('nonexistent');
+      const result = await contentManagementService.getContentById(
+        'nonexistent',
+      );
 
       expect(result).toBeNull();
     });
@@ -338,7 +364,8 @@ describe('ContentManagementService', () => {
     const tipIds = ['tip_1', 'tip_2', 'tip_3'];
 
     it('should perform bulk activate operation', async () => {
-      jest.spyOn(contentManagementService, 'updateContent')
+      jest
+        .spyOn(contentManagementService, 'updateContent')
         .mockResolvedValueOnce({ id: 'tip_1' } as any)
         .mockResolvedValueOnce({ id: 'tip_2' } as any)
         .mockResolvedValueOnce({ id: 'tip_3' } as any);
@@ -354,7 +381,8 @@ describe('ContentManagementService', () => {
     });
 
     it('should handle partial failures in bulk operations', async () => {
-      jest.spyOn(contentManagementService, 'updateContent')
+      jest
+        .spyOn(contentManagementService, 'updateContent')
         .mockResolvedValueOnce({ id: 'tip_1' } as any)
         .mockRejectedValueOnce(new Error('Update failed'))
         .mockResolvedValueOnce({ id: 'tip_3' } as any);
@@ -376,8 +404,12 @@ describe('ContentManagementService', () => {
         tags: ['existing'],
       } as any;
 
-      jest.spyOn(contentManagementService, 'getContentById').mockResolvedValue(existingTip);
-      jest.spyOn(contentManagementService, 'updateContent').mockResolvedValue(existingTip);
+      jest
+        .spyOn(contentManagementService, 'getContentById')
+        .mockResolvedValue(existingTip);
+      jest
+        .spyOn(contentManagementService, 'updateContent')
+        .mockResolvedValue(existingTip);
 
       const result = await contentManagementService.bulkOperation({
         action: 'add_tags',
@@ -510,7 +542,10 @@ describe('ContentManagementService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      const result = await contentManagementService.scheduleContent(tipId, scheduledFor);
+      const result = await contentManagementService.scheduleContent(
+        tipId,
+        scheduledFor,
+      );
 
       expect(result.tipId).toBe(tipId);
       expect(result.scheduledFor).toEqual(scheduledFor);
@@ -530,8 +565,9 @@ describe('ContentManagementService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(contentManagementService.scheduleContent(tipId, scheduledFor))
-        .rejects.toThrow('Failed to schedule content');
+      await expect(
+        contentManagementService.scheduleContent(tipId, scheduledFor),
+      ).rejects.toThrow('Failed to schedule content');
     });
   });
 
@@ -569,8 +605,9 @@ describe('ContentManagementService', () => {
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(contentManagementService.deleteContent(tipId))
-        .rejects.toThrow('Failed to delete content');
+      await expect(
+        contentManagementService.deleteContent(tipId),
+      ).rejects.toThrow('Failed to delete content');
     });
   });
 
@@ -607,7 +644,10 @@ describe('ContentManagementService', () => {
       expect(result.tipId).toBe(tipId);
       expect(result.views).toBe(100);
       expect(result.engagementRate).toBe(23.0);
-      expect(result.topUserSegments).toEqual(['health_enthusiasts', 'beginners']);
+      expect(result.topUserSegments).toEqual([
+        'health_enthusiasts',
+        'beginners',
+      ]);
     });
 
     it('should return default analytics when none exist', async () => {
@@ -638,18 +678,21 @@ describe('ContentManagementService', () => {
         select: jest.fn().mockReturnThis(),
         neq: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
-        range: jest.fn().mockRejectedValue(new Error('Database connection failed')),
+        range: jest
+          .fn()
+          .mockRejectedValue(new Error('Database connection failed')),
       };
 
       mockSupabase.from.mockReturnValue(mockQuery as any);
 
-      await expect(contentManagementService.getContent())
-        .rejects.toThrow('Database connection failed');
+      await expect(contentManagementService.getContent()).rejects.toThrow(
+        'Database connection failed',
+      );
 
       expect(mockLoggingService.logError).toHaveBeenCalledWith(
         'Failed to get content',
         expect.any(Error),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
